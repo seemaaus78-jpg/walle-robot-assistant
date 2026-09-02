@@ -219,7 +219,16 @@ class Assistant:
                 log.error("gesture %r failed: %s", reply.gesture, exc)
 
         if reply.text:
-            self.speaker.speak(reply.text, lang=reply.lang)
+            spoken = self.speaker.speak(reply.text, lang=reply.lang)
+            if not spoken and reply.lang != "en":
+                # The translation worked but there is no voice to say it in.
+                # This is easy to hit now that the online backend can translate
+                # into any language while Piper only has the voices you
+                # installed. Standing there silent looks like a crash.
+                name = LANGUAGE_NAMES.get(reply.lang, reply.lang)
+                self.speaker.speak(
+                    f"I translated that, but I have no {name} voice installed."
+                )
 
     def greet(self) -> None:
         self.speaker.speak("Wall E system ready.")

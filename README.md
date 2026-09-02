@@ -1,9 +1,14 @@
 # WALL-E Hybrid Robot Assistant
 
-An offline-first voice assistant for a small desktop robot, built around a
-Radxa Cubie A7Z. It listens continuously, answers questions about cities,
-translates phrases, and gestures with four servos — with no network connection
-required for any of it.
+A hybrid voice assistant for a small desktop robot, built around a Radxa Cubie
+A7Z. It listens continuously, answers questions about cities, translates
+phrases, and gestures with four servos.
+
+**Two answering paths, one robot.** With Wi-Fi and a free Gemini API key it
+answers from the cloud. Without either — no signal, no key, rate limited, API
+down — the on-board Vosk, SQLite and Argos models answer instead, and the robot
+behaves identically apart from less detail. Nothing about it *requires* a
+network.
 
 Design inspiration: <https://youtu.be/5MZ6O6yT73M>
 
@@ -25,13 +30,30 @@ extract you build):
 Everything above runs from the SD card. Wi-Fi, when present, is an optional
 accelerator — never a requirement.
 
-## Why offline-first
+## How the two paths divide
+
+| | Offline | Online (Gemini) |
+|---|---|---|
+| City questions | Where it is, population, region — fixed fields from GeoNames | Anything: what to eat, when to go, whether it is worth the detour |
+| Translation | One installed Argos pair, ~100 MB each on disk | Any language pair, nothing stored locally |
+| Latency | Tens of milliseconds | A network round trip, capped at 6 s |
+| Available | Always | With Wi-Fi, a key, and quota left |
 
 A travel assistant is most useful exactly where connectivity is worst, and a
-robot that behaves differently on the bench and in the field is a robot you
-cannot debug. So the local models answer everything, and an online backend — if
-you configure one — only ever gets first refusal. Anything it declines or fails
-on falls through to the local path.
+robot that behaves differently on the bench and in the field is one you cannot
+debug. So the local path is the guaranteed one and the cloud only ever gets
+first refusal — anything it declines, times out on, or errors on falls straight
+through.
+
+Two rules keep that honest:
+
+- **Motion and shutdown never leave the robot.** Only questions go upstream.
+  "wave", "nod" and "shut down" are handled locally whatever the network is
+  doing; a robot that stops obeying you because an API is slow is a worse robot.
+- **Failure is always downward.** Nothing in `walle/online.py` can raise into
+  the main loop. A rate limit or server error also puts the cloud path to sleep
+  for a minute rather than retrying into the limit. The only symptom you ever
+  see is a less detailed answer.
 
 ## Hardware
 
@@ -54,6 +76,7 @@ soldering — there are two things about the TP4056 that will bite you.
 | Speech to text | Vosk, small English model, offline |
 | Text to speech | Piper, offline neural voices |
 | Translation | Argos Translate, offline |
+| Cloud answering | Gemini API, optional, stdlib `urllib` only |
 | City knowledge | SQLite over a GeoNames extract (~200k places) |
 | Motion | libgpiod, 50 Hz software PWM |
 | OS | Headless Armbian / Radxa OS |
@@ -72,8 +95,22 @@ pip install --no-cache-dir -r requirements.txt
 ./scripts/fetch_models.sh          # Vosk model, Piper binary, voices
 cp config.example.toml config.toml # then edit the GPIO lines and audio device
 
+# Optional: free key from https://aistudio.google.com/apikey
+export GEMINI_API_KEY=your-key-here
+
 python3 main_assistant.py
 ```
+
+The startup log tells you which mode you are in:
+
+```
+walle.online: online backend: Gemini (gemini-2.5-flash)     <- hybrid
+walle.online: no API key in $GEMINI_API_KEY; running offline-only
+```
+
+The key is read from the environment, never from `config.toml`, so it cannot be
+committed alongside your GPIO offsets. `--offline` forces the local path even
+with a key and a connection, which is the easiest way to hear the difference.
 
 ### Try it with no hardware at all
 
@@ -137,6 +174,7 @@ walle/
   cities.py                name normalisation, n-gram scan, SQLite lookup
   translation.py           Argos wrapper with cached language pairs
   net.py                   cached connectivity probe
+  online.py                Gemini backend, rate-limit cooldown
   assistant.py             routing and orchestration
   tts.py                   Piper invocation and playback
   stt.py                   PortAudio capture and Vosk decoding
@@ -146,7 +184,7 @@ scripts/
   build_city_db.py         build world_cities.db from a GeoNames dump
 systemd/                   unit file for running at boot
 docs/                      hardware, architecture, setup, defects fixed
-tests/                     103 tests, stdlib unittest, no hardware needed
+tests/                     143 tests, stdlib unittest, no hardware needed
 ```
 
 ## Tests
@@ -155,18 +193,29 @@ tests/                     103 tests, stdlib unittest, no hardware needed
 python3 -m unittest discover -s tests -t .
 ```
 
-103 tests, no dependencies beyond the standard library — so they also run on the
+143 tests, no dependencies beyond the standard library — so they also run on the
 board itself, where installing pytest is a waste of a card you want for models.
 
 They cover intent routing, city name extraction and lookup, the Piper command
 construction, connectivity caching, servo pulse-width maths and the PWM thread,
 config parsing, and the full response path with every device faked.
 
+The Gemini backend is tested through a fake transport, so no test touches the
+network. That covers the parts that actually matter in the field: that a rate
+limit hands back to SQLite, that gestures still work with a dead API, that a
+safety block or a malformed response produces a local answer rather than
+silence, and that the API key travels in a header and never in a URL.
+
 ## Status and verification
 
-The conversation logic is complete and tested. The hardware layer is written
-against the datasheets and the design specification but has **not** been run on
-a physical robot — I had no board, microphone, servos or speaker available.
+The conversation logic, both answering paths and the handoff between them are
+complete and tested. The hardware layer is written against the datasheets and
+the design specification but has **not** been run on a physical robot — I had no
+board, microphone, servos or speaker available.
+
+The Gemini backend has not been run against the live API either: it is tested
+against a fake transport, so the request shape and every failure path are
+covered, but the first real call is yours to make.
 
 Specifically unverified: the software PWM timing in practice, the RAM figures,
 the 4.5–5.5 hour battery estimate, the device tree overlay procedure, and Vosk
@@ -184,4 +233,5 @@ high line instead of PWM — are catalogued with their fixes and tests in
 City data from [GeoNames](https://www.geonames.org/), CC BY 4.0. Speech
 recognition by [Vosk](https://alphacephei.com/vosk/), synthesis by
 [Piper](https://github.com/rhasspy/piper), translation by
-[Argos Translate](https://github.com/argosopentech/argos-translate).
+[Argos Translate](https://github.com/argosopentech/argos-translate), cloud
+answering by the [Gemini API](https://ai.google.dev/).

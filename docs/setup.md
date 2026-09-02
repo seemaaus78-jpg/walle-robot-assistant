@@ -117,7 +117,41 @@ for from_code, to_code in [("en", "es")]:          # add pairs here
 EOF
 ```
 
-## 6. City database
+## 6. Gemini API key (optional)
+
+Skip this and the robot is offline-only, which is a complete and supported
+configuration — it just answers with less detail.
+
+Get a free key at <https://aistudio.google.com/apikey>, then make it available
+to the assistant:
+
+```bash
+echo 'GEMINI_API_KEY=your-key-here' | sudo tee /etc/walle.env
+sudo chmod 600 /etc/walle.env
+```
+
+and point the systemd unit at it by adding to `[Service]`:
+
+```ini
+EnvironmentFile=/etc/walle.env
+```
+
+For an interactive run, `export GEMINI_API_KEY=...` is enough.
+
+The key is read from the environment and never from `config.toml`, so it cannot
+be committed to git alongside your GPIO offsets. Check which mode you are in
+from the startup log:
+
+```
+walle.online: online backend: Gemini (gemini-2.5-flash)     <- hybrid
+walle.online: no API key in $GEMINI_API_KEY; running offline-only
+```
+
+Free-tier model names and quotas change; if the log starts reporting cooldowns,
+check the current model list at <https://ai.google.dev/gemini-api/docs/models>
+and update `model` in `config.toml`.
+
+## 7. City database
 
 Build it on a laptop — indexing 200,000 rows on an SD card is slow — then copy
 the finished file across.
@@ -144,7 +178,7 @@ ASCII alternate names, so "bombay" finds Mumbai.
 GeoNames data is CC BY 4.0 — keep the attribution if you redistribute the
 database.
 
-## 7. Configure
+## 8. Configure
 
 ```bash
 cp config.example.toml config.toml
@@ -157,7 +191,7 @@ Edit at minimum:
 - `[audio] playback_device` — from `aplay -l`, if `default` is not the amplifier
 - `[tts] binary` — the path `fetch_models.sh` printed
 
-## 8. Try it without hardware first
+## 9. Try it without hardware first
 
 ```bash
 python3 main_assistant.py --text \
@@ -176,7 +210,7 @@ Then the real thing:
 python3 main_assistant.py -v
 ```
 
-## 9. Run at boot
+## 10. Run at boot
 
 ```bash
 sudo cp systemd/walle-assistant.service /etc/systemd/system/
@@ -199,3 +233,6 @@ journalctl -u walle-assistant -f
 | Board reboots when an arm moves | Servos sharing the logic rail. Give them their own boost converter. |
 | `motion disabled (...)` in the log | Wrong `chip` name, or the user is not in the `gpio` group. |
 | Everything is slow after boot | Argos paging in on a 1 GB board. Expected once; see [architecture.md](architecture.md). |
+| Answers are less detailed than expected | Running offline-only. Check the startup log for the `no API key` line. |
+| Log shows `Gemini unavailable (HTTP 429)` | Free-tier per-minute limit. It answers locally and retries after the cooldown; nothing to fix. |
+| Log shows `HTTP 403, check the API key` | Key is wrong, expired, or the Generative Language API is not enabled for it. |

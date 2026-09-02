@@ -14,7 +14,10 @@
 vosk==0.3.45              # offline speech recognition (~100 MB with the small model)
 PyAudio==0.2.14           # PortAudio bindings for the INMP441 capture stream
 argostranslate==1.9.6     # offline translation; language packs installed separately
-requests==2.32.3          # only used by the optional online backend
+
+# The Gemini online backend deliberately uses stdlib urllib rather than requests
+# or the Google SDK: it is one HTTP POST, and on a 1 GB board the SDK's
+# transitive dependencies cost more RAM than the feature is worth.
 
 # gpiod comes from the distribution, not pip: the Python bindings must match the
 # libgpiod version Armbian ships, and the pip package frequently does not.

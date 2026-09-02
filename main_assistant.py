@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import signal
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ from walle.cities import CityDatabase
 from walle.config import Config, load_config
 from walle.motion import ServoBank
 from walle.net import ConnectivityMonitor
+from walle.online import build_online_backend
 from walle.stt import ScriptedRecogniser, SpeechRecogniser
 from walle.translation import ArgosTranslator
 from walle.tts import NullSpeaker, PiperSpeaker
@@ -52,6 +54,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--no-motion", action="store_true", help="do not drive the servos"
+    )
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="never call the cloud, even with an API key and a connection",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="log at DEBUG level"
@@ -118,6 +125,11 @@ def main(argv: list[str] | None = None) -> int:
             config.translate.source_lang, config.translate.target_lang
         ),
         connectivity=ConnectivityMonitor(config.network),
+        online=None
+        if args.offline
+        else build_online_backend(
+            config.online, os.environ.get(config.online.api_key_env)
+        ),
     )
 
     def handle_signal(signum: int, _frame: object) -> None:

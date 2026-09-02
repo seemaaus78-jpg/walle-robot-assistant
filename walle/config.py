@@ -139,6 +139,35 @@ class NetworkConfig:
 
 
 @dataclass(frozen=True)
+class OnlineConfig:
+    """Cloud answering. Optional by design - the robot is complete without it.
+
+    The API key is read from the environment, never from the config file, so a
+    key cannot be committed to git along with the GPIO offsets.
+    """
+
+    enabled: bool = True
+    provider: str = "gemini"
+    api_key_env: str = "GEMINI_API_KEY"
+
+    model: str = "gemini-2.5-flash"
+    """Free-tier model names change. Check the current list at
+    https://ai.google.dev/gemini-api/docs/models before assuming this one is
+    still available."""
+
+    timeout_s: float = 6.0
+    """Kept short: the robot is standing there silent while this runs, and a
+    local answer now beats a better answer in fifteen seconds."""
+
+    cooldown_s: float = 60.0
+    """How long to stop calling the API after a rate limit or server error."""
+
+    temperature: float = 0.4
+    max_output_tokens: int = 160
+    default_target_lang: str = "es"
+
+
+@dataclass(frozen=True)
 class CityConfig:
     database: Path = Path("world_cities.db")
     max_name_words: int = 4
@@ -163,6 +192,7 @@ class Config:
     network: NetworkConfig = field(default_factory=NetworkConfig)
     city: CityConfig = field(default_factory=CityConfig)
     translate: TranslateConfig = field(default_factory=TranslateConfig)
+    online: OnlineConfig = field(default_factory=OnlineConfig)
 
     def resolve_paths(self) -> "Config":
         """Make every model/database path absolute against ``base_dir``."""
@@ -255,5 +285,7 @@ def load_config(path: Path | None = None) -> Config:
         cfg = replace(cfg, city=CityConfig(**section))
     if section := raw.get("translate"):
         cfg = replace(cfg, translate=TranslateConfig(**section))
+    if section := raw.get("online"):
+        cfg = replace(cfg, online=OnlineConfig(**section))
 
     return cfg.resolve_paths()

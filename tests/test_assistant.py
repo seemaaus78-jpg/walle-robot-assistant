@@ -277,3 +277,77 @@ class RunLoopTests(AssistantHarness):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HybridHandoffTests(AssistantHarness):
+    """The whole point of the design: one robot, two answering paths."""
+
+    def backend(self, *responses):
+        from tests.test_online import FakeClock, FakeTransport
+        from walle.config import OnlineConfig
+        from walle.online import GeminiBackend
+
+        self.transport = FakeTransport(*responses)
+        return GeminiBackend(
+            OnlineConfig(), "key", transport=self.transport, clock=FakeClock()
+        )
+
+    def gemini(self, text):
+        from tests.test_online import gemini_response
+
+        return gemini_response(text)
+
+    def test_online_answer_is_used_when_reachable(self):
+        backend = self.backend(self.gemini("Tokyo is enormous and worth a week."))
+        assistant = self.make(online=True, backend=backend)
+        self.assertIn("worth a week", assistant.respond("tell me about tokyo").text)
+
+    def test_same_question_answered_locally_when_offline(self):
+        backend = self.backend()  # any request would raise
+        assistant = self.make(online=False, backend=backend)
+        self.assertIn("Tokyo is in Japan", assistant.respond("tell me about tokyo").text)
+        self.assertEqual(self.transport.calls, [])
+
+    def test_rate_limited_backend_hands_back_to_sqlite(self):
+        import urllib.error
+
+        backend = self.backend(
+            urllib.error.HTTPError("http://x", 429, "rate limited", {}, None)
+        )
+        assistant = self.make(online=True, backend=backend)
+        # First question burns the quota, second must not even try.
+        self.assertIn("Tokyo is in Japan", assistant.respond("tell me about tokyo").text)
+        self.assertIn("Tokyo is in Japan", assistant.respond("tell me about tokyo").text)
+        self.assertEqual(len(self.transport.calls), 1)
+
+    def test_gestures_work_with_a_dead_api(self):
+        backend = self.backend()  # any request raises
+        assistant = self.make(["wave your hand", "shut down"], online=True, backend=backend)
+        assistant.run()
+        self.assertIn("wave", self.motion.gestures)
+        self.assertEqual(self.transport.calls, [])
+
+    def test_online_translation_reaches_the_speaker_in_the_target_language(self):
+        backend = self.backend(self.gemini("Le musée est fermé."))
+        assistant = self.make(online=True, backend=backend)
+        reply = assistant.respond("translate the museum is closed into french")
+        self.assertEqual(reply.lang, "fr")
+        self.assertEqual(reply.text, "Le musée est fermé.")
+
+
+class MissingVoiceTests(AssistantHarness):
+    def test_a_translation_with_no_voice_is_explained_not_silent(self):
+        """Gemini can translate into any language; Piper only has the voices
+        that are installed. The gap must be spoken, not swallowed."""
+
+        class VoicelessSpeaker(NullSpeaker):
+            def speak(self, text, lang="en"):
+                if lang != "en":
+                    return False
+                return super().speak(text, lang)
+
+        self.speaker = VoicelessSpeaker()
+        assistant = self.make()
+        assistant.deliver(Reply("Le musée est fermé.", lang="fr"))
+        spoken = [text for _, text in self.speaker.spoken]
+        self.assertTrue(any("no french voice" in line.lower() for line in spoken), spoken)

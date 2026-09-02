@@ -22,6 +22,13 @@ SupplementaryGroups=gpio audio
 WorkingDirectory=/home/radxa/travel_assistant
 Environment=PYTHONUNBUFFERED=1
 Environment=WALLE_CONFIG=/home/radxa/travel_assistant/config.toml
+
+# Optional: the Gemini API key. Without this the robot runs offline-only, which
+# is a fully supported configuration. Create the file with mode 600:
+#     echo 'GEMINI_API_KEY=your-key' | sudo tee /etc/walle.env
+#     sudo chmod 600 /etc/walle.env
+# The dash makes a missing file a no-op rather than a startup failure.
+EnvironmentFile=-/etc/walle.env
 ExecStart=/home/radxa/travel_assistant/.venv/bin/python main_assistant.py
 
 # The assistant traps SIGTERM, rests the servos and releases the GPIO lines.

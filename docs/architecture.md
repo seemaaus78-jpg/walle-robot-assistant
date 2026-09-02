@@ -58,9 +58,35 @@ reasons. A travel assistant is most useful exactly where connectivity is worst.
 And a robot whose behaviour differs between the bench and the field is a robot
 you cannot debug.
 
-No online backend ships with this repository. `walle/assistant.py` defines the
-`OnlineBackend` protocol — one method, `answer(intent) -> Reply | None` — and
-returning `None` means "I have nothing, use the local models".
+`walle/assistant.py` defines the `OnlineBackend` protocol — one method,
+`answer(intent) -> Reply | None` — where returning `None` means "I have nothing,
+use the local models". `walle/online.py` implements it against the Gemini API.
+
+### What each path is good at
+
+| | Offline | Online (Gemini) |
+|---|---|---|
+| City questions | Where it is, population, region. Fixed fields from GeoNames. | Anything: what to eat, when to go, whether it is worth a detour. |
+| Translation | One installed Argos pair, ~100 MB each on disk. | Any language pair, nothing stored locally. |
+| Latency | Tens of milliseconds. | A network round trip, capped at `timeout_s`. |
+| Works | Always. | With Wi-Fi, a key, and quota remaining. |
+
+### What never goes upstream
+
+`GeminiBackend.answer` returns `None` for every intent except a city question
+or a translation. Mode switches, gestures, status, help and shutdown are handled
+locally whatever the network is doing — a robot that stops obeying "shut down"
+because an API is slow is a worse robot.
+
+### Failure is always downward
+
+Nothing in `walle/online.py` can raise into the main loop. A timeout, a dropped
+connection, a malformed response, a safety block, an expired key, a 500 — each
+returns `None` and the local models answer. A 429 (the free tier's per-minute
+limit) or a server error additionally puts the backend to sleep for
+`cooldown_s`, because retrying into a rate limit just burns the next minute too.
+
+From the outside the only symptom is a less detailed answer.
 
 ## Module map
 
@@ -71,6 +97,7 @@ returning `None` means "I have nothing, use the local models".
 | `walle/cities.py` | Name normalisation, n-gram scan, SQLite lookup | none |
 | `walle/translation.py` | Argos wrapper, cached language pairs | Argos packs |
 | `walle/net.py` | Cached connectivity probe | none |
+| `walle/online.py` | Gemini API backend, cooldown handling | none (faked transport) |
 | `walle/assistant.py` | Routing, response text, orchestration | none |
 | `walle/tts.py` | Piper invocation, playback | speaker |
 | `walle/stt.py` | PortAudio capture, Vosk decoding | microphone |

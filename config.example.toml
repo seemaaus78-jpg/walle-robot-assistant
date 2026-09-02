@@ -57,6 +57,36 @@ source_lang = "en"
 target_lang = "es"
 
 
+[online]
+# The hybrid half. With a key and a connection, Gemini answers city questions
+# and translations; without either, the local models answer and the robot
+# behaves identically apart from less detail. Motion and shutdown commands are
+# never sent upstream.
+enabled = true
+provider = "gemini"
+
+# The key is read from this environment variable, never from this file, so it
+# cannot be committed alongside your GPIO offsets. Get a free key at
+# https://aistudio.google.com/apikey then either export it:
+#     export GEMINI_API_KEY=...
+# or add it to the systemd unit as an EnvironmentFile.
+api_key_env = "GEMINI_API_KEY"
+
+# Free-tier model names change. Check https://ai.google.dev/gemini-api/docs/models
+# before assuming this one is still current.
+model = "gemini-2.5-flash"
+
+# Short on purpose: the robot stands there silent while this runs, and a local
+# answer now beats a better answer in fifteen seconds.
+timeout_s = 6.0
+# After a rate limit or server error, stop calling the API for this long and
+# answer locally instead of retrying into the limit.
+cooldown_s = 60.0
+
+temperature = 0.4
+max_output_tokens = 160
+
+
 [city]
 database = "world_cities.db"
 # Longest place name the utterance scanner will try, in words.

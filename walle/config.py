@@ -139,6 +139,63 @@ class NetworkConfig:
 
 
 @dataclass(frozen=True)
+class DisplayConfig:
+    """The panel on the robot's face.
+
+    ``device`` is a Linux framebuffer: ``/dev/fb1`` for an SPI panel bound
+    through fbtft, ``/dev/fb0`` for HDMI. Geometry is read from sysfs, not
+    configured, so there is nothing here to get wrong.
+    """
+
+    enabled: bool = True
+    device: str = "/dev/fb1"
+    swap_bytes: bool = False
+    """Some ILI9341 boards are wired big-endian. If the face renders in the
+    wrong colours, flip this before suspecting the wiring."""
+
+    font_path: str | None = None
+    sleep_after_s: float = 120.0
+    """Silence before the eyes close. Also the point at which the robot
+    visibly stops listening, which is worth being able to see."""
+
+    card_seconds: float = 6.0
+    """How long a map or an information card stays up before the face
+    returns."""
+
+
+@dataclass(frozen=True)
+class ChatConfig:
+    """Open-ended conversation.
+
+    Offline chat is pattern-matched, not a language model - see walle/chat.py
+    for why a local model does not fit alongside Vosk, Argos and Piper on a
+    1 GB board. The llama.cpp fields are a seam for the 2 GB build.
+    """
+
+    enabled: bool = True
+    history_turns: int = 8
+    local_model_binary: str | None = None
+    local_model_path: str | None = None
+    local_model_timeout_s: float = 25.0
+
+
+@dataclass(frozen=True)
+class MapConfig:
+    enabled: bool = True
+    tile_cache: Path = Path("tiles")
+    """Doubles as the offline tile pack: anything already here is used without
+    a connection."""
+
+    url_template: str = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    grid: int = 2
+    timeout_s: float = 5.0
+    user_agent: str = ""
+    """Left empty to use the project default. OpenStreetMap's tile policy
+    requires a real identifying User-Agent; put your own contact here if you
+    use this heavily."""
+
+
+@dataclass(frozen=True)
 class OnlineConfig:
     """Cloud answering. Optional by design - the robot is complete without it.
 
@@ -193,6 +250,9 @@ class Config:
     city: CityConfig = field(default_factory=CityConfig)
     translate: TranslateConfig = field(default_factory=TranslateConfig)
     online: OnlineConfig = field(default_factory=OnlineConfig)
+    display: DisplayConfig = field(default_factory=DisplayConfig)
+    chat: ChatConfig = field(default_factory=ChatConfig)
+    maps: MapConfig = field(default_factory=MapConfig)
 
     def resolve_paths(self) -> "Config":
         """Make every model/database path absolute against ``base_dir``."""
@@ -212,6 +272,7 @@ class Config:
             speech=replace(self.speech, model_path=under(self.speech.model_path)),
             tts=replace(self.tts, voices_dir=under(self.tts.voices_dir), voices=voices),
             city=replace(self.city, database=under(self.city.database)),
+            maps=replace(self.maps, tile_cache=under(self.maps.tile_cache)),
         )
 
 
@@ -287,5 +348,14 @@ def load_config(path: Path | None = None) -> Config:
         cfg = replace(cfg, translate=TranslateConfig(**section))
     if section := raw.get("online"):
         cfg = replace(cfg, online=OnlineConfig(**section))
+    if section := raw.get("display"):
+        cfg = replace(cfg, display=DisplayConfig(**section))
+    if section := raw.get("chat"):
+        cfg = replace(cfg, chat=ChatConfig(**section))
+    if section := raw.get("maps"):
+        section = dict(section)
+        if "tile_cache" in section:
+            section["tile_cache"] = Path(section["tile_cache"])
+        cfg = replace(cfg, maps=MapConfig(**section))
 
     return cfg.resolve_paths()

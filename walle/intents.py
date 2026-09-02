@@ -20,6 +20,7 @@ from .cities import normalise
 class Mode(str, Enum):
     CITY = "CITY"
     TRANSLATE = "TRANSLATE"
+    CHAT = "CHAT"
 
 
 class IntentKind(str, Enum):
@@ -28,6 +29,8 @@ class IntentKind(str, Enum):
     MOTION = "motion"
     CITY_QUERY = "city_query"
     TRANSLATE_QUERY = "translate_query"
+    CHAT_QUERY = "chat_query"
+    MAP_QUERY = "map_query"
     STATUS = "status"
     HELP = "help"
     SHUTDOWN = "shutdown"
@@ -80,6 +83,11 @@ MODE_PHRASES: tuple[tuple[str, Mode], ...] = (
     ("city guide mode", Mode.CITY),
     ("city mode", Mode.CITY),
     ("travel guide mode", Mode.CITY),
+    ("switch to chat", Mode.CHAT),
+    ("chat mode", Mode.CHAT),
+    ("lets talk", Mode.CHAT),
+    ("let us talk", Mode.CHAT),
+    ("conversation mode", Mode.CHAT),
 )
 
 GESTURE_PHRASES: tuple[tuple[str, str], ...] = (
@@ -105,9 +113,13 @@ STATUS_PHRASES = (
     "are you online",
     "status report",
     "system status",
-    "how are you",
     "battery status",
 )
+
+# Phrases that mean "report your state" when the robot is working, and mean
+# small talk when you have explicitly asked it to chat. Routing them as status
+# in chat mode makes the robot answer a friendly question with a diagnostic.
+CONVERSATIONAL_STATUS = ("how are you", "how do you feel", "are you okay")
 
 HELP_PHRASES = (
     "what can you do",
@@ -127,6 +139,16 @@ _SET_LANGUAGE = re.compile(
 # translate, not fall through and get looked up as a city name.
 _TRANSLATE_PREFIX = re.compile(
     r"^(?:please\s+)?(?:translate|say)(?:\s+(?P<body>.+))?$"
+)
+
+# "show me a map of kyoto" / "show kyoto on the map" / "map of kyoto".
+_MAP_OF = re.compile(
+    r"^(?:(?:can you\s+)?(?:show|display|pull up|bring up)\s+(?:me\s+)?)?"
+    r"(?:a\s+|the\s+)?map\s+(?:of\s+|for\s+)?(?P<place>.+)$"
+)
+_MAP_ON = re.compile(
+    r"^(?:show|display|find|put)\s+(?:me\s+)?(?P<place>.+?)\s+on\s+"
+    r"(?:a|the)\s+map$"
 )
 
 
@@ -161,8 +183,21 @@ def parse(transcript: str, mode: Mode) -> Intent:
     if _matches_any(text, STATUS_PHRASES):
         return Intent(IntentKind.STATUS, text=text)
 
+    if _matches_any(text, CONVERSATIONAL_STATUS):
+        if mode is Mode.CHAT:
+            return Intent(IntentKind.CHAT_QUERY, text=text)
+        return Intent(IntentKind.STATUS, text=text)
+
     if _matches_any(text, HELP_PHRASES):
         return Intent(IntentKind.HELP, text=text)
+
+    # Maps are checked before translation so "show me a map of berlin" is not
+    # read as a phrase to translate while in translator mode.
+    for pattern in (_MAP_ON, _MAP_OF):
+        if match := pattern.match(text):
+            place = match.group("place").strip()
+            if place:
+                return Intent(IntentKind.MAP_QUERY, text=place)
 
     # "translate the museum is closed into french" carries its own target.
     if match := _TRANSLATE_TO.match(text):
@@ -179,4 +214,10 @@ def parse(transcript: str, mode: Mode) -> Intent:
 
     if mode is Mode.TRANSLATE:
         return Intent(IntentKind.TRANSLATE_QUERY, text=text)
+    if mode is Mode.CHAT:
+        # Chat mode does not try to guess from phrasing whether something is a
+        # place question - "what is the weather like" starts with the same
+        # words as "what is Prague". The assistant resolves it against the
+        # database instead, which is a fact rather than a heuristic.
+        return Intent(IntentKind.CHAT_QUERY, text=text)
     return Intent(IntentKind.CITY_QUERY, text=text)

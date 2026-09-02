@@ -17,14 +17,17 @@ from walle.cities import (
 )
 
 ROWS = [
-    # name, country, code, admin, population
-    ("Tokyo", "Japan", "JP", "Tokyo", 8336599),
-    ("New York City", "United States", "US", "New York", 8804190),
-    ("York", "United Kingdom", "GB", "England", 153717),
-    ("Bogotá", "Colombia", "CO", "Bogota D.C.", 7674366),
-    ("Springfield", "United States", "US", "Massachusetts", 153606),
-    ("Springfield", "United States", "US", "Missouri", None),
-    ("Nuuk", "Greenland", "GL", None, None),
+    # name, country, code, admin, population, latitude, longitude
+    ("Tokyo", "Japan", "JP", "Tokyo", 8336599, 35.6895, 139.6917),
+    ("New York City", "United States", "US", "New York", 8804190, 40.7143, -74.0060),
+    ("York", "United Kingdom", "GB", "England", 153717, 53.9591, -1.0815),
+    ("Bogotá", "Colombia", "CO", "Bogota D.C.", 7674366, 4.6097, -74.0817),
+    ("Springfield", "United States", "US", "Massachusetts", 153606, 42.1015, -72.5898),
+    ("Springfield", "United States", "US", "Missouri", None, 37.2153, -93.2982),
+    ("Nuuk", "Greenland", "GL", None, 18326, 64.1836, -51.7214),
+    # Deliberately has no coordinates: the map path has to cope with a city it
+    # knows about but cannot place.
+    ("Innsbruck", "Austria", "AT", "Tyrol", 132493, None, None),
 ]
 
 
@@ -34,8 +37,8 @@ def make_db(path: Path, rows=ROWS) -> None:
     conn.executemany(
         INSERT_SQL,
         [
-            (name, normalise(name), country, code, admin, pop, None, None, None, None)
-            for name, country, code, admin, pop in rows
+            (name, normalise(name), country, code, admin, pop, lat, lon, None, None)
+            for name, country, code, admin, pop, lat, lon in rows
         ],
     )
     conn.commit()
@@ -97,10 +100,12 @@ class LookupTests(unittest.TestCase):
         self.assertEqual(city.admin, "Massachusetts")
 
     def test_null_population_does_not_crash(self):
-        # f"{None:,}" raises TypeError; the draft did exactly that.
-        city = self.db.find_in_utterance("tell me about nuuk")
-        summary = city.summary()
-        self.assertIn("Nuuk is in Greenland", summary)
+        # f"{None:,}" raises TypeError; the draft did exactly that. Springfield
+        # Missouri is the fixture row with no population figure.
+        city = self.db.lookup("springfield")
+        self.assertIsNotNone(city)
+        summary = City("Springfield", "United States", None, admin="Missouri").summary()
+        self.assertIn("Springfield is in Missouri, United States", summary)
         self.assertNotIn("population", summary)
 
     def test_missing_city_raises(self):

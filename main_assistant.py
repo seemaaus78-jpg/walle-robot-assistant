@@ -23,8 +23,11 @@ import sys
 from pathlib import Path
 
 from walle.assistant import Assistant
+from walle.chat import OfflineChat
 from walle.cities import CityDatabase
 from walle.config import Config, load_config
+from walle.display import build_display
+from walle.maps import MapRenderer, TileSource
 from walle.motion import ServoBank
 from walle.net import ConnectivityMonitor
 from walle.online import build_online_backend
@@ -61,6 +64,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="never call the cloud, even with an API key and a connection",
     )
     parser.add_argument(
+        "--no-display", action="store_true", help="do not drive the face panel"
+    )
+    parser.add_argument(
         "-v", "--verbose", action="store_true", help="log at DEBUG level"
     )
     return parser
@@ -90,6 +96,20 @@ def open_motion(config: Config, disabled: bool) -> ServoBank | None:
         return None
 
 
+def open_maps(config: Config, offline: bool) -> MapRenderer:
+    """Tiles come from the cache first, so a downloaded pack works offline."""
+    source = TileSource(
+        cache_dir=config.maps.tile_cache,
+        user_agent=config.maps.user_agent or None,
+        url_template=config.maps.url_template,
+        timeout_s=config.maps.timeout_s,
+        offline=offline or not config.maps.enabled,
+    )
+    if not config.maps.user_agent:
+        source.user_agent = TileSource().user_agent
+    return MapRenderer(source)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     logging.basicConfig(
@@ -115,12 +135,23 @@ def main(argv: list[str] | None = None) -> int:
             log.error("cannot start speech recognition: %s", exc)
             return 1
 
+    cities = open_cities(config)
+    display = build_display(
+        enabled=config.display.enabled and not args.no_display,
+        device=config.display.device,
+        swap_bytes=config.display.swap_bytes,
+        font_path=config.display.font_path,
+    )
+
     assistant = Assistant(
         config=config,
         speaker=speaker,
         recogniser=recogniser,
         motion=open_motion(config, args.no_motion or dry_run),
-        cities=open_cities(config),
+        cities=cities,
+        display=display,
+        chat=OfflineChat(cities),
+        maps=open_maps(config, offline=args.offline),
         translator=ArgosTranslator(
             config.translate.source_lang, config.translate.target_lang
         ),

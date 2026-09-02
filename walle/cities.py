@@ -157,6 +157,12 @@ class City:
     population: int | None = None
     admin: str | None = None
     description: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+
+    @property
+    def has_location(self) -> bool:
+        return self.latitude is not None and self.longitude is not None
 
     def summary(self) -> str:
         """A sentence suitable for handing straight to text-to-speech."""
@@ -221,7 +227,7 @@ class CityDatabase:
     def lookup(self, name: str) -> City | None:
         """Find one city by normalised name, preferring the most populous."""
         selected = ["name", "country"]
-        for optional in ("population", "admin", "description"):
+        for optional in ("population", "admin", "description", "latitude", "longitude"):
             if optional in self._columns:
                 selected.append(optional)
 
@@ -249,7 +255,28 @@ class CityDatabase:
             population=row["population"] if "population" in keys else None,
             admin=row["admin"] if "admin" in keys else None,
             description=row["description"] if "description" in keys else None,
+            latitude=row["latitude"] if "latitude" in keys else None,
+            longitude=row["longitude"] if "longitude" in keys else None,
         )
+
+    def random_city(self, min_population: int = 250_000) -> City | None:
+        """A populous city at random, for offline small talk.
+
+        Restricted to somewhere sizeable because "here is something
+        interesting" followed by a hamlet of 400 people is not interesting.
+        """
+        if "population" not in self._columns:
+            return None
+        try:
+            row = self._conn.execute(
+                "SELECT name FROM cities WHERE population >= ? "
+                "ORDER BY RANDOM() LIMIT 1;",
+                (min_population,),
+            ).fetchone()
+        except sqlite3.Error as exc:
+            log.error("random city lookup failed: %s", exc)
+            return None
+        return self.lookup(row["name"]) if row else None
 
     def find_in_utterance(self, text: str, max_words: int = 4) -> City:
         """Scan an utterance for a place name and return the first match."""

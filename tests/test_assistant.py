@@ -13,6 +13,7 @@ from tests.test_cities import make_db
 from walle.assistant import Assistant, Reply
 from walle.cities import CityDatabase
 from walle.config import Config
+from walle.face import Emotion
 from walle.intents import Intent, IntentKind, Mode
 from walle.stt import ScriptedRecogniser
 from walle.translation import TranslationUnavailable
@@ -124,7 +125,7 @@ class OnlineRegressionTests(AssistantHarness):
 class OnlineBackendTests(AssistantHarness):
     def test_backend_answer_is_preferred_when_online(self):
         class Backend:
-            def answer(self, intent: Intent):
+            def answer(self, intent: Intent, history=None):
                 return Reply("Tokyo is the capital of Japan, live from the cloud.")
 
         assistant = self.make(online=True, backend=Backend())
@@ -132,7 +133,7 @@ class OnlineBackendTests(AssistantHarness):
 
     def test_backend_is_skipped_when_offline(self):
         class Backend:
-            def answer(self, intent: Intent):
+            def answer(self, intent: Intent, history=None):
                 raise AssertionError("must not be called while offline")
 
         assistant = self.make(online=False, backend=Backend())
@@ -140,7 +141,7 @@ class OnlineBackendTests(AssistantHarness):
 
     def test_backend_declining_falls_through_to_local_models(self):
         class Backend:
-            def answer(self, intent: Intent):
+            def answer(self, intent: Intent, history=None):
                 return None
 
         assistant = self.make(online=True, backend=Backend())
@@ -148,7 +149,7 @@ class OnlineBackendTests(AssistantHarness):
 
     def test_backend_raising_falls_through_to_local_models(self):
         class Backend:
-            def answer(self, intent: Intent):
+            def answer(self, intent: Intent, history=None):
                 raise ConnectionError("504 from the API")
 
         assistant = self.make(online=True, backend=Backend())
@@ -351,3 +352,213 @@ class MissingVoiceTests(AssistantHarness):
         assistant.deliver(Reply("Le musée est fermé.", lang="fr"))
         spoken = [text for _, text in self.speaker.spoken]
         self.assertTrue(any("no french voice" in line.lower() for line in spoken), spoken)
+
+
+class FakeDisplay:
+    """Records what would have gone on the panel."""
+
+    def __init__(self, size=(240, 240)):
+        self.size = size
+        self.cards = []
+        self.images = []
+        self.emotions = []
+        self.face_shown = 0
+
+    def set_emotion(self, emotion, gaze=(0.0, 0.0)):
+        self.emotions.append(emotion)
+
+    def show_card(self, card):
+        self.cards.append(card)
+
+    def show_image(self, image):
+        self.images.append(image)
+
+    def show_face(self):
+        self.face_shown += 1
+
+    def close(self):
+        return None
+
+
+class FakeMaps:
+    def __init__(self, image="a-map"):
+        self.image = image
+        self.requests = []
+
+    def render(self, request, size):
+        self.requests.append((request, size))
+        return self.image
+
+
+class ChatModeTests(AssistantHarness):
+    def test_chat_mode_still_answers_place_questions_from_the_database(self):
+        """Offline, a real city answer beats an apology for having no signal."""
+        assistant = self.make()
+        assistant.respond("lets talk")
+        reply = assistant.respond("tell me about tokyo")
+        self.assertIn("Tokyo is in Japan", reply.text)
+
+    def test_chat_mode_falls_back_to_small_talk(self):
+        assistant = self.make()
+        assistant.respond("lets talk")
+        self.assertIn("Wall E", assistant.respond("who are you").text)
+
+    def test_offline_chat_admits_its_limits(self):
+        assistant = self.make()
+        assistant.respond("lets talk")
+        reply = assistant.respond("what do you think about monetary policy")
+        self.assertIn("connection", reply.text)
+
+    def test_mode_label_is_announced_correctly(self):
+        # A two-way conditional cannot name a third mode.
+        assistant = self.make()
+        self.assertIn("chat", assistant.respond("lets talk").text)
+        self.assertIn("translator", assistant.respond("switch to translator").text)
+        self.assertIn("city guide", assistant.respond("switch to city guide").text)
+
+    def test_history_records_both_sides(self):
+        assistant = self.make()
+        assistant.deliver(assistant.respond("tell me about tokyo"))
+        roles = [turn.role for turn in assistant.history.turns()]
+        self.assertIn("user", roles)
+        self.assertIn("model", roles)
+
+
+class MapTests(AssistantHarness):
+    def setUp(self):
+        super().setUp()
+        self.display = FakeDisplay()
+        self.maps = FakeMaps()
+
+    def make_with_display(self, transcripts=(), maps=None):
+        from walle.emotion import EmotionEngine
+
+        clock = lambda: 1000.0  # noqa: E731 - frozen so cards never expire mid-test
+        return Assistant(
+            config=Config(),
+            speaker=self.speaker,
+            recogniser=ScriptedRecogniser(list(transcripts)),
+            motion=self.motion,
+            cities=self.cities,
+            translator=self.translator,
+            connectivity=self.connectivity,
+            display=self.display,
+            maps=self.maps if maps is None else maps,
+            emotions=EmotionEngine(clock),
+            clock=clock,
+        )
+
+    def test_map_request_is_centred_on_the_city(self):
+        assistant = self.make_with_display()
+        assistant.deliver(assistant.respond("show me a map of tokyo"))
+        self.assertEqual(len(self.maps.requests), 1)
+        request, size = self.maps.requests[0]
+        self.assertAlmostEqual(request.latitude, 35.6895, places=2)
+        self.assertAlmostEqual(request.longitude, 139.6917, places=2)
+        self.assertEqual(size, (240, 240))
+        self.assertEqual(self.display.images, ["a-map"])
+
+    def test_zoom_follows_city_size(self):
+        assistant = self.make_with_display()
+        assistant.deliver(assistant.respond("map of tokyo"))
+        assistant.deliver(assistant.respond("map of nuuk"))
+        big, small = (r.zoom for r, _ in self.maps.requests)
+        self.assertLess(big, small)
+
+    def test_unrenderable_map_falls_back_to_the_facts(self):
+        # A grey square looks like a rendering bug; the facts do not.
+        assistant = self.make_with_display(maps=FakeMaps(image=None))
+        assistant.deliver(assistant.respond("show me a map of tokyo"))
+        self.assertEqual(self.display.images, [])
+        self.assertEqual(self.display.cards[-1].title, "Tokyo")
+
+    def test_city_without_coordinates_is_reported(self):
+        # Known place, no coordinates: say so and show the facts rather than
+        # rendering a map of the middle of the ocean.
+        assistant = self.make_with_display()
+        reply = assistant.respond("show me a map of innsbruck")
+        self.assertIn("do not have its coordinates", reply.text)
+        self.assertEqual(self.maps.requests, [])
+
+    def test_unknown_place_is_not_a_crash(self):
+        assistant = self.make_with_display()
+        reply = assistant.respond("show me a map of atlantis")
+        self.assertIn("could not find", reply.text.lower())
+        self.assertEqual(self.maps.requests, [])
+
+    def test_city_answers_put_a_card_on_the_panel(self):
+        assistant = self.make_with_display()
+        assistant.deliver(assistant.respond("tell me about tokyo"))
+        card = self.display.cards[-1]
+        self.assertEqual(card.title, "Tokyo")
+        self.assertTrue(any("8,336,599" in line for line in card.lines))
+
+    def test_a_dead_panel_does_not_stop_the_answer(self):
+        class BrokenDisplay(FakeDisplay):
+            def show_card(self, card):
+                raise RuntimeError("SPI error")
+
+        self.display = BrokenDisplay()
+        assistant = self.make_with_display()
+        assistant.deliver(assistant.respond("tell me about tokyo"))
+        spoken = [text for _, text in self.speaker.spoken]
+        self.assertTrue(any("Tokyo is in Japan" in line for line in spoken))
+
+
+class EmotionIntegrationTests(AssistantHarness):
+    def setUp(self):
+        super().setUp()
+        self.display = FakeDisplay()
+
+    def make_expressive(self, transcripts=()):
+        from walle.emotion import EmotionEngine
+
+        self.time = [1000.0]
+        clock = lambda: self.time[0]  # noqa: E731
+        return Assistant(
+            config=Config(),
+            speaker=self.speaker,
+            recogniser=ScriptedRecogniser(list(transcripts)),
+            cities=self.cities,
+            translator=self.translator,
+            connectivity=self.connectivity,
+            display=self.display,
+            emotions=EmotionEngine(clock),
+            clock=clock,
+        )
+
+    def test_hearing_something_shows_on_the_face(self):
+        assistant = self.make_expressive()
+        assistant.respond("tell me about tokyo")
+        self.assertIn(Emotion.LISTENING, self.display.emotions)
+
+    def test_a_miss_looks_confused(self):
+        assistant = self.make_expressive()
+        assistant.deliver(assistant.respond("tell me about atlantis"))
+        self.assertIs(assistant.emotions.current(), Emotion.CONFUSED)
+
+    def test_a_hit_looks_pleased(self):
+        assistant = self.make_expressive()
+        assistant.deliver(assistant.respond("tell me about tokyo"))
+        self.assertIs(assistant.emotions.current(), Emotion.HAPPY)
+
+    def test_an_error_looks_sad(self):
+        class Boom(FakeTranslator):
+            def translate(self, text, from_code=None, to_code=None):
+                raise RuntimeError("unexpected")
+
+        self.translator = Boom()
+        assistant = self.make_expressive(["translate hello"])
+        assistant.run()
+        self.assertIs(assistant.emotions.current(), Emotion.SAD)
+
+    def test_boot_greeting_is_happy(self):
+        assistant = self.make_expressive()
+        assistant.greet()
+        self.assertIs(assistant.emotions.current(), Emotion.HAPPY)
+
+    def test_it_falls_asleep_when_left_alone(self):
+        assistant = self.make_expressive()
+        assistant.greet()
+        self.time[0] += Config().display.sleep_after_s + 1
+        self.assertTrue(assistant.emotions.is_asleep)

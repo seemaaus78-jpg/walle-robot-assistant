@@ -1,0 +1,507 @@
+<title>Tiny WALL-E Build Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+:root{
+  --paper:#F2F4F1; --panel:#FFFFFF; --sunk:#E7EBE6;
+  --ink:#1B211F; --ink-2:#4A5551; --ink-3:#77827D;
+  --rule:#D3DAD4; --rule-2:#BCC5BE;
+  --brass:#8F6524; --brass-bright:#B0813B;
+  --eye:#177C7C; --eye-soft:#DCF0EE;
+  --mat:#2C463E;
+  --rust:#A63D26; --rust-soft:#F7E4DE;
+  --grid:rgba(44,70,62,.055);
+  --shadow:0 1px 2px rgba(27,33,31,.06),0 8px 24px -12px rgba(27,33,31,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#111614; --panel:#1A211E; --sunk:#151B19;
+    --ink:#E7ECE8; --ink-2:#AAB5B0; --ink-3:#7C8783;
+    --rule:#2A332F; --rule-2:#3A453F;
+    --brass:#D2A05A; --brass-bright:#E0B076;
+    --eye:#4FC4C0; --eye-soft:#12302F;
+    --mat:#9FBDB2;
+    --rust:#E08063; --rust-soft:#331813;
+    --grid:rgba(159,189,178,.05);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111614; --panel:#1A211E; --sunk:#151B19;
+  --ink:#E7ECE8; --ink-2:#AAB5B0; --ink-3:#7C8783;
+  --rule:#2A332F; --rule-2:#3A453F;
+  --brass:#D2A05A; --brass-bright:#E0B076;
+  --eye:#4FC4C0; --eye-soft:#12302F;
+  --mat:#9FBDB2;
+  --rust:#E08063; --rust-soft:#331813;
+  --grid:rgba(159,189,178,.05);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,serif; font-size:17px; line-height:1.66;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:820px;margin:0 auto;padding:0 22px 96px}
+a{color:var(--eye)}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.86em}
+
+/* ---------- masthead ---------- */
+.mast{padding:52px 0 30px;border-bottom:3px solid var(--ink)}
+.eyebrow{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.16em;font-size:14px;color:var(--brass)}
+h1{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;letter-spacing:-.01em;
+  font-size:clamp(42px,8vw,72px);line-height:.94;margin:10px 0 14px;text-wrap:balance;text-transform:uppercase}
+.standfirst{font-size:19px;color:var(--ink-2);max-width:62ch;margin:0}
+.mast-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.tag{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.09em;
+  font-size:13px;padding:4px 11px;border:1px solid var(--rule-2);border-radius:2px;color:var(--ink-2);background:var(--panel)}
+
+/* ---------- sections ---------- */
+section{margin-top:56px;scroll-margin-top:20px}
+.part-head{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--rule);padding-bottom:9px;margin-bottom:22px}
+.part-num{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;font-size:15px;letter-spacing:.1em;
+  color:var(--paper);background:var(--ink);padding:3px 9px;border-radius:2px;white-space:nowrap}
+h2{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.005em;
+  font-size:clamp(25px,4.2vw,34px);line-height:1.06;margin:0;text-wrap:balance}
+h3{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.05em;
+  font-size:19px;margin:32px 0 8px;color:var(--brass)}
+p{margin:0 0 15px;max-width:68ch}
+ul,ol{max-width:68ch;padding-left:22px;margin:0 0 15px}
+li{margin-bottom:7px}
+strong{font-weight:600}
+.lede{font-size:18.5px;color:var(--ink-2)}
+
+/* ---------- callouts ---------- */
+.note{border-left:3px solid var(--rule-2);background:var(--panel);padding:14px 18px;margin:20px 0;border-radius:0 3px 3px 0}
+.danger{border-left:3px solid var(--rust);background:var(--rust-soft);padding:15px 18px;margin:22px 0;border-radius:0 3px 3px 0}
+.danger .lbl{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.13em;
+  font-size:13px;color:var(--rust);display:block;margin-bottom:5px}
+.note .lbl{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.13em;
+  font-size:13px;color:var(--ink-3);display:block;margin-bottom:5px}
+.danger p:last-child,.note p:last-child,.check p:last-child{margin-bottom:0}
+
+/* checkpoint = the eyes lighting up */
+.check{border:1px solid var(--eye);border-left:4px solid var(--eye);background:var(--eye-soft);
+  padding:15px 18px;margin:24px 0;border-radius:0 3px 3px 0}
+.check .lbl{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.13em;
+  font-size:13px;color:var(--eye);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.eyes{display:inline-flex;gap:3px}
+.eyes i{width:7px;height:10px;background:var(--eye);border-radius:2.5px;display:block}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;margin:18px 0;border:1px solid var(--rule);border-radius:3px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  font-size:13px;text-align:left;padding:9px 13px;background:var(--sunk);color:var(--ink-2);
+  border-bottom:1px solid var(--rule-2);white-space:nowrap}
+td{padding:9px 13px;border-bottom:1px solid var(--rule);vertical-align:top;font-size:15.5px}
+tr:last-child td{border-bottom:none}
+td.mono,th.mono{font-family:"JetBrains Mono",monospace;font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+/* Part-spec lines sit under the name on their own row rather than wrapping
+   into a narrow three-line stack. */
+td span.mono{display:block;font-size:12.5px;color:var(--ink-3);margin-top:2px;line-height:1.35}
+table td:first-child{min-width:11.5rem}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- decision cards ---------- */
+.fork{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:22px 0}
+.opt{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:17px}
+.opt.pick{border-color:var(--brass);border-top:3px solid var(--brass)}
+.opt h4{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  font-size:17px;margin:0 0 3px}
+.opt .verdict{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.1em;font-size:12px;color:var(--brass);margin-bottom:10px}
+.opt ul{font-size:15px;padding-left:18px;margin:0}
+.opt li{margin-bottom:5px;color:var(--ink-2)}
+
+/* ---------- signal flow ---------- */
+.flow{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:20px;margin:22px 0}
+.flow-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:11px}
+.flow-row:last-child{margin-bottom:0}
+.blk{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  font-size:13px;padding:6px 11px;border:1px solid var(--rule-2);border-radius:2px;background:var(--sunk);white-space:nowrap}
+.blk.core{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.blk.out{border-color:var(--eye);color:var(--eye)}
+.arw{color:var(--ink-3);font-family:"JetBrains Mono",monospace;font-size:13px}
+
+/* ---------- steps ---------- */
+.steps{counter-reset:s;list-style:none;padding:0;margin:18px 0}
+.steps>li{counter-increment:s;position:relative;padding-left:42px;margin-bottom:16px}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:1px;
+  font-family:"Barlow Condensed",Arial,sans-serif;font-weight:700;font-size:14px;
+  width:26px;height:26px;display:grid;place-items:center;
+  background:var(--brass);color:#fff;border-radius:50%}
+:root[data-theme="dark"] .steps>li::before{color:#111614}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .steps>li::before{color:#111614}}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:14px 0;font-size:15.5px}
+.kv dt{font-family:"Barlow Condensed",Arial,sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.06em;font-size:13px;color:var(--ink-3);padding-top:3px}
+.kv dd{margin:0}
+footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:var(--ink-3);font-size:14.5px}
+:focus-visible{outline:2px solid var(--eye);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">Build Manual · First Electronics Project</div>
+  <h1>Tiny WALL·E</h1>
+  <p class="standfirst">A palm-sized robot on brass tracks that sees, talks and thinks. Written for someone who has never soldered, never wired a circuit, and does not yet know what a resistor does.</p>
+  <div class="mast-meta">
+    <span class="tag">~£75 / $95 in parts</span>
+    <span class="tag">3 weekends</span>
+    <span class="tag">Soldering required</span>
+    <span class="tag">No 3D printer needed</span>
+  </div>
+</header>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 0</span><h2>The one decision to make first</h2></div>
+  <p class="lede">Everything else follows from this, so do not skip it.</p>
+  <p>The robot needs a <strong>brain board</strong> — a small computer that listens, thinks and drives the motors. There are two families to choose from, and they lead to completely different builds. The parts list from the original video uses the first one.</p>
+
+  <div class="fork">
+    <div class="opt pick">
+      <h4>XIAO ESP32S3 Sense</h4>
+      <div class="verdict">Recommended — start here</div>
+      <ul>
+        <li>21 × 17.5 mm — genuinely fits this robot</li>
+        <li>Camera and microphone already on the board</li>
+        <li>Plug in USB-C, click upload, done</li>
+        <li><strong>All the AI happens in the cloud.</strong> It cannot think without Wi-Fi</li>
+      </ul>
+    </div>
+    <div class="opt">
+      <h4>A Linux board</h4>
+      <div class="verdict">Later, if you want offline</div>
+      <ul>
+        <li>Radxa Cubie A7Z, Raspberry Pi Zero 2 W</li>
+        <li>Can run speech recognition with no internet at all</li>
+        <li>Bigger than this entire robot — needs a larger body</li>
+        <li>Linux setup will fight you for a week as a beginner</li>
+      </ul>
+    </div>
+  </div>
+
+  <p><strong>Take the XIAO.</strong> It is what the reference robot uses, it physically fits, and as a first project you want to spend your time on soldering and building — not on Linux audio drivers, which defeat experienced engineers regularly.</p>
+
+  <div class="note">
+    <span class="lbl">What you give up</span>
+    <p>A microcontroller has about <strong>8 MB</strong> of memory. Offline speech recognition needs roughly <strong>620 MB</strong>. So with the XIAO, every question your robot answers goes to the internet and back. No Wi-Fi means it can still drive, blink and make noise — but it cannot understand you.</p>
+    <p>If offline matters to you later, you do not have to rebuild the robot. See <a href="#tweaks">Part 11</a>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 1</span><h2>What you are actually building</h2></div>
+  <p>Six things bolted to a brass frame. Sound goes in one side, sound and movement come out the other.</p>
+
+  <div class="flow">
+    <div class="flow-row">
+      <span class="blk">Microphone</span><span class="arw">→</span>
+      <span class="blk core">XIAO ESP32S3</span><span class="arw">→</span>
+      <span class="blk">Wi-Fi</span><span class="arw">→</span>
+      <span class="blk">Google Gemini</span>
+    </div>
+    <div class="flow-row">
+      <span class="blk">Camera</span><span class="arw">→</span>
+      <span class="blk core">XIAO ESP32S3</span>
+      <span class="arw">and back out to →</span>
+    </div>
+    <div class="flow-row">
+      <span class="arw">→</span>
+      <span class="blk out">Screen — the eyes</span>
+      <span class="blk out">Amplifier → Speaker</span>
+      <span class="blk out">Driver → 2 motors</span>
+    </div>
+  </div>
+
+  <p>The XIAO is the only thing that makes decisions. Everything else either feeds it information or does what it is told. When something does not work, that is the question to ask: <em>is this part feeding in, or being told?</em></p>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 2</span><h2>Electricity, in five minutes</h2></div>
+  <p>Enough to build this safely. Not enough to design your own — that is fine.</p>
+
+  <h3>Voltage, current, ground</h3>
+  <p>Water in a pipe is a good enough picture. <strong>Voltage</strong> (volts, V) is the pressure. <strong>Current</strong> (amps, A) is how much is actually flowing. A part has a pressure it wants — 5 V, 3.3 V — and a flow it draws depending on how hard it is working.</p>
+  <p><strong>Ground</strong> (GND, the "−" side) is the return pipe. Electricity has to get back. This gives you the single most useful rule in the whole build:</p>
+  <div class="note">
+    <span class="lbl">Rule 1 — common ground</span>
+    <p>Every part's GND must connect to every other part's GND. If two parts do not share a ground, signals between them mean nothing and the thing simply will not work — usually with no error and no smoke, which is why beginners lose days to it.</p>
+  </div>
+
+  <h3>Polarity: which way round</h3>
+  <p>Most parts here have a <strong>+</strong> and a <strong>−</strong> and only work one way. Backwards is not "it doesn't turn on" — it is often "it is now dead". Check twice before power goes on. Battery wires are red for + and black for −, near-universally.</p>
+
+  <h3>Why the motors need a driver chip</h3>
+  <p>The XIAO's pins can produce a signal, but almost no power — think of a finger pointing, not a hand pushing. A motor needs a real shove. The <strong>motor driver</strong> (the mini L298N) sits between them: the XIAO tells it what to do with tiny signals, and the driver takes power straight from the battery to actually turn the motors.</p>
+  <div class="danger">
+    <span class="lbl">Never do this</span>
+    <p>Do not wire a motor directly to a XIAO pin. The motor will pull far more current than the pin can give, and you will destroy the board. This is the most common way beginners kill their first microcontroller.</p>
+  </div>
+
+  <h3>The words on the wiring table</h3>
+  <dl class="kv">
+    <dt>GPIO</dt><dd>A pin you can control from code. "General Purpose Input/Output."</dd>
+    <dt>PWM</dt><dd>Switching a pin on and off very fast to fake a middle value. How motor speed is controlled.</dd>
+    <dt>I²S</dt><dd>A three-wire way of moving digital audio. Used by the amplifier.</dd>
+    <dt>SPI</dt><dd>A fast four-wire way of moving data. Used by the screen.</dd>
+    <dt>3V3 / 5V</dt><dd>Power output pins at that voltage. Feeding 5 V into a 3.3 V pin damages it.</dd>
+  </dl>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 3</span><h2>Shopping list</h2></div>
+  <p>Prices are rough and vary by country. Buy the electronics first and test them before you buy the pretty brass.</p>
+
+  <h3>Electronics</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Part</th><th>What it does</th><th class="num">Qty</th></tr></thead>
+    <tbody>
+      <tr><td><strong>XIAO ESP32S3 Sense</strong><br><span class="mono">with OV3660 camera</span></td><td>The brain. Camera and microphone are included on the Sense version — do not buy the plain XIAO ESP32S3, it has neither.</td><td class="num">1</td></tr>
+      <tr><td><strong>1.54″ display</strong><br><span class="mono">SPI, 240×240</span></td><td>The face. Shows the eyes, and later maps and pictures.</td><td class="num">1</td></tr>
+      <tr><td><strong>Gear motors</strong><br><span class="mono">17–68 RPM</span></td><td>Drive the tracks. Slow is correct — a fast motor makes the robot skitter.</td><td class="num">2</td></tr>
+      <tr><td><strong>Mini L298N driver</strong></td><td>Takes orders from the XIAO, gives power to the motors.</td><td class="num">1</td></tr>
+      <tr><td><strong>MAX98357A amplifier</strong></td><td>Turns digital audio into something a speaker can play.</td><td class="num">1</td></tr>
+      <tr><td><strong>Speaker</strong> <span class="mono">8 Ω, small</span></td><td>The voice.</td><td class="num">1</td></tr>
+      <tr><td><strong>LiPo battery</strong><br><span class="mono">3.7 V, 500–1000 mAh</span></td><td>Power. Small is fine — this robot is tiny.</td><td class="num">1</td></tr>
+      <tr><td><strong>TP4056 charger</strong><br><span class="mono">with protection</span></td><td>Recharges the battery over USB-C. <strong>Must be the protected version</strong> — see Part 4.</td><td class="num">1</td></tr>
+      <tr><td><strong>Slide switch</strong></td><td>On and off. Do not skip it; unplugging a battery repeatedly wears the connector out.</td><td class="num">1</td></tr>
+      <tr><td><strong>Thin silicone wire</strong><br><span class="mono">28–30 AWG</span></td><td>Connections. Silicone insulation, not PVC — it does not melt when your iron brushes it.</td><td class="num">1 set</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Body</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>Part</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Copper wire, 1 mm</strong></td><td>The whole frame. Bent by hand, soldered at the joints.</td></tr>
+      <tr><td><strong>Brass tube, 1.5 mm OD</strong></td><td>Axles and stiffening. The copper wire slides inside it.</td></tr>
+      <tr><td><strong>Toy chain / miniature roller chain</strong></td><td>The tank tracks. This is the detail that makes it read as WALL·E.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Tools</h3>
+  <p>If you own none of this, budget about the same again for tools — but you keep them forever.</p>
+  <ul>
+    <li><strong>Soldering iron</strong>, temperature-controlled, set to 320–350 °C. A fixed-temperature £8 iron will make you miserable.</li>
+    <li><strong>Solder</strong>, 0.6 mm, <strong>with flux core</strong>. Leaded 60/40 is far easier to learn on; wash your hands after.</li>
+    <li><strong>Flux paste</strong> — the single biggest difference between ugly joints and clean ones.</li>
+    <li><strong>Side cutters</strong> and <strong>fine needle-nose pliers</strong> for shaping the frame.</li>
+    <li><strong>Multimeter</strong>, any cheap one. Not optional — see Part 6.</li>
+    <li><strong>Helping hands</strong> or a small vice. You have two hands and will need three.</li>
+    <li><strong>Kapton tape</strong> or electrical tape for insulating.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 4</span><h2>Safety — read once, properly</h2></div>
+  <p>Two things here can actually hurt you. Everything else is just fiddly.</p>
+
+  <div class="danger">
+    <span class="lbl">Lithium batteries</span>
+    <p>A LiPo pouch cell stores real energy and fails badly — it can vent flame, not just stop working.</p>
+    <ul>
+      <li><strong>Buy a TP4056 board with protection</strong> (it has two extra chips, marked DW01 and FS8205). The bare version has no over-discharge or short-circuit protection.</li>
+      <li>Never short the battery leads together. Not even briefly.</li>
+      <li>Never puncture, bend or solder directly onto the cell body.</li>
+      <li>If it ever swells, gets hot, or smells sweet — stop, put it outside on concrete, do not charge it again.</li>
+      <li>Charge where you can see it. Not overnight, not on the sofa.</li>
+    </ul>
+  </div>
+
+  <div class="danger">
+    <span class="lbl">Soldering iron</span>
+    <p>The tip runs at 350 °C — hotter than an oven, and it does not look hot. Work near an open window; flux fumes are an irritant. Never catch a falling iron: let it drop and buy a new one. Wear eye protection when you snip wire ends, because they fly.</p>
+  </div>
+
+  <div class="note">
+    <span class="lbl">Charging while it runs</span>
+    <p>A plain TP4056 cannot charge the battery and power the robot at the same time — the charger gets confused about when to stop and can overcharge the cell. Treat charging and playing as separate activities, or buy a board that specifically says <strong>load sharing</strong>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 5</span><h2>Learn to solder — on scrap</h2></div>
+  <p>Do not let your first ever joint be on a £14 board. Buy a cheap practice kit or use spare wire, and spend one evening on this. It is a physical skill and it clicks quickly.</p>
+
+  <ol class="steps">
+    <li><strong>Tin the tip.</strong> Heat the iron, melt a little solder onto the tip, wipe it on a damp sponge or brass wool. A shiny tip transfers heat; a dull black one does not.</li>
+    <li><strong>Heat the parts, not the solder.</strong> Touch the iron to the wire and the pad together for two seconds, <em>then</em> feed solder into the joint. Melting solder on the iron and dabbing it on gives a "cold joint" that looks fine and does not conduct.</li>
+    <li><strong>Watch it flow.</strong> Good solder pulls itself into the joint and forms a smooth cone. Three seconds is usually enough.</li>
+    <li><strong>Use flux.</strong> A smear of flux paste before you start makes solder behave. It is not cheating.</li>
+    <li><strong>Tin both sides first.</strong> To join two wires, put solder on each separately, then hold them together and reheat. Far easier than trying to do it all at once.</li>
+  </ol>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Make ten wire-to-wire joints. Tug each one firmly. If none pull apart and all look smooth and shiny rather than grey and blobby, you are ready to touch the real parts.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 6</span><h2>Test every part before you build anything</h2></div>
+  <p class="lede">This is the part beginners skip, and it is the part that saves the project.</p>
+  <p>Once everything is soldered into a brass frame the size of a matchbox, finding a fault is genuinely awful. Test each part on its own, on the desk, connected with temporary jumper wires. If a part is dead out of the box — and occasionally one is — you want to know now.</p>
+
+  <ol class="steps">
+    <li><strong>The XIAO alone.</strong> Plug in USB-C, install the Arduino IDE, upload the Blink example. The onboard LED flashes. You have now proven the board, the cable and your computer's drivers all work.</li>
+    <li><strong>The screen.</strong> Wire it up on the desk, run a display library example. You should get colour. A white screen usually means the DC or CS wire is wrong; a black screen usually means no backlight power.</li>
+    <li><strong>The speaker.</strong> Amplifier plus speaker, play a test tone. Expect it to be quiet and tinny — it is a tiny speaker.</li>
+    <li><strong>The microphone.</strong> Record a couple of seconds and print the levels. Numbers should jump when you talk and settle when you stop.</li>
+    <li><strong>The camera.</strong> Run the camera web-server example and open the page on your phone.</li>
+    <li><strong>The motors.</strong> Driver plus one motor plus battery. Confirm both directions. Do this before they are trapped inside a chassis.</li>
+    <li><strong>The battery and charger.</strong> Measure the battery with your multimeter — a healthy LiPo reads 3.7–4.2 V. Charge it and watch the light change.</li>
+  </ol>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Seven parts, seven working tests, still lying loose on the desk. Only now do you pick up the copper wire.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 7</span><h2>Build the body</h2></div>
+  <p>The frame is 1 mm copper wire bent by hand and soldered at the corners. The creator of the original provides a template you print on A4 paper and bend the wire directly on top of — use it, because judging these angles by eye does not work.</p>
+
+  <ol class="steps">
+    <li><strong>Print the template at 100%.</strong> Not "fit to page" — that silently shrinks it and nothing will line up.</li>
+    <li><strong>Bend the main box.</strong> Follow the printed lines with needle-nose pliers. Copper is soft; work slowly and it stays where you put it. Overbend and straighten a few times and it work-hardens and snaps, so try to get each bend right the first time.</li>
+    <li><strong>Solder the corners.</strong> Copper sinks heat away fast, so give it longer than you expect and use plenty of flux. A joint that looks starved is starved.</li>
+    <li><strong>Cut brass tube for the axles.</strong> Roll a craft knife around the tube rather than crushing it with cutters.</li>
+    <li><strong>Fit the sprockets and chain.</strong> The chain should turn freely with a little slack. Too tight stalls the motors and flattens your battery in minutes.</li>
+    <li><strong>Mount the motors</strong> so the sprockets line up with the chain. Misalignment throws the track off every time it reverses.</li>
+    <li><strong>Test-drive the bare chassis</strong> before adding electronics — motors, driver, battery, nothing else.</li>
+  </ol>
+
+  <div class="note">
+    <span class="lbl">A frame made of wire is a wire</span>
+    <p>Your chassis conducts. Anything you bolt to it must be insulated from it, or you will short something out. Kapton tape between boards and frame, everywhere they touch.</p>
+  </div>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>It drives forward, backward, and turns on the spot, with nothing on board but motors and a battery. Tracks stay on.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 8</span><h2>Wiring it together</h2></div>
+  <p>Here is the pin budget, and it is genuinely tight. The XIAO gives you eleven usable pins (D0–D10) and this build needs eleven.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>Part</th><th class="mono">Its pin</th><th class="mono">XIAO pin</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="4">Display (SPI)</td><td class="mono">SCK</td><td class="mono">D8</td><td>Hardware SPI clock</td></tr>
+      <tr><td class="mono">MOSI / SDA</td><td class="mono">D10</td><td>Data to screen</td></tr>
+      <tr><td class="mono">CS</td><td class="mono">D1</td><td>Chip select</td></tr>
+      <tr><td class="mono">DC</td><td class="mono">D2</td><td>Command / data</td></tr>
+      <tr><td rowspan="3">Amplifier (I²S)</td><td class="mono">BCLK</td><td class="mono">D3</td><td>Bit clock</td></tr>
+      <tr><td class="mono">LRC</td><td class="mono">D4</td><td>Left/right clock</td></tr>
+      <tr><td class="mono">DIN</td><td class="mono">D5</td><td>Audio data out</td></tr>
+      <tr><td rowspan="4">Motor driver</td><td class="mono">IN1</td><td class="mono">D0</td><td>Left motor</td></tr>
+      <tr><td class="mono">IN2</td><td class="mono">D6</td><td>Left motor</td></tr>
+      <tr><td class="mono">IN3</td><td class="mono">D7</td><td>Right motor</td></tr>
+      <tr><td class="mono">IN4</td><td class="mono">D9</td><td>Right motor</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="danger">
+    <span class="lbl">Verify this against the official pinout</span>
+    <p>I have not built this robot and cannot test these assignments. Pin names and what is already used internally vary between XIAO revisions, and the Sense expansion board reserves pins for the camera, microphone and SD slot. <strong>Open Seeed Studio's official XIAO ESP32S3 pinout diagram and check every row above before you solder.</strong> A wrong pin map is the classic way to lose a weekend.</p>
+  </div>
+
+  <h3>Power wiring</h3>
+  <ul>
+    <li>Battery <strong>+</strong> → switch → TP4056 <span class="mono">B+</span>. Battery <strong>−</strong> → TP4056 <span class="mono">B−</span>.</li>
+    <li>TP4056 <span class="mono">OUT+</span> / <span class="mono">OUT−</span> feed the XIAO and the motor driver.</li>
+    <li>The screen and amplifier take <strong>3V3</strong> from the XIAO, not battery voltage.</li>
+    <li>Every ground joins together. Every single one. See Rule 1.</li>
+  </ul>
+
+  <div class="note">
+    <span class="lbl">Order of assembly</span>
+    <p>Solder power and ground first and confirm the correct voltages with your multimeter <em>before</em> any chip is connected. Then add one part at a time, testing after each. Wiring everything and then powering up gives you no idea which of eleven connections is wrong.</p>
+  </div>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Multimeter on the power rails reads 3.3 V and battery voltage where expected, with no chips fitted. Nothing gets warm. Now fit the boards.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 9</span><h2>Loading the software</h2></div>
+  <ol class="steps">
+    <li><strong>Install the Arduino IDE</strong> and add ESP32 board support through Boards Manager. Select "XIAO_ESP32S3".</li>
+    <li><strong>If it will not upload</strong>, hold the BOOT button, tap RESET, release BOOT. That forces the board into flashing mode.</li>
+    <li><strong>Put in your Wi-Fi details and your Gemini key.</strong> A free key comes from Google AI Studio. Keep it out of any code you publish.</li>
+    <li><strong>Upload, then open Serial Monitor at 115200 baud.</strong> This is where the robot tells you what it is doing, and it is your main debugging tool from here on.</li>
+  </ol>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Eyes appear on the screen. It connects to Wi-Fi. You say hello and it answers.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 10</span><h2>When it does not work</h2></div>
+  <div class="scroll"><table>
+    <thead><tr><th>Symptom</th><th>Look here first</th></tr></thead>
+    <tbody>
+      <tr><td>Computer does not see the board</td><td>The USB cable. Very many are charge-only with no data wires. Try another before anything else.</td></tr>
+      <tr><td>Screen stays black</td><td>Backlight power, then the DC and CS wires.</td></tr>
+      <tr><td>Screen is white</td><td>It has power but no data — SPI wiring or the wrong driver in code.</td></tr>
+      <tr><td>Silence from the speaker</td><td>The amplifier's <span class="mono">SD</span> pin. Despite the name it is a mode select, not shutdown — floating means silent.</td></tr>
+      <tr><td>Microphone hears nothing</td><td>Sample rate mismatch, or you are reading the wrong channel.</td></tr>
+      <tr><td>One motor runs backwards</td><td>Swap that motor's two wires. Entirely normal.</td></tr>
+      <tr><td>Reboots whenever it moves</td><td>The motors are dragging the voltage down. Add a large capacitor across the motor supply, or check the chain is not too tight.</td></tr>
+      <tr><td>Works on USB, dies on battery</td><td>Battery flat, protection tripped, or the switch is not passing enough current.</td></tr>
+      <tr><td>Nothing works, no smoke</td><td>Grounds. It is nearly always grounds.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="tweaks">
+  <div class="part-head"><span class="part-num">Part 11</span><h2>Our changes to the original</h2></div>
+  <p>The reference robot sends everything to the cloud. That is the right call for a first build. But it means no Wi-Fi, no robot — and a travel assistant is most useful exactly where signal is worst.</p>
+
+  <h3>The plan: give it a second brain</h3>
+  <p>The robot stays exactly as built. We add a <strong>brain server</strong> — a program running on any laptop or Raspberry Pi on your home Wi-Fi that does speech recognition, translation and city lookups entirely offline. The robot asks whichever brain is available.</p>
+
+  <div class="flow">
+    <div class="flow-row">
+      <span class="blk core">Robot</span><span class="arw">asks →</span>
+      <span class="blk out">Brain server (offline)</span><span class="arw">if reachable</span>
+    </div>
+    <div class="flow-row">
+      <span class="blk core">Robot</span><span class="arw">asks →</span>
+      <span class="blk">Gemini (cloud)</span><span class="arw">otherwise</span>
+    </div>
+  </div>
+
+  <p>That server already exists in this repository — Python, 244 passing tests, offline speech and translation, a database of about 200,000 cities, an animated emotional face, chat, and map rendering. It was written for a Linux board before we knew the robot used a XIAO. Rather than throw it away, it becomes the optional offline half.</p>
+
+  <h3>Other planned changes</h3>
+  <ul>
+    <li><strong>Maps on the face.</strong> Ask about a city and see it on the screen, not just hear about it.</li>
+    <li><strong>Real emotions.</strong> Eye shape carries the mood — narrow when thinking, tall when listening, drooping when it failed — and it blinks and falls asleep when ignored.</li>
+    <li><strong>Never silent.</strong> If the cloud is rate-limited or down, it answers from what it has locally rather than standing there saying nothing.</li>
+  </ul>
+</section>
+
+<footer>
+  <p><strong>Honest limits of this guide.</strong> I have not built this robot. The build sequence, safety guidance and electronics explanations are sound, but the pin table in Part 8 is a proposal that must be checked against Seeed Studio's official XIAO ESP32S3 pinout, and the prices and timings are estimates. Treat Part 8 as something to verify, not to copy.</p>
+  <p>Original robot design and frame template by <strong>Huy Vector / HVT Lab</strong>.</p>
+</footer>
+
+</div>

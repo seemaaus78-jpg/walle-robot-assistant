@@ -28,6 +28,7 @@ import urllib.request
 from typing import Callable
 
 from .assistant import Reply
+from .chat import ChatHistory
 from .config import OnlineConfig
 from .intents import LANGUAGE_NAMES, Intent, IntentKind
 
@@ -43,6 +44,14 @@ SYSTEM_INSTRUCTION = (
     "Never use markdown, bullet points, headings, emoji, or parentheses. "
     "Write numbers and units as a person would say them aloud. "
     "If you do not know something, say so in one short sentence."
+)
+
+CHAT_INSTRUCTION = (
+    "You are the voice of a small desk robot called Wall E, a travel "
+    "assistant with a dry, warm manner. Reply in at most two short sentences "
+    "of plain spoken English. Never use markdown, bullet points, emoji or "
+    "parentheses. Do not offer lists of options. If you do not know something, "
+    "say so plainly."
 )
 
 TRANSLATE_INSTRUCTION = (
@@ -102,7 +111,9 @@ class GeminiBackend:
 
     # -- OnlineBackend -----------------------------------------------------
 
-    def answer(self, intent: Intent) -> Reply | None:
+    def answer(
+        self, intent: Intent, history: ChatHistory | None = None
+    ) -> Reply | None:
         """Answer if this is a question and the API is usable, else None."""
         if self._cooling_down():
             return None
@@ -112,6 +123,8 @@ class GeminiBackend:
                 return self._answer_city(intent)
             case IntentKind.TRANSLATE_QUERY:
                 return self._answer_translation(intent)
+            case IntentKind.CHAT_QUERY:
+                return self._answer_chat(intent, history)
             case _:
                 # Mode switches, gestures, status, help and shutdown are local
                 # concerns. Sending them upstream would make the robot stop
@@ -146,6 +159,20 @@ class GeminiBackend:
             return None
         return Reply(text, lang=target)
 
+    def _answer_chat(
+        self, intent: Intent, history: ChatHistory | None
+    ) -> Reply | None:
+        """Open-ended conversation, with the last few turns for context."""
+        body = intent.text.strip()
+        if not body:
+            return None
+        text = self._generate(
+            CHAT_INSTRUCTION, body, history=history
+        )
+        if text is None:
+            return None
+        return Reply(text)
+
     # -- API plumbing ------------------------------------------------------
 
     def _cooling_down(self) -> bool:
@@ -159,11 +186,27 @@ class GeminiBackend:
             self._config.cooldown_s,
         )
 
-    def _generate(self, system: str, prompt: str) -> str | None:
+    def _generate(
+        self, system: str, prompt: str, history: ChatHistory | None = None
+    ) -> str | None:
         url = f"{API_ROOT}/{self._config.model}:generateContent"
+
+        contents: list[dict] = []
+        if history is not None:
+            # The current utterance is already the last user turn in history,
+            # so it is dropped here and re-added as the prompt to avoid saying
+            # it twice.
+            turns = history.turns()
+            if turns and turns[-1].role == "user":
+                turns = turns[:-1]
+            contents = [
+                {"role": turn.role, "parts": [{"text": turn.text}]} for turn in turns
+            ]
+        contents.append({"role": "user", "parts": [{"text": prompt}]})
+
         payload = {
             "systemInstruction": {"parts": [{"text": system}]},
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "contents": contents,
             "generationConfig": {
                 "temperature": self._config.temperature,
                 "maxOutputTokens": self._config.max_output_tokens,

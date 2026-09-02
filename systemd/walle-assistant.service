@@ -1,0 +1,43 @@
+# Install with:
+#     sudo cp systemd/walle-assistant.service /etc/systemd/system/
+#     sudo systemctl daemon-reload
+#     sudo systemctl enable --now walle-assistant
+#
+# Follow the logs with:
+#     journalctl -u walle-assistant -f
+
+[Unit]
+Description=WALL-E Hybrid Robot Assistant
+# Sound and GPIO must exist before the service starts.
+After=sound.target network.target
+Wants=sound.target
+
+[Service]
+Type=simple
+User=radxa
+Group=radxa
+# Access to /dev/gpiochip* and the ALSA devices without running as root.
+SupplementaryGroups=gpio audio
+
+WorkingDirectory=/home/radxa/travel_assistant
+Environment=PYTHONUNBUFFERED=1
+Environment=WALLE_CONFIG=/home/radxa/travel_assistant/config.toml
+ExecStart=/home/radxa/travel_assistant/.venv/bin/python main_assistant.py
+
+# The assistant traps SIGTERM, rests the servos and releases the GPIO lines.
+# Give it time to finish rather than killing it mid-pulse.
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+Restart=on-failure
+RestartSec=5
+# If it crash-loops, stop trying: repeated model loads thrash a 1 GB board.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+# Keep the assistant off the CPU cores the audio thread needs when the board is
+# under load, without letting it starve.
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target

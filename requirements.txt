@@ -1,0 +1,21 @@
+# Runtime dependencies for the robot itself.
+#
+# Install on the board with:
+#     pip install --no-cache-dir -r requirements.txt
+#
+# --no-cache-dir matters on a 64 GB SD card: pip's wheel cache can otherwise
+# consume several hundred megabytes you will want for models.
+#
+# Piper is NOT installed from PyPI here. On arm64 the prebuilt release binary
+# from https://github.com/rhasspy/piper/releases is smaller and faster than the
+# Python package and its onnxruntime dependency; scripts/fetch_models.sh
+# downloads it. Set tts.binary in config.toml if you install it elsewhere.
+
+vosk==0.3.45              # offline speech recognition (~100 MB with the small model)
+PyAudio==0.2.14           # PortAudio bindings for the INMP441 capture stream
+argostranslate==1.9.6     # offline translation; language packs installed separately
+requests==2.32.3          # only used by the optional online backend
+
+# gpiod comes from the distribution, not pip: the Python bindings must match the
+# libgpiod version Armbian ships, and the pip package frequently does not.
+#     sudo apt install python3-libgpiod gpiod

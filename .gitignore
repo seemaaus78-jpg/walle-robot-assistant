@@ -1,0 +1,26 @@
+# Models and data are large binaries fetched by scripts/fetch_models.sh and
+# built by scripts/build_city_db.py. They are deliberately not in git.
+models_stt/
+models_tts/
+*.onnx
+*.onnx.json
+world_cities.db
+*.db
+!tests/**/*.db
+
+# Local configuration with board-specific GPIO offsets and ALSA device names.
+config.toml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store

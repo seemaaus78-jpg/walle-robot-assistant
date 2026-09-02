@@ -1,0 +1,259 @@
+"""Configuration loading.
+
+Defaults are tuned for the Radxa Cubie A7Z build described in docs/hardware.md.
+Every value can be overridden from a TOML file (see config.example.toml); the
+file is looked up at $WALLE_CONFIG, then ./config.toml, then
+~/travel_assistant/config.toml.
+"""
+
+from __future__ import annotations
+
+import os
+import tomllib
+from dataclasses import dataclass, field, replace
+from pathlib import Path
+from typing import Any
+
+DEFAULT_CONFIG_LOCATIONS = (
+    Path("config.toml"),
+    Path.home() / "travel_assistant" / "config.toml",
+)
+
+
+@dataclass(frozen=True)
+class AudioConfig:
+    """Capture settings for the INMP441 I2S microphone."""
+
+    sample_rate: int = 16000
+    """Vosk's small English model is trained at 16 kHz. Do not change."""
+
+    block_frames: int = 4000
+    """Frames handed to Vosk per read. 4000 frames = 250 ms at 16 kHz."""
+
+    channels: int = 1
+    input_device: int | None = None
+    """PortAudio device index. None lets PortAudio pick the default."""
+
+    playback_device: str = "default"
+    """ALSA device name passed to aplay for the MAX98357A amplifier."""
+
+
+@dataclass(frozen=True)
+class SpeechConfig:
+    """Vosk speech-to-text settings."""
+
+    model_path: Path = Path("models_stt/vosk-model-small-en-us-0.15")
+    wake_words: tuple[str, ...] = ()
+    """If non-empty, an utterance is only acted on when it starts with one of
+    these phrases. Empty means always-on listening."""
+
+
+@dataclass(frozen=True)
+class VoiceConfig:
+    """A single Piper voice: the model plus its sidecar JSON."""
+
+    model: Path
+    speaker: int | None = None
+
+    @property
+    def config_path(self) -> Path:
+        """Piper ships <voice>.onnx alongside <voice>.onnx.json."""
+        return self.model.with_suffix(self.model.suffix + ".json")
+
+
+@dataclass(frozen=True)
+class TTSConfig:
+    """Piper text-to-speech settings.
+
+    Voices are mapped explicitly per language code. Piper voice names encode a
+    locale and a quality tier (``es_ES-davefx-medium``), so they cannot be
+    derived from a bare language code such as ``es``.
+    """
+
+    binary: str = "piper"
+    voices_dir: Path = Path("models_tts")
+    voices: dict[str, VoiceConfig] = field(
+        default_factory=lambda: {
+            "en": VoiceConfig(Path("models_tts/en_US-lessac-medium.onnx")),
+            "es": VoiceConfig(Path("models_tts/es_ES-davefx-medium.onnx")),
+        }
+    )
+    fallback_sample_rate: int = 22050
+    """Used only if a voice's sidecar JSON is missing or unreadable."""
+
+    timeout_s: float = 30.0
+
+
+@dataclass(frozen=True)
+class ServoConfig:
+    """One SG90 servo on one GPIO line."""
+
+    name: str
+    line: int
+    min_pulse_us: int = 500
+    max_pulse_us: int = 2500
+    min_angle: float = 0.0
+    max_angle: float = 180.0
+    rest_angle: float = 90.0
+
+
+@dataclass(frozen=True)
+class MotionConfig:
+    """Servo bank settings.
+
+    ``gpiochip1`` line numbers below are placeholders: run ``gpioinfo`` on the
+    board and set the real offsets before wiring anything up.
+    """
+
+    chip: str = "gpiochip1"
+    enabled: bool = True
+    frame_hz: float = 50.0
+    """SG90s expect a 20 ms frame."""
+
+    hold_s: float = 0.45
+    """How long to keep pulsing after reaching a position before detaching."""
+
+    servos: tuple[ServoConfig, ...] = (
+        ServoConfig("neck_pan", line=15),
+        ServoConfig("neck_tilt", line=16),
+        ServoConfig("left_arm", line=17),
+        ServoConfig("right_arm", line=18),
+    )
+
+
+@dataclass(frozen=True)
+class NetworkConfig:
+    """Connectivity probing.
+
+    A plain TCP connect is used rather than an HTTPS request: opening
+    ``https://1.1.1.1`` completes a TLS handshake against an IP address, which
+    is both slower and prone to certificate errors that look like an outage.
+    """
+
+    probe_host: str = "1.1.1.1"
+    probe_port: int = 53
+    timeout_s: float = 1.5
+    cache_ttl_s: float = 30.0
+    """Probe results are reused for this long so the main loop never blocks on
+    a network round trip for every utterance."""
+
+
+@dataclass(frozen=True)
+class CityConfig:
+    database: Path = Path("world_cities.db")
+    max_name_words: int = 4
+    """Longest multi-word city name to try when scanning an utterance
+    ("San Cristobal de las Casas" style names need a wide window)."""
+
+
+@dataclass(frozen=True)
+class TranslateConfig:
+    source_lang: str = "en"
+    target_lang: str = "es"
+
+
+@dataclass(frozen=True)
+class Config:
+    base_dir: Path = Path.cwd()
+    default_mode: str = "CITY"
+    audio: AudioConfig = field(default_factory=AudioConfig)
+    speech: SpeechConfig = field(default_factory=SpeechConfig)
+    tts: TTSConfig = field(default_factory=TTSConfig)
+    motion: MotionConfig = field(default_factory=MotionConfig)
+    network: NetworkConfig = field(default_factory=NetworkConfig)
+    city: CityConfig = field(default_factory=CityConfig)
+    translate: TranslateConfig = field(default_factory=TranslateConfig)
+
+    def resolve_paths(self) -> "Config":
+        """Make every model/database path absolute against ``base_dir``."""
+        base = self.base_dir.expanduser().resolve()
+
+        def under(path: Path) -> Path:
+            path = path.expanduser()
+            return path if path.is_absolute() else base / path
+
+        voices = {
+            code: replace(voice, model=under(voice.model))
+            for code, voice in self.tts.voices.items()
+        }
+        return replace(
+            self,
+            base_dir=base,
+            speech=replace(self.speech, model_path=under(self.speech.model_path)),
+            tts=replace(self.tts, voices_dir=under(self.tts.voices_dir), voices=voices),
+            city=replace(self.city, database=under(self.city.database)),
+        )
+
+
+def _config_path() -> Path | None:
+    env = os.environ.get("WALLE_CONFIG")
+    if env:
+        return Path(env)
+    for candidate in DEFAULT_CONFIG_LOCATIONS:
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _servos_from(raw: list[dict[str, Any]]) -> tuple[ServoConfig, ...]:
+    return tuple(ServoConfig(**entry) for entry in raw)
+
+
+def _voices_from(raw: dict[str, Any]) -> dict[str, VoiceConfig]:
+    voices: dict[str, VoiceConfig] = {}
+    for code, entry in raw.items():
+        if isinstance(entry, str):
+            voices[code] = VoiceConfig(Path(entry))
+        else:
+            voices[code] = VoiceConfig(
+                model=Path(entry["model"]), speaker=entry.get("speaker")
+            )
+    return voices
+
+
+def load_config(path: Path | None = None) -> Config:
+    """Load configuration, falling back to defaults when no file is present."""
+    path = path or _config_path()
+    if path is None or not Path(path).is_file():
+        return Config().resolve_paths()
+
+    with open(path, "rb") as handle:
+        raw = tomllib.load(handle)
+
+    cfg = Config(
+        base_dir=Path(raw.get("base_dir", Path(path).resolve().parent)),
+        default_mode=str(raw.get("default_mode", "CITY")).upper(),
+    )
+
+    if section := raw.get("audio"):
+        cfg = replace(cfg, audio=AudioConfig(**section))
+    if section := raw.get("speech"):
+        section = dict(section)
+        if "model_path" in section:
+            section["model_path"] = Path(section["model_path"])
+        if "wake_words" in section:
+            section["wake_words"] = tuple(section["wake_words"])
+        cfg = replace(cfg, speech=SpeechConfig(**section))
+    if section := raw.get("tts"):
+        section = dict(section)
+        if "voices_dir" in section:
+            section["voices_dir"] = Path(section["voices_dir"])
+        if "voices" in section:
+            section["voices"] = _voices_from(section["voices"])
+        cfg = replace(cfg, tts=TTSConfig(**section))
+    if section := raw.get("motion"):
+        section = dict(section)
+        if "servos" in section:
+            section["servos"] = _servos_from(section["servos"])
+        cfg = replace(cfg, motion=MotionConfig(**section))
+    if section := raw.get("network"):
+        cfg = replace(cfg, network=NetworkConfig(**section))
+    if section := raw.get("city"):
+        section = dict(section)
+        if "database" in section:
+            section["database"] = Path(section["database"])
+        cfg = replace(cfg, city=CityConfig(**section))
+    if section := raw.get("translate"):
+        cfg = replace(cfg, translate=TranslateConfig(**section))
+
+    return cfg.resolve_paths()

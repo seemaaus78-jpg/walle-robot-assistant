@@ -1,0 +1,110 @@
+# Copy to config.toml and edit for your board.
+#
+#     cp config.example.toml config.toml
+#
+# config.toml is gitignored, because GPIO offsets and ALSA device names are
+# specific to one physical robot.
+
+# Everything below resolves relative to this directory unless given as an
+# absolute path.
+base_dir = "/home/radxa/travel_assistant"
+
+# "CITY" or "TRANSLATE"
+default_mode = "CITY"
+
+
+[audio]
+# 16 kHz is what the Vosk small model expects. Changing it degrades accuracy.
+sample_rate = 16000
+# Frames per read. 4000 frames = 250 ms. Larger is more latency, smaller costs
+# more CPU wake-ups. This is also the PortAudio buffer size.
+block_frames = 4000
+channels = 1
+# PortAudio input index. Leave unset for the default; find yours with
+#     python3 -c "import pyaudio;p=pyaudio.PyAudio();[print(i,p.get_device_info_by_index(i)['name']) for i in range(p.get_device_count())]"
+# input_device = 1
+# ALSA output for the MAX98357A. "default" works once the I2S card is the only
+# one; otherwise use the plughw name from `aplay -l`.
+playback_device = "default"
+
+
+[speech]
+model_path = "models_stt/vosk-model-small-en-us-0.15"
+# Leave empty for always-on listening. Set a wake phrase if the robot lives
+# somewhere with background conversation:
+# wake_words = ["hey wally", "wall e"]
+wake_words = []
+
+
+[tts]
+# Path to the Piper executable, or just "piper" if it is on PATH.
+binary = "piper"
+voices_dir = "models_tts"
+# Used only if a voice's .onnx.json sidecar cannot be read.
+fallback_sample_rate = 22050
+
+[tts.voices]
+# Voice names come from https://huggingface.co/rhasspy/piper-voices and encode
+# a locale and a quality tier. They cannot be derived from a bare language code.
+en = "models_tts/en_US-lessac-medium.onnx"
+es = "models_tts/es_ES-davefx-medium.onnx"
+# fr = "models_tts/fr_FR-siwis-medium.onnx"
+# de = "models_tts/de_DE-thorsten-medium.onnx"
+
+
+[translate]
+source_lang = "en"
+target_lang = "es"
+
+
+[city]
+database = "world_cities.db"
+# Longest place name the utterance scanner will try, in words.
+max_name_words = 4
+
+
+[network]
+# A plain TCP connect, not an HTTPS request: no TLS handshake, no certificate
+# surprises, and much faster.
+probe_host = "1.1.1.1"
+probe_port = 53
+timeout_s = 1.5
+# Connectivity is re-checked at most this often, so answering a question never
+# waits on a network round trip.
+cache_ttl_s = 30.0
+
+
+[motion]
+enabled = true
+# Confirm with `gpioinfo`. The chip that carries the 40-pin header is NOT
+# always gpiochip0.
+chip = "gpiochip1"
+frame_hz = 50.0
+# Seconds to keep pulsing after a move before going slack. Longer holds the
+# pose more firmly; shorter saves battery and stops the servos buzzing.
+hold_s = 0.45
+
+# line = the GPIO offset within `chip`, not the physical pin number.
+[[motion.servos]]
+name = "neck_pan"
+line = 15
+rest_angle = 90.0
+
+[[motion.servos]]
+name = "neck_tilt"
+line = 16
+rest_angle = 90.0
+# Narrow the pulse range on the neck so a bad command cannot drive the head
+# into the shell.
+min_pulse_us = 900
+max_pulse_us = 2100
+
+[[motion.servos]]
+name = "left_arm"
+line = 17
+rest_angle = 90.0
+
+[[motion.servos]]
+name = "right_arm"
+line = 18
+rest_angle = 90.0

@@ -26,6 +26,7 @@ class Mode(str, Enum):
 class IntentKind(str, Enum):
     MODE_SWITCH = "mode_switch"
     SET_LANGUAGE = "set_language"
+    SET_LANGUAGE_PAIR = "set_language_pair"
     MOTION = "motion"
     CITY_QUERY = "city_query"
     TRANSLATE_QUERY = "translate_query"
@@ -44,6 +45,10 @@ class Intent:
     mode: Mode | None = None
     gesture: str | None = None
     language: str | None = None
+    """Target language for translation."""
+
+    source_language: str | None = None
+    """Source language, when the speaker named a whole pair."""
 
 
 # Argos language packs most people install for travel use. Spoken language
@@ -137,6 +142,20 @@ _SET_LANGUAGE = re.compile(
 )
 # The body is optional: a clipped "translate" on its own must ask what to
 # translate, not fall through and get looked up as a city name.
+# "translate from english to spanish" names a language PAIR and configures the
+# robot. "translate the museum is closed into spanish" names a PHRASE and is a
+# one-off. Both start with the same word, so the two are told apart by whether
+# the middle is itself a language name - see parse().
+_LANGUAGE_PAIR = re.compile(
+    r"\b(?:translate|translating|translation|convert)\s+(?:from\s+)?"
+    r"(?P<src>[a-z]+)\s+(?:in)?to\s+(?P<dst>[a-z]+)\b"
+)
+
+# "speak spanish", and the tail of "switch to translator mode and speak spanish".
+_SPEAK_LANGUAGE = re.compile(
+    r"\b(?:speak|speaking|talk in|say it in|reply in|answer in)\s+(?P<lang>[a-z]+)\b"
+)
+
 _TRANSLATE_PREFIX = re.compile(
     r"^(?:please\s+)?(?:translate|say)(?:\s+(?P<body>.+))?$"
 )
@@ -167,13 +186,40 @@ def parse(transcript: str, mode: Mode) -> Intent:
     if _matches_any(text, SHUTDOWN_PHRASES):
         return Intent(IntentKind.SHUTDOWN, text=text)
 
+    # A named language pair configures the robot and switches it into
+    # translator mode in one breath, which is how people actually ask.
+    if match := _LANGUAGE_PAIR.search(text):
+        source = LANGUAGE_CODES.get(match.group("src"))
+        target = LANGUAGE_CODES.get(match.group("dst"))
+        if source and target and source != target:
+            return Intent(
+                IntentKind.SET_LANGUAGE_PAIR,
+                text=text,
+                mode=Mode.TRANSLATE,
+                language=target,
+                source_language=source,
+            )
+
     for phrase, target in MODE_PHRASES:
         if phrase in text:
-            return Intent(IntentKind.MODE_SWITCH, text=text, mode=target)
+            # "switch to translator mode and speak spanish" carries both the
+            # mode and the language; dropping the second half silently leaves
+            # the robot translating into whatever it used last.
+            language = None
+            if spoken := _SPEAK_LANGUAGE.search(text):
+                language = LANGUAGE_CODES.get(spoken.group("lang"))
+            return Intent(
+                IntentKind.MODE_SWITCH, text=text, mode=target, language=language
+            )
 
     if match := _SET_LANGUAGE.match(text):
         code = LANGUAGE_CODES.get(match.group("lang"))
         if code:
+            return Intent(IntentKind.SET_LANGUAGE, text=text, language=code)
+
+    # A bare "speak spanish" sets the target language without changing mode.
+    if match := _SPEAK_LANGUAGE.search(text):
+        if code := LANGUAGE_CODES.get(match.group("lang")):
             return Intent(IntentKind.SET_LANGUAGE, text=text, language=code)
 
     for phrase, gesture in GESTURE_PHRASES:

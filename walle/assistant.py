@@ -166,6 +166,7 @@ class Assistant:
             log.warning("unknown default_mode %r; using CITY", config.default_mode)
             self.mode = Mode.CITY
 
+        self.source_lang = config.translate.source_lang
         self.target_lang = config.translate.target_lang
         self._running = False
 
@@ -210,8 +211,31 @@ class Assistant:
             case IntentKind.MODE_SWITCH:
                 assert intent.mode is not None
                 self.mode = intent.mode
+                # "switch to translator mode and speak spanish" sets both.
+                if intent.language:
+                    self.target_lang = intent.language
+                    name = LANGUAGE_NAMES.get(intent.language, intent.language)
+                    return Reply(
+                        f"Translator mode, speaking {name}.", gesture="wave"
+                    )
                 return Reply(
                     f"Switched to {MODE_LABELS[intent.mode]} mode.", gesture="wave"
+                )
+
+            case IntentKind.SET_LANGUAGE_PAIR:
+                assert intent.language is not None
+                assert intent.source_language is not None
+                self.source_lang = intent.source_language
+                self.target_lang = intent.language
+                self.mode = intent.mode or Mode.TRANSLATE
+                source = LANGUAGE_NAMES.get(
+                    intent.source_language, intent.source_language
+                )
+                target = LANGUAGE_NAMES.get(intent.language, intent.language)
+                # Naming both ends back confirms it heard the pair correctly,
+                # which matters when the recogniser is the weak link.
+                return Reply(
+                    f"Translating {source} to {target}. Go ahead.", gesture="nod"
                 )
 
             case IntentKind.SET_LANGUAGE:
@@ -226,9 +250,11 @@ class Assistant:
             case IntentKind.STATUS:
                 where = "online" if self.connectivity.is_online() else "offline"
                 mode = MODE_LABELS[self.mode]
-                name = LANGUAGE_NAMES.get(self.target_lang, self.target_lang)
+                source = LANGUAGE_NAMES.get(self.source_lang, self.source_lang)
+                target = LANGUAGE_NAMES.get(self.target_lang, self.target_lang)
                 return Reply(
-                    f"I am {where}, in {mode} mode, translating into {name}."
+                    f"I am {where}, in {mode} mode, "
+                    f"translating {source} to {target}."
                 )
 
             case IntentKind.HELP:
@@ -266,13 +292,16 @@ class Assistant:
 
     def _answer_translation(self, intent: Intent) -> Reply:
         target = intent.language or self.target_lang
+        if target == self.source_lang:
+            name = LANGUAGE_NAMES.get(target, target)
+            return Reply(f"That is already {name}. Tell me which language to use.")
         body = intent.text.strip()
         if not body:
             return Reply("Tell me what you would like me to translate.")
 
         try:
             translated = self.translator.translate(
-                body, from_code=self.config.translate.source_lang, to_code=target
+                body, from_code=self.source_lang, to_code=target
             )
         except TranslationUnavailable as exc:
             log.error("%s", exc)

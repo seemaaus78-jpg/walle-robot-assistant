@@ -1,4 +1,4 @@
-<title>Tiny WALL-E Build Manual</title>
+<title>Offline Travel Assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -146,311 +146,353 @@ table td:first-child{min-width:11.5rem}
 footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:var(--ink-3);font-size:14.5px}
 :focus-visible{outline:2px solid var(--eye);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style><style>
+/* --- 40-pin header diagram --- */
+.header40{display:grid;grid-template-columns:1fr 1fr;gap:2px 30px;background:var(--panel);
+  border:1px solid var(--rule);border-radius:3px;padding:16px;margin:20px 0;position:relative;font-size:12.5px}
+.header40::before{content:"";position:absolute;left:50%;top:16px;bottom:16px;width:1px;background:var(--rule-2);transform:translateX(-.5px)}
+.pin{display:flex;align-items:center;gap:7px;padding:2px 4px;border-radius:2px;
+  font-family:"JetBrains Mono",monospace;color:var(--ink-3);white-space:nowrap;overflow:hidden}
+.pin.odd{justify-content:flex-end;text-align:right}
+.pin .n{display:inline-grid;place-items:center;min-width:19px;height:17px;border-radius:2px;
+  background:var(--sunk);color:var(--ink-3);font-size:11px;font-weight:700;flex-shrink:0}
+.pin.use{color:var(--ink);font-weight:700}
+.pin.use .n{background:var(--brass);color:#fff}
+.pin.gnd .n{background:var(--ink);color:var(--paper)}
+.pin.pwr .n{background:var(--rust);color:#fff}
+:root[data-theme="dark"] .pin.use .n,:root[data-theme="dark"] .pin.pwr .n{color:#111614}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pin.use .n,
+  :root:not([data-theme="light"]) .pin.pwr .n{color:#111614}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 0;font-size:13px;color:var(--ink-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.swatch{width:13px;height:13px;border-radius:2px;display:inline-block;flex-shrink:0}
+.tree{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:16px 18px;
+  margin:18px 0;font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.75;
+  overflow-x:auto;white-space:pre;color:var(--ink-2)}
+.tree b{color:var(--ink);font-weight:700}
+.tree i{color:var(--ink-3);font-style:normal}
+.bar{display:flex;height:26px;border-radius:3px;overflow:hidden;margin:6px 0 4px;border:1px solid var(--rule)}
+.bar div{display:grid;place-items:center;font-family:"Barlow Condensed",Arial,sans-serif;
+  font-weight:600;font-size:11.5px;color:#fff;letter-spacing:.03em;overflow:hidden;white-space:nowrap}
+.say{font-family:"JetBrains Mono",monospace;font-size:13.5px;color:var(--eye);font-weight:700}
 </style>
 
 <div class="wrap">
 
 <header class="mast">
-  <div class="eyebrow">Build Manual · First Electronics Project</div>
-  <h1>Tiny WALL·E</h1>
-  <p class="standfirst">A palm-sized robot on brass tracks that sees, talks and thinks. Written for someone who has never soldered, never wired a circuit, and does not yet know what a resistor does.</p>
+  <div class="eyebrow">Build Manual · Radxa Cubie A7Z</div>
+  <h1>Offline Travel Assistant</h1>
+  <p class="standfirst">A pocket Linux computer that listens, answers questions about 200,000 cities and translates between languages — with no internet at all. When Wi-Fi is there, it also answers anything, through Gemini. Written for someone who has never soldered.</p>
   <div class="mast-meta">
-    <span class="tag">~£75 / $95 in parts</span>
-    <span class="tag">3 weekends</span>
-    <span class="tag">Soldering required</span>
-    <span class="tag">No 3D printer needed</span>
+    <span class="tag">Radxa Cubie A7Z · 1 GB or 2 GB</span>
+    <span class="tag">~690 MB peak RAM</span>
+    <span class="tag">Works with no internet</span>
+    <span class="tag">6 solder joints</span>
   </div>
 </header>
 
 <section>
-  <div class="part-head"><span class="part-num">Part 0</span><h2>The one decision to make first</h2></div>
-  <p class="lede">Everything else follows from this, so do not skip it.</p>
-  <p>The robot needs a <strong>brain board</strong> — a small computer that listens, thinks and drives the motors. There are two families to choose from, and they lead to completely different builds. The parts list from the original video uses the first one.</p>
+  <div class="part-head"><span class="part-num">Part 0</span><h2>What you are building</h2></div>
+  <p class="lede">Four components on a 40-pin header. Six wires each for audio in and out. Everything else is software on the SD card.</p>
 
-  <div class="fork">
-    <div class="opt pick">
-      <h4>XIAO ESP32S3 Sense</h4>
-      <div class="verdict">Recommended — start here</div>
-      <ul>
-        <li>21 × 17.5 mm — genuinely fits this robot</li>
-        <li>Camera and microphone already on the board</li>
-        <li>Plug in USB-C, click upload, done</li>
-        <li><strong>All the AI happens in the cloud.</strong> It cannot think without Wi-Fi</li>
-      </ul>
+  <div class="flow">
+    <div class="flow-row">
+      <span class="blk">INMP441 mic</span><span class="arw">→ I²S in →</span>
+      <span class="blk core">Radxa Cubie A7Z</span><span class="arw">→ I²S out →</span>
+      <span class="blk out">MAX98357A → speaker</span>
     </div>
-    <div class="opt">
-      <h4>A Linux board</h4>
-      <div class="verdict">Later, if you want offline</div>
-      <ul>
-        <li>Radxa Cubie A7Z, Raspberry Pi Zero 2 W</li>
-        <li>Can run speech recognition with no internet at all</li>
-        <li>Bigger than this entire robot — needs a larger body</li>
-        <li>Linux setup will fight you for a week as a beginner</li>
-      </ul>
+    <div class="flow-row">
+      <span class="arw">on the microSD card:</span>
+      <span class="blk">Vosk — hears you</span>
+      <span class="blk">SQLite — 200k cities</span>
+      <span class="blk">Argos — translates</span>
+      <span class="blk">Piper — speaks</span>
+    </div>
+    <div class="flow-row">
+      <span class="arw">when Wi-Fi is available:</span>
+      <span class="blk">Gemini — answers anything else</span>
     </div>
   </div>
 
-  <p><strong>Take the XIAO.</strong> It is what the reference robot uses, it physically fits, and as a first project you want to spend your time on soldering and building — not on Linux audio drivers, which defeat experienced engineers regularly.</p>
+  <p>The important design decision: <strong>the offline path is the one that always runs</strong>. Gemini is an upgrade that gets first refusal when it is reachable, and everything it cannot answer falls straight through to the models on the card. The robot never goes quiet because the internet did.</p>
 
   <div class="note">
-    <span class="lbl">What you give up</span>
-    <p>A microcontroller has about <strong>8 MB</strong> of memory. Offline speech recognition needs roughly <strong>620 MB</strong>. So with the XIAO, every question your robot answers goes to the internet and back. No Wi-Fi means it can still drive, blink and make noise — but it cannot understand you.</p>
-    <p>If offline matters to you later, you do not have to rebuild the robot. See <a href="#tweaks">Part 11</a>.</p>
+    <span class="lbl">Why this board and not a microcontroller</span>
+    <p>Offline speech recognition, translation and speech synthesis need roughly <strong>690 MB</strong> of memory between them. A microcontroller like an ESP32 has about 8 MB, so everything it does must go to the cloud. The Cubie runs real Linux with 1–2 GB, which is what makes the offline half possible at all.</p>
   </div>
 </section>
 
 <section>
-  <div class="part-head"><span class="part-num">Part 1</span><h2>What you are actually building</h2></div>
-  <p>Six things bolted to a brass frame. Sound goes in one side, sound and movement come out the other.</p>
-
-  <div class="flow">
-    <div class="flow-row">
-      <span class="blk">Microphone</span><span class="arw">→</span>
-      <span class="blk core">XIAO ESP32S3</span><span class="arw">→</span>
-      <span class="blk">Wi-Fi</span><span class="arw">→</span>
-      <span class="blk">Google Gemini</span>
-    </div>
-    <div class="flow-row">
-      <span class="blk">Camera</span><span class="arw">→</span>
-      <span class="blk core">XIAO ESP32S3</span>
-      <span class="arw">and back out to →</span>
-    </div>
-    <div class="flow-row">
-      <span class="arw">→</span>
-      <span class="blk out">Screen — the eyes</span>
-      <span class="blk out">Amplifier → Speaker</span>
-      <span class="blk out">Driver → 2 motors</span>
-    </div>
-  </div>
-
-  <p>The XIAO is the only thing that makes decisions. Everything else either feeds it information or does what it is told. When something does not work, that is the question to ask: <em>is this part feeding in, or being told?</em></p>
+  <div class="part-head"><span class="part-num">Part 1</span><h2>Parts and tools</h2></div>
+  <div class="scroll"><table>
+    <thead><tr><th>Part</th><th>What it does</th><th class="num">Qty</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Radxa Cubie A7Z</strong><br><span class="mono">1 GB or 2 GB</span></td><td>The computer. 2 GB is worth it if you have the choice — see Part 11.</td><td class="num">1</td></tr>
+      <tr><td><strong>INMP441</strong><br><span class="mono">or SPH0645</span></td><td>I²S digital microphone. Digital means the audio never travels as a weak analogue signal that picks up hum from the board.</td><td class="num">1</td></tr>
+      <tr><td><strong>MAX98357A</strong></td><td>I²S amplifier. Takes digital audio straight from the board and drives a speaker.</td><td class="num">1</td></tr>
+      <tr><td><strong>Speaker</strong><br><span class="mono">8 Ω, 2 W</span></td><td>The voice.</td><td class="num">1</td></tr>
+      <tr><td><strong>MicroSD card</strong><br><span class="mono">32–64 GB, Class 10 / A1</span></td><td>Operating system, models, city database. <strong>The A1 rating matters</strong> — a slow card makes the whole thing stutter mid-sentence.</td><td class="num">1</td></tr>
+      <tr><td><strong>Jumper wires</strong><br><span class="mono">female-to-female</span></td><td>For testing before you commit to solder.</td><td class="num">12</td></tr>
+      <tr><td><strong>5 V USB-C supply</strong><br><span class="mono">3 A</span></td><td>A phone charger will do to start with. Battery comes later.</td><td class="num">1</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Tools:</strong> a temperature-controlled soldering iron at 320–350 °C, 0.6 mm flux-cored solder, flux paste, side cutters, and a cheap multimeter. If you are new to soldering, practise ten wire-to-wire joints on scrap first — tug each one, and if none pull apart you are ready.</p>
 </section>
 
 <section>
   <div class="part-head"><span class="part-num">Part 2</span><h2>Electricity, in five minutes</h2></div>
-  <p>Enough to build this safely. Not enough to design your own — that is fine.</p>
-
-  <h3>Voltage, current, ground</h3>
-  <p>Water in a pipe is a good enough picture. <strong>Voltage</strong> (volts, V) is the pressure. <strong>Current</strong> (amps, A) is how much is actually flowing. A part has a pressure it wants — 5 V, 3.3 V — and a flow it draws depending on how hard it is working.</p>
-  <p><strong>Ground</strong> (GND, the "−" side) is the return pipe. Electricity has to get back. This gives you the single most useful rule in the whole build:</p>
+  <p>Enough to wire this safely.</p>
+  <p><strong>Voltage</strong> (volts) is pressure, <strong>current</strong> (amps) is flow. Each part wants a particular voltage — here, 3.3 V or 5 V — and draws whatever current it needs. <strong>Ground</strong> (GND, the minus side) is the return path.</p>
   <div class="note">
     <span class="lbl">Rule 1 — common ground</span>
-    <p>Every part's GND must connect to every other part's GND. If two parts do not share a ground, signals between them mean nothing and the thing simply will not work — usually with no error and no smoke, which is why beginners lose days to it.</p>
+    <p>Every part's GND connects to the board's GND. Miss this and nothing works, with no error and no smoke — signals between two parts that do not share a ground are meaningless. It is the single most common beginner fault.</p>
   </div>
-
-  <h3>Polarity: which way round</h3>
-  <p>Most parts here have a <strong>+</strong> and a <strong>−</strong> and only work one way. Backwards is not "it doesn't turn on" — it is often "it is now dead". Check twice before power goes on. Battery wires are red for + and black for −, near-universally.</p>
-
-  <h3>Why the motors need a driver chip</h3>
-  <p>The XIAO's pins can produce a signal, but almost no power — think of a finger pointing, not a hand pushing. A motor needs a real shove. The <strong>motor driver</strong> (the mini L298N) sits between them: the XIAO tells it what to do with tiny signals, and the driver takes power straight from the battery to actually turn the motors.</p>
   <div class="danger">
-    <span class="lbl">Never do this</span>
-    <p>Do not wire a motor directly to a XIAO pin. The motor will pull far more current than the pin can give, and you will destroy the board. This is the most common way beginners kill their first microcontroller.</p>
+    <span class="lbl">Rule 2 — 3.3 V is not 5 V</span>
+    <p>The Cubie's GPIO pins run at <strong>3.3 V</strong>. Putting 5 V into one damages it permanently. The microphone runs from 3.3 V. The amplifier can take 5 V for more volume, but then its data pins still only ever see 3.3 V signals from the board — which is fine, and is how the MAX98357A is designed to be used.</p>
   </div>
-
-  <h3>The words on the wiring table</h3>
   <dl class="kv">
-    <dt>GPIO</dt><dd>A pin you can control from code. "General Purpose Input/Output."</dd>
-    <dt>PWM</dt><dd>Switching a pin on and off very fast to fake a middle value. How motor speed is controlled.</dd>
-    <dt>I²S</dt><dd>A three-wire way of moving digital audio. Used by the amplifier.</dd>
-    <dt>SPI</dt><dd>A fast four-wire way of moving data. Used by the screen.</dd>
-    <dt>3V3 / 5V</dt><dd>Power output pins at that voltage. Feeding 5 V into a 3.3 V pin damages it.</dd>
+    <dt>I²S</dt><dd>A three-wire way of moving digital audio: a clock, a left/right selector, and the data itself.</dd>
+    <dt>BCLK</dt><dd>Bit clock. Ticks once per bit of audio.</dd>
+    <dt>LRCLK</dt><dd>Left/right clock, sometimes called WS or FS. Says which channel the current sample belongs to.</dd>
+    <dt>GPIO</dt><dd>A pin you can control from software.</dd>
   </dl>
 </section>
 
 <section>
-  <div class="part-head"><span class="part-num">Part 3</span><h2>Shopping list</h2></div>
-  <p>Prices are rough and vary by country. Buy the electronics first and test them before you buy the pretty brass.</p>
+  <div class="part-head"><span class="part-num">Part 3</span><h2>The wiring</h2></div>
+  <p class="lede">The microphone and the amplifier share one I²S bus. Only the data lines are separate.</p>
+  <p>This surprises people: you do not need two audio buses. The clock lines (<span class="mono">BCLK</span> and <span class="mono">LRCLK</span>) are shared by both devices. The microphone sends data <em>in</em> on one wire, the board sends data <em>out</em> to the amplifier on another. That is ordinary full-duplex I²S, and it is why both can run at once.</p>
 
-  <h3>Electronics</h3>
+  <h3>Connections</h3>
   <div class="scroll"><table>
-    <thead><tr><th>Part</th><th>What it does</th><th class="num">Qty</th></tr></thead>
+    <thead><tr><th>From</th><th class="mono">Pin</th><th>To on the Cubie</th><th>Notes</th></tr></thead>
     <tbody>
-      <tr><td><strong>XIAO ESP32S3 Sense</strong><br><span class="mono">with OV3660 camera</span></td><td>The brain. Camera and microphone are included on the Sense version — do not buy the plain XIAO ESP32S3, it has neither.</td><td class="num">1</td></tr>
-      <tr><td><strong>1.54″ display</strong><br><span class="mono">SPI, 240×240</span></td><td>The face. Shows the eyes, and later maps and pictures.</td><td class="num">1</td></tr>
-      <tr><td><strong>Gear motors</strong><br><span class="mono">17–68 RPM</span></td><td>Drive the tracks. Slow is correct — a fast motor makes the robot skitter.</td><td class="num">2</td></tr>
-      <tr><td><strong>Mini L298N driver</strong></td><td>Takes orders from the XIAO, gives power to the motors.</td><td class="num">1</td></tr>
-      <tr><td><strong>MAX98357A amplifier</strong></td><td>Turns digital audio into something a speaker can play.</td><td class="num">1</td></tr>
-      <tr><td><strong>Speaker</strong> <span class="mono">8 Ω, small</span></td><td>The voice.</td><td class="num">1</td></tr>
-      <tr><td><strong>LiPo battery</strong><br><span class="mono">3.7 V, 500–1000 mAh</span></td><td>Power. Small is fine — this robot is tiny.</td><td class="num">1</td></tr>
-      <tr><td><strong>TP4056 charger</strong><br><span class="mono">with protection</span></td><td>Recharges the battery over USB-C. <strong>Must be the protected version</strong> — see Part 4.</td><td class="num">1</td></tr>
-      <tr><td><strong>Slide switch</strong></td><td>On and off. Do not skip it; unplugging a battery repeatedly wears the connector out.</td><td class="num">1</td></tr>
-      <tr><td><strong>Thin silicone wire</strong><br><span class="mono">28–30 AWG</span></td><td>Connections. Silicone insulation, not PVC — it does not melt when your iron brushes it.</td><td class="num">1 set</td></tr>
+      <tr><td rowspan="6"><strong>INMP441</strong><br>microphone</td><td class="mono">VDD</td><td class="mono">3.3 V</td><td>Not 5 V.</td></tr>
+      <tr><td class="mono">GND</td><td class="mono">GND</td><td></td></tr>
+      <tr><td class="mono">SCK</td><td class="mono">I2S BCLK</td><td>Shared with the amplifier</td></tr>
+      <tr><td class="mono">WS</td><td class="mono">I2S LRCLK</td><td>Shared with the amplifier</td></tr>
+      <tr><td class="mono">SD</td><td class="mono">I2S DATA IN</td><td>Microphone talks, board listens</td></tr>
+      <tr><td class="mono">L/R</td><td class="mono">GND</td><td><strong>Do not leave floating.</strong> Tie low for the left channel.</td></tr>
+      <tr><td rowspan="6"><strong>MAX98357A</strong><br>amplifier</td><td class="mono">VIN</td><td class="mono">5 V</td><td>3.3 V works but is quieter</td></tr>
+      <tr><td class="mono">GND</td><td class="mono">GND</td><td></td></tr>
+      <tr><td class="mono">BCLK</td><td class="mono">I2S BCLK</td><td>Same wire as the mic's SCK</td></tr>
+      <tr><td class="mono">LRC</td><td class="mono">I2S LRCLK</td><td>Same wire as the mic's WS</td></tr>
+      <tr><td class="mono">DIN</td><td class="mono">I2S DATA OUT</td><td>Board talks, amplifier listens</td></tr>
+      <tr><td class="mono">SD</td><td class="mono">see below</td><td>Mode select, not shutdown</td></tr>
+      <tr><td><strong>Speaker</strong></td><td class="mono">+ / −</td><td class="mono">amp + / −</td><td>Polarity does not matter for a single speaker</td></tr>
     </tbody>
   </table></div>
 
-  <h3>Body</h3>
+  <h3>The 40-pin header</h3>
+  <p>Power and ground sit at fixed positions on every 40-pin header. These you can rely on:</p>
+
+  <div class="header40">
+    <div class="pin odd pwr"><span>3.3 V</span><span class="n">1</span></div>
+    <div class="pin pwr"><span class="n">2</span><span>5 V</span></div>
+    <div class="pin odd"><span>—</span><span class="n">3</span></div>
+    <div class="pin pwr"><span class="n">4</span><span>5 V</span></div>
+    <div class="pin odd"><span>—</span><span class="n">5</span></div>
+    <div class="pin gnd"><span class="n">6</span><span>GND</span></div>
+    <div class="pin odd"><span>—</span><span class="n">7</span></div>
+    <div class="pin"><span class="n">8</span><span>—</span></div>
+    <div class="pin odd gnd"><span>GND</span><span class="n">9</span></div>
+    <div class="pin"><span class="n">10</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">11</span></div>
+    <div class="pin use"><span class="n">12</span><span>I²S BCLK ?</span></div>
+    <div class="pin odd"><span>—</span><span class="n">13</span></div>
+    <div class="pin gnd"><span class="n">14</span><span>GND</span></div>
+    <div class="pin odd"><span>—</span><span class="n">15</span></div>
+    <div class="pin"><span class="n">16</span><span>—</span></div>
+    <div class="pin odd pwr"><span>3.3 V</span><span class="n">17</span></div>
+    <div class="pin"><span class="n">18</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">19</span></div>
+    <div class="pin gnd"><span class="n">20</span><span>GND</span></div>
+    <div class="pin odd"><span>—</span><span class="n">21</span></div>
+    <div class="pin"><span class="n">22</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">23</span></div>
+    <div class="pin"><span class="n">24</span><span>—</span></div>
+    <div class="pin odd gnd"><span>GND</span><span class="n">25</span></div>
+    <div class="pin"><span class="n">26</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">27</span></div>
+    <div class="pin"><span class="n">28</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">29</span></div>
+    <div class="pin gnd"><span class="n">30</span><span>GND</span></div>
+    <div class="pin odd"><span>—</span><span class="n">31</span></div>
+    <div class="pin"><span class="n">32</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">33</span></div>
+    <div class="pin gnd"><span class="n">34</span><span>GND</span></div>
+    <div class="pin odd use"><span>I²S LRCLK ?</span><span class="n">35</span></div>
+    <div class="pin"><span class="n">36</span><span>—</span></div>
+    <div class="pin odd"><span>—</span><span class="n">37</span></div>
+    <div class="pin use"><span class="n">38</span><span>I²S DATA IN ?</span></div>
+    <div class="pin odd gnd"><span>GND</span><span class="n">39</span></div>
+    <div class="pin use"><span class="n">40</span><span>I²S DATA OUT ?</span></div>
+  </div>
+  <div class="legend">
+    <span><i class="swatch" style="background:var(--rust)"></i> Power</span>
+    <span><i class="swatch" style="background:var(--ink)"></i> Ground — use any</span>
+    <span><i class="swatch" style="background:var(--brass)"></i> I²S — verify these four</span>
+  </div>
+
+  <div class="danger">
+    <span class="lbl">Verify the four brass pins before you solder</span>
+    <p>Pins 1, 2, 4, 17 (power) and every ground above are fixed by the 40-pin standard and are safe. <strong>The four I²S pins are marked with a question mark because I have not verified them on a Cubie A7Z</strong> — they are the positions most 40-pin boards use for HAT compatibility, not a fact I have checked on your board.</p>
+    <p>Confirm them yourself before soldering: run <span class="mono">gpioinfo</span> on the board and check Radxa's official pinout page for the A7Z. Five minutes there saves a dead board.</p>
+  </div>
+
+  <div class="note">
+    <span class="lbl">The two pins that produce silence rather than an error</span>
+    <p><strong>INMP441 L/R</strong> selects which half of the audio frame the microphone speaks in. Left floating you get a stream of zeros and no error message. Tie it to GND.</p>
+    <p><strong>MAX98357A SD</strong> is a mode select despite the name. Floating means the amplifier is off. A resistor to GND picks left, right, or the average of both — for a mono robot, use the mono setting from the module's datasheet.</p>
+  </div>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Everything on jumper wires, nothing soldered yet. Multimeter shows 3.3 V at the mic and 5 V at the amp. Nothing is warm.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 4</span><h2>The card</h2></div>
+  <p>Flash a <strong>headless</strong> Linux image — Armbian or Radxa OS, no desktop. A desktop eats 300–400 MB of the memory the models need.</p>
+  <ol class="steps">
+    <li><strong>Flash the image</strong> with Balena Etcher or Raspberry Pi Imager. Put your Wi-Fi details and SSH key in during imaging if the tool offers it.</li>
+    <li><strong>Boot and connect over SSH.</strong> There is no screen on this robot, so this is how you will work from now on.</li>
+    <li><strong>Enable I²S.</strong> On Radxa OS run <span class="mono">sudo rsetup</span> and turn on the I²S overlay; on plain Armbian, edit <span class="mono">/boot/armbianEnv.txt</span>. Overlay names differ between images, so list what yours actually has rather than copying a name from a forum post for another board.</li>
+    <li><strong>Reboot, then check</strong> that <span class="mono">arecord -l</span> lists the microphone and <span class="mono">aplay -l</span> lists the amplifier.</li>
+  </ol>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Record and play back five seconds:</p>
+    <p class="mono">arecord -D default -f S16_LE -r 16000 -c 1 -d 5 /tmp/t.wav &amp;&amp; aplay /tmp/t.wav</p>
+    <p>If that round trip does not work, no amount of Python will help. Fix it here.</p>
+  </div>
+
+  <h3>What ends up on the card</h3>
+  <div class="tree"><b>/home/radxa/travel_assistant/</b>
+├── <b>main_assistant.py</b>        <i>the control script</i>
+├── <b>config.toml</b>              <i>your pins, devices and languages</i>
+├── <b>world_cities.db</b>          <i>~50 MB · 200,000 cities</i>
+├── <b>walle/</b>                   <i>the Python package</i>
+├── <b>models_stt/</b>
+│   └── vosk-model-small-en-us   <i>~50 MB · speech to text</i>
+├── <b>models_translate/</b>
+│   ├── en-es.argos              <i>English to Spanish</i>
+│   └── en-fr.argos              <i>English to French</i>
+├── <b>models_tts/</b>
+│   ├── en_US-lessac-medium.onnx <i>English voice</i>
+│   └── es_ES-davefx-medium.onnx <i>Spanish voice</i>
+└── <b>tiles/</b>                   <i>optional offline map tiles</i></div>
+
+  <div class="note">
+    <span class="lbl">One correction to the file names</span>
+    <p>Piper voices cannot be called <span class="mono">en_US.onnx</span> and <span class="mono">es_ES.onnx</span>. Real voice files encode a full locale <em>and</em> a quality tier — <span class="mono">es_ES-davefx-medium.onnx</span> — and each needs its <span class="mono">.onnx.json</span> sidecar beside it, because that file holds the sample rate. Guess the rate and the voice plays at the wrong pitch and speed.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 5</span><h2>Installing the software</h2></div>
+  <ol class="steps">
+    <li><strong>System packages.</strong><br>
+      <span class="mono">sudo apt install -y python3-venv python3-dev portaudio19-dev python3-libgpiod alsa-utils</span></li>
+    <li><strong>Clone and set up.</strong><br>
+      <span class="mono">git clone …/walle-robot-assistant ~/travel_assistant &amp;&amp; cd ~/travel_assistant</span><br>
+      <span class="mono">python3 -m venv .venv &amp;&amp; source .venv/bin/activate</span><br>
+      <span class="mono">pip install --no-cache-dir -r requirements.txt</span></li>
+    <li><strong>Fetch the models.</strong> <span class="mono">./scripts/fetch_models.sh</span> pulls the Vosk model, the Piper binary for your architecture, and the English and Spanish voices.</li>
+    <li><strong>Install language packs.</strong> Each Argos pair is a separate ~100 MB download, so install only the ones you will use. Instructions are in <span class="mono">docs/setup.md</span>.</li>
+    <li><strong>Build the city database on a laptop, not the board.</strong> Indexing 200,000 rows on an SD card is painfully slow; the finished 50 MB file copies over in seconds.<br>
+      <span class="mono">python3 scripts/build_city_db.py cities500.txt --countries countryInfo.txt --admin1 admin1CodesASCII.txt --aliases</span></li>
+    <li><strong>Configure.</strong> <span class="mono">cp config.example.toml config.toml</span>, then set your audio device and languages.</li>
+  </ol>
+
+  <div class="check">
+    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
+    <p>Test the whole brain with no microphone involved:</p>
+    <p class="mono">python3 main_assistant.py --text "tell me about tokyo" "translate from english to spanish" "where is the station"</p>
+    <p>It prints what it would say. If the city answer and the translation are right here, the only thing left to get working is audio.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 6</span><h2>The online half</h2></div>
+  <p>Optional, and the robot is complete without it. With a free Gemini key it answers open questions like a phone assistant; without one it stays a city and translation device.</p>
+  <ol class="steps">
+    <li>Get a free key from Google AI Studio.</li>
+    <li><span class="mono">export GEMINI_API_KEY=your-key-here</span>, or put it in <span class="mono">/etc/walle.env</span> for the boot service.</li>
+    <li>Check the startup log. <span class="mono">online backend: Gemini</span> means hybrid; <span class="mono">no API key … running offline-only</span> means local only.</li>
+  </ol>
+  <p>The key is read from the environment and never from <span class="mono">config.toml</span>, so it cannot be committed to git along with your pin numbers.</p>
+  <div class="note">
+    <span class="lbl">What happens when the internet is flaky</span>
+    <p>A timeout, a dropped connection, a rate limit or a bad key all produce a local answer instead. A rate limit additionally stops it calling out for a minute rather than retrying into the limit. The only thing you notice is a less detailed answer.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 7</span><h2>Talking to it</h2></div>
+  <p>It starts in city mode and switches when you tell it to, in plain speech.</p>
+
+  <h3>Cities — always offline</h3>
+  <p class="say">"tell me about kyoto" · "how big is san francisco" · "where is bogota"</p>
+  <p>Multi-word names work, accents do not need to be pronounced precisely, and common alternative names resolve — "bombay" finds Mumbai.</p>
+
+  <h3>Translation — the pair switches automatically</h3>
+  <p>Ask for a pair once, in your own language. Everything you say afterwards is translated, until you change it.</p>
+  <p class="say">"translate from english to spanish"</p>
+  <p>It replies <em>"Translating english to spanish. Go ahead."</em> and switches itself into translator mode. Then just talk:</p>
+  <p class="say">"where is the train station" → <em>"¿dónde está la estación de tren?"</em></p>
+  <p>Other ways to say the same thing: <span class="say">"switch to translator mode and speak spanish"</span> · <span class="say">"speak french"</span> · <span class="say">"set language to german"</span>. A one-off without changing the mode: <span class="say">"translate the museum is closed into italian"</span>.</p>
+
+  <h3>Everything else</h3>
+  <p class="say">"lets talk" · "switch to city guide" · "system status" · "what can you do" · "shut down"</p>
+  <div class="note">
+    <span class="lbl">It tells you when it cannot</span>
+    <p>Ask for a language whose pack is not installed and it says so in English. It never speaks untranslated English through a foreign voice, which sounds like a working answer and is the worst possible failure for a translator.</p>
+  </div>
+</section>
+
+<section>
+  <div class="part-head"><span class="part-num">Part 8</span><h2>Why it fits in 1 GB</h2></div>
+  <p>Peak usage, with everything loaded at once:</p>
+
+  <div class="bar">
+    <div style="width:21.7%;background:#4A5551">OS 150</div>
+    <div style="width:14.5%;background:#177C7C">Vosk 100</div>
+    <div style="width:36.2%;background:#8F6524">Argos 250</div>
+    <div style="width:21.7%;background:#2C463E">Piper 150</div>
+    <div style="width:5.9%;background:#A63D26">40</div>
+  </div>
+  <p style="font-size:14px;color:var(--ink-3);margin-top:0">≈ 690 MB of 1024 MB · headless Linux, no desktop</p>
+
   <div class="scroll"><table>
-    <thead><tr><th>Part</th><th>What it does</th></tr></thead>
+    <thead><tr><th>Component</th><th class="num">RAM</th><th>Loaded</th></tr></thead>
     <tbody>
-      <tr><td><strong>Copper wire, 1 mm</strong></td><td>The whole frame. Bent by hand, soldered at the joints.</td></tr>
-      <tr><td><strong>Brass tube, 1.5 mm OD</strong></td><td>Axles and stiffening. The copper wire slides inside it.</td></tr>
-      <tr><td><strong>Toy chain / miniature roller chain</strong></td><td>The tank tracks. This is the detail that makes it read as WALL·E.</td></tr>
+      <tr><td>Headless Linux kernel and services</td><td class="num mono">150 MB</td><td>Always</td></tr>
+      <tr><td>Vosk, small English model</td><td class="num mono">100 MB</td><td>Always — it is always listening</td></tr>
+      <tr><td>Argos Translate, one pair</td><td class="num mono">250 MB</td><td>Only in translator mode</td></tr>
+      <tr><td>Piper</td><td class="num mono">150 MB</td><td>During synthesis</td></tr>
+      <tr><td>Python, SQLite, audio</td><td class="num mono">40 MB</td><td>Always</td></tr>
     </tbody>
   </table></div>
 
-  <h3>Tools</h3>
-  <p>If you own none of this, budget about the same again for tools — but you keep them forever.</p>
-  <ul>
-    <li><strong>Soldering iron</strong>, temperature-controlled, set to 320–350 °C. A fixed-temperature £8 iron will make you miserable.</li>
-    <li><strong>Solder</strong>, 0.6 mm, <strong>with flux core</strong>. Leaded 60/40 is far easier to learn on; wash your hands after.</li>
-    <li><strong>Flux paste</strong> — the single biggest difference between ugly joints and clean ones.</li>
-    <li><strong>Side cutters</strong> and <strong>fine needle-nose pliers</strong> for shaping the frame.</li>
-    <li><strong>Multimeter</strong>, any cheap one. Not optional — see Part 6.</li>
-    <li><strong>Helping hands</strong> or a small vice. You have two hands and will need three.</li>
-    <li><strong>Kapton tape</strong> or electrical tape for insulating.</li>
-  </ul>
-</section>
-
-<section>
-  <div class="part-head"><span class="part-num">Part 4</span><h2>Safety — read once, properly</h2></div>
-  <p>Two things here can actually hurt you. Everything else is just fiddly.</p>
-
-  <div class="danger">
-    <span class="lbl">Lithium batteries</span>
-    <p>A LiPo pouch cell stores real energy and fails badly — it can vent flame, not just stop working.</p>
-    <ul>
-      <li><strong>Buy a TP4056 board with protection</strong> (it has two extra chips, marked DW01 and FS8205). The bare version has no over-discharge or short-circuit protection.</li>
-      <li>Never short the battery leads together. Not even briefly.</li>
-      <li>Never puncture, bend or solder directly onto the cell body.</li>
-      <li>If it ever swells, gets hot, or smells sweet — stop, put it outside on concrete, do not charge it again.</li>
-      <li>Charge where you can see it. Not overnight, not on the sofa.</li>
-    </ul>
-  </div>
-
-  <div class="danger">
-    <span class="lbl">Soldering iron</span>
-    <p>The tip runs at 350 °C — hotter than an oven, and it does not look hot. Work near an open window; flux fumes are an irritant. Never catch a falling iron: let it drop and buy a new one. Wear eye protection when you snip wire ends, because they fly.</p>
-  </div>
-
+  <p>Argos is the biggest single consumer and the only one you can avoid — it loads on first use, not at boot. On a 1 GB board, expect the very first translation after startup to be slow while it pages in, then fast afterwards. On 2 GB it is comfortable throughout.</p>
   <div class="note">
-    <span class="lbl">Charging while it runs</span>
-    <p>A plain TP4056 cannot charge the battery and power the robot at the same time — the charger gets confused about when to stop and can overcharge the cell. Treat charging and playing as separate activities, or buy a board that specifically says <strong>load sharing</strong>.</p>
+    <span class="lbl">These are targets, not measurements</span>
+    <p>They come from the specification, and I have not run this on a board. Measure your own with <span class="mono">ps -o rss= -p $(pgrep -f main_assistant)</span> before trusting them. If memory gets tight, the cheapest win is to stop pre-loading Argos at boot.</p>
   </div>
 </section>
 
 <section>
-  <div class="part-head"><span class="part-num">Part 5</span><h2>Learn to solder — on scrap</h2></div>
-  <p>Do not let your first ever joint be on a £14 board. Buy a cheap practice kit or use spare wire, and spend one evening on this. It is a physical skill and it clicks quickly.</p>
-
+  <div class="part-head"><span class="part-num">Part 9</span><h2>Running at boot</h2></div>
   <ol class="steps">
-    <li><strong>Tin the tip.</strong> Heat the iron, melt a little solder onto the tip, wipe it on a damp sponge or brass wool. A shiny tip transfers heat; a dull black one does not.</li>
-    <li><strong>Heat the parts, not the solder.</strong> Touch the iron to the wire and the pad together for two seconds, <em>then</em> feed solder into the joint. Melting solder on the iron and dabbing it on gives a "cold joint" that looks fine and does not conduct.</li>
-    <li><strong>Watch it flow.</strong> Good solder pulls itself into the joint and forms a smooth cone. Three seconds is usually enough.</li>
-    <li><strong>Use flux.</strong> A smear of flux paste before you start makes solder behave. It is not cheating.</li>
-    <li><strong>Tin both sides first.</strong> To join two wires, put solder on each separately, then hold them together and reheat. Far easier than trying to do it all at once.</li>
+    <li><span class="mono">sudo cp systemd/walle-assistant.service /etc/systemd/system/</span></li>
+    <li><span class="mono">sudo systemctl enable --now walle-assistant</span></li>
+    <li>Watch it with <span class="mono">journalctl -u walle-assistant -f</span>.</li>
   </ol>
-
-  <div class="check">
-    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
-    <p>Make ten wire-to-wire joints. Tug each one firmly. If none pull apart and all look smooth and shiny rather than grey and blobby, you are ready to touch the real parts.</p>
-  </div>
-</section>
-
-<section>
-  <div class="part-head"><span class="part-num">Part 6</span><h2>Test every part before you build anything</h2></div>
-  <p class="lede">This is the part beginners skip, and it is the part that saves the project.</p>
-  <p>Once everything is soldered into a brass frame the size of a matchbox, finding a fault is genuinely awful. Test each part on its own, on the desk, connected with temporary jumper wires. If a part is dead out of the box — and occasionally one is — you want to know now.</p>
-
-  <ol class="steps">
-    <li><strong>The XIAO alone.</strong> Plug in USB-C, install the Arduino IDE, upload the Blink example. The onboard LED flashes. You have now proven the board, the cable and your computer's drivers all work.</li>
-    <li><strong>The screen.</strong> Wire it up on the desk, run a display library example. You should get colour. A white screen usually means the DC or CS wire is wrong; a black screen usually means no backlight power.</li>
-    <li><strong>The speaker.</strong> Amplifier plus speaker, play a test tone. Expect it to be quiet and tinny — it is a tiny speaker.</li>
-    <li><strong>The microphone.</strong> Record a couple of seconds and print the levels. Numbers should jump when you talk and settle when you stop.</li>
-    <li><strong>The camera.</strong> Run the camera web-server example and open the page on your phone.</li>
-    <li><strong>The motors.</strong> Driver plus one motor plus battery. Confirm both directions. Do this before they are trapped inside a chassis.</li>
-    <li><strong>The battery and charger.</strong> Measure the battery with your multimeter — a healthy LiPo reads 3.7–4.2 V. Charge it and watch the light change.</li>
-  </ol>
-
-  <div class="check">
-    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
-    <p>Seven parts, seven working tests, still lying loose on the desk. Only now do you pick up the copper wire.</p>
-  </div>
-</section>
-
-<section>
-  <div class="part-head"><span class="part-num">Part 7</span><h2>Build the body</h2></div>
-  <p>The frame is 1 mm copper wire bent by hand and soldered at the corners. The creator of the original provides a template you print on A4 paper and bend the wire directly on top of — use it, because judging these angles by eye does not work.</p>
-
-  <ol class="steps">
-    <li><strong>Print the template at 100%.</strong> Not "fit to page" — that silently shrinks it and nothing will line up.</li>
-    <li><strong>Bend the main box.</strong> Follow the printed lines with needle-nose pliers. Copper is soft; work slowly and it stays where you put it. Overbend and straighten a few times and it work-hardens and snaps, so try to get each bend right the first time.</li>
-    <li><strong>Solder the corners.</strong> Copper sinks heat away fast, so give it longer than you expect and use plenty of flux. A joint that looks starved is starved.</li>
-    <li><strong>Cut brass tube for the axles.</strong> Roll a craft knife around the tube rather than crushing it with cutters.</li>
-    <li><strong>Fit the sprockets and chain.</strong> The chain should turn freely with a little slack. Too tight stalls the motors and flattens your battery in minutes.</li>
-    <li><strong>Mount the motors</strong> so the sprockets line up with the chain. Misalignment throws the track off every time it reverses.</li>
-    <li><strong>Test-drive the bare chassis</strong> before adding electronics — motors, driver, battery, nothing else.</li>
-  </ol>
-
-  <div class="note">
-    <span class="lbl">A frame made of wire is a wire</span>
-    <p>Your chassis conducts. Anything you bolt to it must be insulated from it, or you will short something out. Kapton tape between boards and frame, everywhere they touch.</p>
-  </div>
-
-  <div class="check">
-    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
-    <p>It drives forward, backward, and turns on the spot, with nothing on board but motors and a battery. Tracks stay on.</p>
-  </div>
-</section>
-
-<section>
-  <div class="part-head"><span class="part-num">Part 8</span><h2>Wiring it together</h2></div>
-  <p>Here is the pin budget, and it is genuinely tight. The XIAO gives you eleven usable pins (D0–D10) and this build needs eleven.</p>
-
-  <div class="scroll"><table>
-    <thead><tr><th>Part</th><th class="mono">Its pin</th><th class="mono">XIAO pin</th><th>Notes</th></tr></thead>
-    <tbody>
-      <tr><td rowspan="4">Display (SPI)</td><td class="mono">SCK</td><td class="mono">D8</td><td>Hardware SPI clock</td></tr>
-      <tr><td class="mono">MOSI / SDA</td><td class="mono">D10</td><td>Data to screen</td></tr>
-      <tr><td class="mono">CS</td><td class="mono">D1</td><td>Chip select</td></tr>
-      <tr><td class="mono">DC</td><td class="mono">D2</td><td>Command / data</td></tr>
-      <tr><td rowspan="3">Amplifier (I²S)</td><td class="mono">BCLK</td><td class="mono">D3</td><td>Bit clock</td></tr>
-      <tr><td class="mono">LRC</td><td class="mono">D4</td><td>Left/right clock</td></tr>
-      <tr><td class="mono">DIN</td><td class="mono">D5</td><td>Audio data out</td></tr>
-      <tr><td rowspan="4">Motor driver</td><td class="mono">IN1</td><td class="mono">D0</td><td>Left motor</td></tr>
-      <tr><td class="mono">IN2</td><td class="mono">D6</td><td>Left motor</td></tr>
-      <tr><td class="mono">IN3</td><td class="mono">D7</td><td>Right motor</td></tr>
-      <tr><td class="mono">IN4</td><td class="mono">D9</td><td>Right motor</td></tr>
-    </tbody>
-  </table></div>
-
-  <div class="danger">
-    <span class="lbl">Verify this against the official pinout</span>
-    <p>I have not built this robot and cannot test these assignments. Pin names and what is already used internally vary between XIAO revisions, and the Sense expansion board reserves pins for the camera, microphone and SD slot. <strong>Open Seeed Studio's official XIAO ESP32S3 pinout diagram and check every row above before you solder.</strong> A wrong pin map is the classic way to lose a weekend.</p>
-  </div>
-
-  <h3>Power wiring</h3>
-  <ul>
-    <li>Battery <strong>+</strong> → switch → TP4056 <span class="mono">B+</span>. Battery <strong>−</strong> → TP4056 <span class="mono">B−</span>.</li>
-    <li>TP4056 <span class="mono">OUT+</span> / <span class="mono">OUT−</span> feed the XIAO and the motor driver.</li>
-    <li>The screen and amplifier take <strong>3V3</strong> from the XIAO, not battery voltage.</li>
-    <li>Every ground joins together. Every single one. See Rule 1.</li>
-  </ul>
-
-  <div class="note">
-    <span class="lbl">Order of assembly</span>
-    <p>Solder power and ground first and confirm the correct voltages with your multimeter <em>before</em> any chip is connected. Then add one part at a time, testing after each. Wiring everything and then powering up gives you no idea which of eleven connections is wrong.</p>
-  </div>
-
-  <div class="check">
-    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
-    <p>Multimeter on the power rails reads 3.3 V and battery voltage where expected, with no chips fitted. Nothing gets warm. Now fit the boards.</p>
-  </div>
-</section>
-
-<section>
-  <div class="part-head"><span class="part-num">Part 9</span><h2>Loading the software</h2></div>
-  <ol class="steps">
-    <li><strong>Install the Arduino IDE</strong> and add ESP32 board support through Boards Manager. Select "XIAO_ESP32S3".</li>
-    <li><strong>If it will not upload</strong>, hold the BOOT button, tap RESET, release BOOT. That forces the board into flashing mode.</li>
-    <li><strong>Put in your Wi-Fi details and your Gemini key.</strong> A free key comes from Google AI Studio. Keep it out of any code you publish.</li>
-    <li><strong>Upload, then open Serial Monitor at 115200 baud.</strong> This is where the robot tells you what it is doing, and it is your main debugging tool from here on.</li>
-  </ol>
-
-  <div class="check">
-    <span class="lbl"><span class="eyes"><i></i><i></i></span> Checkpoint</span>
-    <p>Eyes appear on the screen. It connects to Wi-Fi. You say hello and it answers.</p>
-  </div>
+  <p>The service traps shutdown properly: it rests the servos, releases the GPIO lines and closes the audio stream rather than being killed mid-sentence.</p>
 </section>
 
 <section>
@@ -458,50 +500,20 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
   <div class="scroll"><table>
     <thead><tr><th>Symptom</th><th>Look here first</th></tr></thead>
     <tbody>
-      <tr><td>Computer does not see the board</td><td>The USB cable. Very many are charge-only with no data wires. Try another before anything else.</td></tr>
-      <tr><td>Screen stays black</td><td>Backlight power, then the DC and CS wires.</td></tr>
-      <tr><td>Screen is white</td><td>It has power but no data — SPI wiring or the wrong driver in code.</td></tr>
-      <tr><td>Silence from the speaker</td><td>The amplifier's <span class="mono">SD</span> pin. Despite the name it is a mode select, not shutdown — floating means silent.</td></tr>
-      <tr><td>Microphone hears nothing</td><td>Sample rate mismatch, or you are reading the wrong channel.</td></tr>
-      <tr><td>One motor runs backwards</td><td>Swap that motor's two wires. Entirely normal.</td></tr>
-      <tr><td>Reboots whenever it moves</td><td>The motors are dragging the voltage down. Add a large capacitor across the motor supply, or check the chain is not too tight.</td></tr>
-      <tr><td>Works on USB, dies on battery</td><td>Battery flat, protection tripped, or the switch is not passing enough current.</td></tr>
-      <tr><td>Nothing works, no smoke</td><td>Grounds. It is nearly always grounds.</td></tr>
+      <tr><td>Microphone records silence</td><td>The <span class="mono">L/R</span> pin is floating. Tie it to GND.</td></tr>
+      <tr><td>No sound at all from the speaker</td><td>The amplifier's <span class="mono">SD</span> pin. It is a mode select, not just shutdown — floating means off.</td></tr>
+      <tr><td>Neither device appears in <span class="mono">arecord -l</span></td><td>The I²S overlay is not enabled, or the wrong one is.</td></tr>
+      <tr><td>Speech plays too fast or slow</td><td>The voice's <span class="mono">.onnx.json</span> sidecar is missing. It carries the sample rate.</td></tr>
+      <tr><td>It answers its own voice</td><td>Move the microphone away from the speaker. The mic is muted during playback, but strong acoustic coupling still gets through.</td></tr>
+      <tr><td>Everything is slow just after boot</td><td>Argos paging in on a 1 GB board. Expected, and only happens once.</td></tr>
+      <tr><td>Cities not found</td><td>The database was not built or not copied. Check <span class="mono">world_cities.db</span> exists and is around 50 MB.</td></tr>
+      <tr><td>Says it has no language pack</td><td>That Argos pair is not installed. It is telling you the truth.</td></tr>
     </tbody>
   </table></div>
 </section>
 
-<section id="tweaks">
-  <div class="part-head"><span class="part-num">Part 11</span><h2>Our changes to the original</h2></div>
-  <p>The reference robot sends everything to the cloud. That is the right call for a first build. But it means no Wi-Fi, no robot — and a travel assistant is most useful exactly where signal is worst.</p>
-
-  <h3>The plan: give it a second brain</h3>
-  <p>The robot stays exactly as built. We add a <strong>brain server</strong> — a program running on any laptop or Raspberry Pi on your home Wi-Fi that does speech recognition, translation and city lookups entirely offline. The robot asks whichever brain is available.</p>
-
-  <div class="flow">
-    <div class="flow-row">
-      <span class="blk core">Robot</span><span class="arw">asks →</span>
-      <span class="blk out">Brain server (offline)</span><span class="arw">if reachable</span>
-    </div>
-    <div class="flow-row">
-      <span class="blk core">Robot</span><span class="arw">asks →</span>
-      <span class="blk">Gemini (cloud)</span><span class="arw">otherwise</span>
-    </div>
-  </div>
-
-  <p>That server already exists in this repository — Python, 244 passing tests, offline speech and translation, a database of about 200,000 cities, an animated emotional face, chat, and map rendering. It was written for a Linux board before we knew the robot used a XIAO. Rather than throw it away, it becomes the optional offline half.</p>
-
-  <h3>Other planned changes</h3>
-  <ul>
-    <li><strong>Maps on the face.</strong> Ask about a city and see it on the screen, not just hear about it.</li>
-    <li><strong>Real emotions.</strong> Eye shape carries the mood — narrow when thinking, tall when listening, drooping when it failed — and it blinks and falls asleep when ignored.</li>
-    <li><strong>Never silent.</strong> If the cloud is rate-limited or down, it answers from what it has locally rather than standing there saying nothing.</li>
-  </ul>
-</section>
-
 <footer>
-  <p><strong>Honest limits of this guide.</strong> I have not built this robot. The build sequence, safety guidance and electronics explanations are sound, but the pin table in Part 8 is a proposal that must be checked against Seeed Studio's official XIAO ESP32S3 pinout, and the prices and timings are estimates. Treat Part 8 as something to verify, not to copy.</p>
-  <p>Original robot design and frame template by <strong>Huy Vector / HVT Lab</strong>.</p>
+  <p><strong>What is verified and what is not.</strong> The software is real and tested — 260 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
 </footer>
 
 </div>

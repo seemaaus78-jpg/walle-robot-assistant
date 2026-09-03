@@ -562,3 +562,50 @@ class EmotionIntegrationTests(AssistantHarness):
         assistant.greet()
         self.time[0] += Config().display.sleep_after_s + 1
         self.assertTrue(assistant.emotions.is_asleep)
+
+
+class LanguagePairFlowTests(AssistantHarness):
+    """The specification's flow: ask for a pair in your own language, then just
+    talk and have everything translated."""
+
+    def test_pair_switches_mode_and_both_languages(self):
+        assistant = self.make()
+        reply = assistant.respond("translate from english to spanish")
+        self.assertIs(assistant.mode, Mode.TRANSLATE)
+        self.assertEqual(assistant.source_lang, "en")
+        self.assertEqual(assistant.target_lang, "es")
+        self.assertIn("english to spanish", reply.text.lower())
+
+    def test_everything_after_the_pair_is_translated(self):
+        assistant = self.make()
+        assistant.respond("translate from english to spanish")
+        reply = assistant.respond("where is the train station")
+        self.assertEqual(reply.lang, "es")
+        self.assertEqual(reply.text, "[es] where is the train station")
+
+    def test_source_language_reaches_the_translator(self):
+        # source_lang was previously frozen at the config value forever.
+        assistant = self.make()
+        assistant.respond("translate from french to german")
+        assistant.respond("bonjour")
+        self.assertEqual(self.translator.calls[-1][1], "fr")
+        self.assertEqual(self.translator.calls[-1][2], "de")
+
+    def test_mode_switch_with_language_sets_both(self):
+        assistant = self.make()
+        reply = assistant.respond("switch to translator mode and speak french")
+        self.assertIs(assistant.mode, Mode.TRANSLATE)
+        self.assertEqual(assistant.target_lang, "fr")
+        self.assertIn("french", reply.text.lower())
+
+    def test_translating_into_the_source_language_is_refused_clearly(self):
+        assistant = self.make()
+        assistant.respond("switch to translator")
+        reply = assistant.respond("translate hello into english")
+        self.assertIn("already english", reply.text.lower())
+
+    def test_status_reports_the_whole_pair(self):
+        assistant = self.make()
+        assistant.respond("translate from english to german")
+        assistant.mode = Mode.CITY
+        self.assertIn("english to german", assistant.respond("system status").text)

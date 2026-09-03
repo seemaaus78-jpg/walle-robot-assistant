@@ -79,3 +79,64 @@ class ParseTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LanguagePairTests(unittest.TestCase):
+    """Naming a pair configures the robot; naming a phrase translates it.
+
+    Both start with the word "translate", so this is the boundary that decides
+    whether the robot reconfigures itself or answers.
+    """
+
+    def test_from_x_to_y_sets_the_pair_and_switches_mode(self):
+        intent = parse("translate from english to spanish", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.SET_LANGUAGE_PAIR)
+        self.assertEqual(intent.source_language, "en")
+        self.assertEqual(intent.language, "es")
+        self.assertIs(intent.mode, Mode.TRANSLATE)
+
+    def test_the_word_from_is_optional(self):
+        intent = parse("translate english to french", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.SET_LANGUAGE_PAIR)
+        self.assertEqual((intent.source_language, intent.language), ("en", "fr"))
+
+    def test_a_phrase_is_still_translated_not_treated_as_a_pair(self):
+        intent = parse("translate the museum is closed into french", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.TRANSLATE_QUERY)
+        self.assertEqual(intent.text, "the museum is closed")
+
+    def test_a_phrase_that_merely_mentions_a_language(self):
+        # "spanish lessons" is a thing to translate, not a language pair.
+        intent = parse("translate spanish lessons are expensive into german", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.TRANSLATE_QUERY)
+        self.assertEqual(intent.language, "de")
+
+    def test_unknown_language_names_are_not_a_pair(self):
+        intent = parse("translate klingon to elvish", Mode.CITY)
+        self.assertIsNot(intent.kind, IntentKind.SET_LANGUAGE_PAIR)
+
+    def test_identical_languages_are_not_a_pair(self):
+        intent = parse("translate english to english", Mode.CITY)
+        self.assertIsNot(intent.kind, IntentKind.SET_LANGUAGE_PAIR)
+
+    def test_mode_switch_carries_a_spoken_language(self):
+        # The example phrase from the specification.
+        intent = parse("switch to translator mode and speak spanish", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.MODE_SWITCH)
+        self.assertIs(intent.mode, Mode.TRANSLATE)
+        self.assertEqual(intent.language, "es")
+
+    def test_mode_switch_without_a_language_still_works(self):
+        intent = parse("switch to translator", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.MODE_SWITCH)
+        self.assertIsNone(intent.language)
+
+    def test_bare_speak_language_sets_the_target(self):
+        intent = parse("speak spanish", Mode.CITY)
+        self.assertIs(intent.kind, IntentKind.SET_LANGUAGE)
+        self.assertEqual(intent.language, "es")
+
+    def test_speak_variants(self):
+        for phrase in ("reply in german", "answer in italian", "say it in japanese"):
+            intent = parse(phrase, Mode.CITY)
+            self.assertIs(intent.kind, IntentKind.SET_LANGUAGE, phrase)

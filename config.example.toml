@@ -57,6 +57,28 @@ source_lang = "en"
 target_lang = "es"
 
 
+[camera]
+# The eye. It captures ONE still when you ask it to look, and at no other
+# time - there is no background stream and no motion trigger. A microphone
+# that is always listening is what a voice assistant is; a camera that is
+# always watching is a different thing to have in a room.
+enabled = true
+
+# A USB webcam is far and away the easiest option: plug it in, done. A ribbon
+# (CSI) camera also works, and the capture tool for it ignores this setting.
+device = "/dev/video0"
+width = 1024
+height = 768
+
+# Some USB webcams hand back a black first frame. Try 0.5 if yours does.
+warmup_s = 0.0
+
+# Off by default. Photographs are sent to the model and dropped, not
+# collected. Turn on only if you actually want a folder of them.
+save_captures = false
+capture_dir = "captures"
+
+
 [guides]
 # Travel guides fetched from Gemini and kept on the card. This is what makes
 # the online half worth having: every city you ask about with signal is still

@@ -23,6 +23,7 @@ import sys
 from pathlib import Path
 
 from walle.assistant import Assistant
+from walle.camera import build_camera
 from walle.chat import OfflineChat
 from walle.cities import CityDatabase
 from walle.config import Config, load_config
@@ -168,6 +169,14 @@ def main(argv: list[str] | None = None) -> int:
         chat=OfflineChat(cities),
         maps=open_maps(config, offline=args.offline),
         guides=open_guides(config),
+        camera=build_camera(
+            enabled=config.camera.enabled and not dry_run,
+            device=config.camera.device,
+            width=config.camera.width,
+            height=config.camera.height,
+            warmup_s=config.camera.warmup_s,
+            save_dir=config.camera.capture_dir if config.camera.save_captures else None,
+        ),
         translator=ArgosTranslator(
             config.translate.source_lang, config.translate.target_lang
         ),

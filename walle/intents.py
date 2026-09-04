@@ -37,10 +37,36 @@ class IntentKind(str, Enum):
     GUIDE_DELETE = "guide_delete"
     GUIDE_CLEAR = "guide_clear"
     GUIDE_LIST = "guide_list"
+    VISION_QUERY = "vision_query"
     STATUS = "status"
     HELP = "help"
     SHUTDOWN = "shutdown"
     EMPTY = "empty"
+
+
+VISION_DESCRIBE_PHRASES = (
+    "what do you see", "what can you see", "look at this", "look at that",
+    "have a look", "what is this", "what is that", "what am i holding",
+    "describe what you see", "tell me what you see", "use your camera",
+    "take a look", "what is in front of you",
+)
+
+VISION_READ_PHRASES = (
+    "read this", "read that", "read the sign", "read the menu",
+    "what does this say", "what does that say", "what does it say",
+    "read it out", "read the label",
+)
+
+# "what does this sign say in english" / "translate this sign"
+_THING = r"(?:sign|menu|label|text|writing|board|notice|card|ticket)"
+_VISION_TRANSLATE = re.compile(
+    # "translate this sign"
+    rf"\btranslate\s+(?:this|that|the)\s+{_THING}"
+    # "what does this (sign) say in english" / "read that in french"
+    rf"|\b(?:what\s+does\s+(?:this|that|it|the)(?:\s+{_THING})?\s+say"
+    rf"|read\s+(?:this|that|it|the)(?:\s+{_THING})?)"
+    rf"\s+in\s+(?P<lang>[a-z]+)"
+)
 
 
 @dataclass(frozen=True)
@@ -49,6 +75,9 @@ class Intent:
     text: str = ""
     mode: Mode | None = None
     gesture: str | None = None
+    task: str | None = None
+    """For a vision request: "describe", "read" or "translate"."""
+
     language: str | None = None
     """Target language for translation."""
 
@@ -268,6 +297,20 @@ def parse(transcript: str, mode: Mode) -> Intent:
 
     if _matches_any(text, HELP_PHRASES):
         return Intent(IntentKind.HELP, text=text)
+
+    # Looking is checked early: "what does this say" must reach the camera,
+    # not be looked up as a city or handed to the chat responder.
+    if match := _VISION_TRANSLATE.search(text):
+        code = LANGUAGE_CODES.get(match.group("lang") or "", None)
+        return Intent(
+            IntentKind.VISION_QUERY, text=text, task="translate", language=code
+        )
+
+    if _matches_any(text, VISION_READ_PHRASES):
+        return Intent(IntentKind.VISION_QUERY, text=text, task="read")
+
+    if _matches_any(text, VISION_DESCRIBE_PHRASES):
+        return Intent(IntentKind.VISION_QUERY, text=text, task="describe")
 
     # Guide housekeeping is checked before anything that could swallow a city
     # name: "forget kyoto" must not be looked up as a place to describe.

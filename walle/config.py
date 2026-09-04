@@ -180,6 +180,30 @@ class ChatConfig:
 
 
 @dataclass(frozen=True)
+class CameraConfig:
+    """The camera. Captures only when asked - never a background stream.
+
+    Vision is online-only. There is no room on a 1 GB board for a local vision
+    model alongside speech, translation and synthesis, so if this matters to
+    you offline the answer is a bigger board, not a setting.
+    """
+
+    enabled: bool = True
+    device: str = "/dev/video0"
+    """Ignored by ribbon-camera tools, which address the camera directly."""
+
+    width: int = 1024
+    height: int = 768
+    warmup_s: float = 0.0
+    """Some USB webcams hand back a black first frame. Try 0.5 if yours does."""
+
+    save_captures: bool = False
+    """Off by default. Photographs are sent and dropped, not collected."""
+
+    capture_dir: Path = Path("captures")
+
+
+@dataclass(frozen=True)
 class GuideConfig:
     """Travel guides fetched online and kept on the card.
 
@@ -250,6 +274,12 @@ class OnlineConfig:
     temperature: float = 0.4
     max_output_tokens: int = 160
 
+    max_vision_tokens: int = 320
+    """A photo of a dense menu needs more room than a spoken sentence."""
+
+    vision_timeout_s: float = 20.0
+    """Uploading an image takes longer than sending a sentence."""
+
     max_guide_tokens: int = 1400
     """A whole travel guide truncated mid-object parses as nothing at all, so
     it gets a far larger budget than a single spoken sentence."""
@@ -287,6 +317,7 @@ class Config:
     chat: ChatConfig = field(default_factory=ChatConfig)
     maps: MapConfig = field(default_factory=MapConfig)
     guides: GuideConfig = field(default_factory=GuideConfig)
+    camera: CameraConfig = field(default_factory=CameraConfig)
 
     def resolve_paths(self) -> "Config":
         """Make every model/database path absolute against ``base_dir``."""
@@ -308,6 +339,7 @@ class Config:
             city=replace(self.city, database=under(self.city.database)),
             maps=replace(self.maps, tile_cache=under(self.maps.tile_cache)),
             guides=replace(self.guides, database=under(self.guides.database)),
+            camera=replace(self.camera, capture_dir=under(self.camera.capture_dir)),
         )
 
 
@@ -387,6 +419,11 @@ def load_config(path: Path | None = None) -> Config:
         cfg = replace(cfg, display=DisplayConfig(**section))
     if section := raw.get("chat"):
         cfg = replace(cfg, chat=ChatConfig(**section))
+    if section := raw.get("camera"):
+        section = dict(section)
+        if "capture_dir" in section:
+            section["capture_dir"] = Path(section["capture_dir"])
+        cfg = replace(cfg, camera=CameraConfig(**section))
     if section := raw.get("guides"):
         section = dict(section)
         if "database" in section:

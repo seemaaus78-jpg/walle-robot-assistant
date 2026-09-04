@@ -284,3 +284,128 @@ class BuilderTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class VisionTests(unittest.TestCase):
+    """Looking at things. The image never leaves as anything but base64."""
+
+    IMAGE = b"\xff\xd8\xff\xe0fake-jpeg-bytes"
+
+    def setUp(self):
+        self.transport = FakeTransport(gemini_response("A cat asleep on a keyboard."))
+        self.backend = make_backend(self.transport)
+
+    def call(self, **kwargs):
+        return self.backend.look(self.IMAGE, **kwargs)
+
+    def test_describe_returns_an_answer(self):
+        self.assertIn("cat", self.call().lower())
+
+    def test_the_image_is_sent_as_base64_inline_data(self):
+        import base64
+
+        self.call()
+        parts = self.transport.calls[0]["payload"]["contents"][0]["parts"]
+        blob = parts[0]["inlineData"]
+        self.assertEqual(blob["mimeType"], "image/jpeg")
+        self.assertEqual(base64.b64decode(blob["data"]), self.IMAGE)
+
+    def test_the_picture_comes_before_the_question(self):
+        # The model reads parts in order; asking about an image it has not been
+        # shown yet gives noticeably vaguer answers.
+        self.call()
+        parts = self.transport.calls[0]["payload"]["contents"][0]["parts"]
+        self.assertIn("inlineData", parts[0])
+        self.assertIn("text", parts[1])
+
+    def test_an_image_gets_the_longer_timeout(self):
+        self.call()
+        self.assertEqual(self.transport.calls[0]["timeout"], OnlineConfig().vision_timeout_s)
+
+    def test_an_image_gets_the_larger_token_budget(self):
+        self.call()
+        limits = self.transport.calls[0]["payload"]["generationConfig"]
+        self.assertEqual(limits["maxOutputTokens"], OnlineConfig().max_vision_tokens)
+
+    def test_describe_instruction_forbids_guessing_about_people(self):
+        self.call()
+        system = self.transport.calls[0]["payload"]["systemInstruction"]["parts"][0]["text"]
+        self.assertIn("Never guess", system)
+        self.assertIn("only what is actually visible", system)
+
+    def test_read_asks_for_the_text_alone(self):
+        self.call(task="read")
+        system = self.transport.calls[0]["payload"]["systemInstruction"]["parts"][0]["text"]
+        self.assertIn("reply with that text only", system.lower())
+
+    def test_translate_names_the_target_language(self):
+        self.call(task="translate", target_language="fr")
+        prompt = self.transport.calls[0]["payload"]["contents"][0]["parts"][1]["text"]
+        self.assertIn("french", prompt.lower())
+
+    def test_an_empty_image_is_not_sent(self):
+        self.assertIsNone(self.backend.look(b""))
+        self.assertEqual(self.transport.calls, [])
+
+    def test_a_cooling_down_backend_does_not_send_pictures(self):
+        clock = FakeClock()
+        transport = FakeTransport(
+            urllib.error.HTTPError("http://x", 429, "rate limited", {}, None)
+        )
+        backend = make_backend(transport, clock=clock)
+        backend.look(self.IMAGE)
+        backend.look(self.IMAGE)
+        self.assertEqual(len(transport.calls), 1)
+
+
+class GuideFetchTests(unittest.TestCase):
+    GUIDE = {
+        "summary": "Kyoto is the old capital.",
+        "food": ["Nishiki Market", "Pontocho Alley"],
+        "areas": ["Gion", "Arashiyama"],
+    }
+
+    def json_response(self, payload):
+        import json as _json
+
+        return gemini_response(_json.dumps(payload))
+
+    def test_a_guide_is_parsed_into_sections(self):
+        transport = FakeTransport(self.json_response(self.GUIDE))
+        sections = make_backend(transport).fetch_guide("Kyoto", "Japan")
+        self.assertEqual(sections["food"], ["Nishiki Market", "Pontocho Alley"])
+        self.assertEqual(sections["summary"], "Kyoto is the old capital.")
+
+    def test_json_mode_is_requested(self):
+        transport = FakeTransport(self.json_response(self.GUIDE))
+        make_backend(transport).fetch_guide("Kyoto")
+        config = transport.calls[0]["payload"]["generationConfig"]
+        self.assertEqual(config["responseMimeType"], "application/json")
+
+    def test_a_fenced_response_is_salvaged(self):
+        # Models sometimes wrap JSON in a code fence even when told not to.
+        import json as _json
+
+        fenced = "```json\n" + _json.dumps(self.GUIDE) + "\n```"
+        transport = FakeTransport(gemini_response(fenced))
+        self.assertIsNotNone(make_backend(transport).fetch_guide("Kyoto"))
+
+    def test_unparseable_json_yields_nothing(self):
+        transport = FakeTransport(gemini_response("not json at all"))
+        self.assertIsNone(make_backend(transport).fetch_guide("Kyoto"))
+
+    def test_unknown_keys_are_dropped(self):
+        payload = dict(self.GUIDE, nonsense=["ignore me"])
+        transport = FakeTransport(self.json_response(payload))
+        sections = make_backend(transport).fetch_guide("Kyoto")
+        self.assertNotIn("nonsense", sections)
+
+    def test_empty_sections_are_dropped(self):
+        transport = FakeTransport(self.json_response({"summary": "", "food": []}))
+        self.assertIsNone(make_backend(transport).fetch_guide("Kyoto"))
+
+    def test_arrays_are_capped(self):
+        payload = {"food": [f"place {i}" for i in range(20)]}
+        transport = FakeTransport(self.json_response(payload))
+        sections = make_backend(transport).fetch_guide("Kyoto")
+        self.assertLessEqual(len(sections["food"]), 6)

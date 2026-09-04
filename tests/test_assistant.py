@@ -780,3 +780,108 @@ class GuideCacheTests(AssistantHarness):
     def test_listing_when_empty(self):
         reply = self.make_guided(online=False).respond("what have you saved")
         self.assertIn("not saved any", reply.text)
+
+
+class VisionTests(AssistantHarness):
+    """Looking at things, and being honest that it needs a connection to."""
+
+    IMAGE = b"\xff\xd8\xff\xe0fake-jpeg"
+
+    class FakeVision:
+        def __init__(self, answer="A cat asleep on a keyboard.", fail=False):
+            self.answer = answer
+            self.fail = fail
+            self.calls = []
+
+        def answer_(self):
+            return None
+
+        def answer(self, intent, history=None):
+            return None
+
+        def look(self, image, task="describe", question=None, target_language=None):
+            self.calls.append((image, task, target_language))
+            if self.fail:
+                raise ConnectionError("no route")
+            return self.answer
+
+    def make_seeing(self, online=True, camera=None, vision=None):
+        from walle.camera import NullCamera
+
+        self.vision = vision or self.FakeVision()
+        self.camera = camera if camera is not None else NullCamera(self.IMAGE)
+        self.connectivity.online = online
+        return Assistant(
+            config=Config(),
+            speaker=self.speaker,
+            recogniser=ScriptedRecogniser([]),
+            cities=self.cities,
+            translator=self.translator,
+            connectivity=self.connectivity,
+            camera=self.camera,
+            online=self.vision,
+        )
+
+    def test_it_describes_what_it_sees(self):
+        reply = self.make_seeing().respond("what do you see")
+        self.assertIn("cat", reply.text.lower())
+        self.assertEqual(self.vision.calls[0][1], "describe")
+
+    def test_it_announces_itself_before_taking_a_picture(self):
+        """A camera that fires silently is a worse thing to have on a desk."""
+        self.make_seeing().respond("what do you see")
+        spoken = [text for _, text in self.speaker.spoken]
+        self.assertIn("Let me look.", spoken)
+
+    def test_reading_text_uses_the_read_task(self):
+        self.make_seeing().respond("read this")
+        self.assertEqual(self.vision.calls[0][1], "read")
+
+    def test_translating_a_sign_carries_the_language(self):
+        assistant = self.make_seeing()
+        reply = assistant.respond("what does this sign say in french")
+        self.assertEqual(self.vision.calls[0][1], "translate")
+        self.assertEqual(self.vision.calls[0][2], "fr")
+        # A translated sign is spoken in the language it was translated into.
+        self.assertEqual(reply.lang, "fr")
+
+    def test_a_description_is_spoken_in_english(self):
+        reply = self.make_seeing().respond("what do you see")
+        self.assertEqual(reply.lang, "en")
+
+    def test_offline_says_so_rather_than_guessing(self):
+        """Vision is the one thing that genuinely cannot work offline."""
+        assistant = self.make_seeing(online=False)
+        reply = assistant.respond("what do you see")
+        self.assertIn("internet", reply.text.lower())
+        self.assertEqual(self.vision.calls, [])
+
+    def test_offline_does_not_even_take_the_picture(self):
+        assistant = self.make_seeing(online=False)
+        assistant.respond("what do you see")
+        self.assertEqual(self.camera.captures, 0)
+
+    def test_no_camera_is_reported_clearly(self):
+        assistant = self.make_seeing()
+        assistant.camera = None
+        self.assertIn("camera", assistant.respond("what do you see").text.lower())
+
+    def test_a_camera_that_returns_nothing(self):
+        from walle.camera import NullCamera
+
+        assistant = self.make_seeing(camera=NullCamera(None))
+        self.assertIn("did not give me a picture", assistant.respond("look at this").text)
+
+    def test_a_failed_vision_request_does_not_crash(self):
+        assistant = self.make_seeing(vision=self.FakeVision(fail=True))
+        reply = assistant.respond("what do you see")
+        self.assertIn("could not make sense", reply.text)
+
+    def test_an_empty_answer_is_reported(self):
+        assistant = self.make_seeing(vision=self.FakeVision(answer=""))
+        self.assertIn("could not make sense", assistant.respond("what do you see").text)
+
+    def test_looking_never_reaches_the_city_database(self):
+        # "read this" must not be looked up as a place called "this".
+        reply = self.make_seeing().respond("read this")
+        self.assertNotIn("could not find", reply.text.lower())

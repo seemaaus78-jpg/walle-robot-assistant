@@ -432,6 +432,28 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 </section>
 
 <section>
+  <div class="part-head"><span class="part-num">Part 6a</span><h2>What it sees</h2></div>
+  <p class="lede">A USB webcam on <span class="mono">/dev/video0</span>, or a ribbon camera on the CSI connector.</p>
+  <p>Capture goes through an external program rather than a Python imaging library, because the right tool differs by camera: <span class="mono">libcamera-still</span> for a ribbon camera, <span class="mono">fswebcam</span> or <span class="mono">ffmpeg</span> for USB. The first one installed is detected and used. For a first build, a USB webcam is far easier — no ribbon cable, no overlay.</p>
+  <p class="say">"what do you see" · "read this" · "what does this menu say in spanish"</p>
+  <p>Three tasks: describe a scene, read the text in a photo, or read it and translate it. The third is the one that earns its place on a trip — a menu or a sign in a script you cannot read.</p>
+
+  <div class="note">
+    <span class="lbl">Capture is on request only</span>
+    <p>There is no background loop, no preview stream and no motion trigger. One still is taken when someone asks it to look, and at no other time. It also speaks before the shutter, so the capture is never silent. Nothing is written to the card unless <span class="mono">save_captures</span> is turned on, which it is not by default.</p>
+    <p>This is a design position, not an oversight. An always-listening microphone is what a voice assistant is; an always-watching camera is a different object to put in someone's room.</p>
+  </div>
+
+  <div class="danger">
+    <span class="lbl">Vision is the one thing that cannot work offline</span>
+    <p>There is no memory headroom on a 1 GB board for a vision model beside Vosk, Argos and Piper. With no connection the robot says <em>"I need an internet connection to see"</em> and does not open the shutter — it does not degrade into a guess.</p>
+    <p>If offline vision matters, that is a bigger board, not a configuration change.</p>
+  </div>
+
+  <p>The system prompt tells the model to describe only what is visible, to say when a photo is too dark or blurred rather than inventing detail, and never to guess at a person's name, age, mood, health or nationality.</p>
+</section>
+
+<section>
   <div class="part-head"><span class="part-num">Part 6b</span><h2>Guides it keeps</h2></div>
   <p class="lede">Every city asked about with signal permanently improves what the robot knows without it.</p>
   <p>Asking about a city while online fetches a full travel guide from Gemini — areas worth walking, where to eat, stations and how to get around, where to stay, emergency numbers and hospitals — and writes it to the card, along with the map tiles for that city. Ask again with no connection and it is all still there.</p>
@@ -544,7 +566,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 </section>
 
 <footer>
-  <p><strong>What is verified and what is not.</strong> The software is real and tested — 307 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
+  <p><strong>What is verified and what is not.</strong> The software is real and tested — 350 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
 </footer>
 
 </div>

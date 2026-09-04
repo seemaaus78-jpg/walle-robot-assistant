@@ -20,6 +20,7 @@ Three deliberate constraints:
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import time
@@ -53,6 +54,22 @@ CHAT_INSTRUCTION = (
     "of plain spoken English. Never use markdown, bullet points, emoji or "
     "parentheses. Do not offer lists of options. If you do not know something, "
     "say so plainly."
+)
+
+VISION_INSTRUCTION = (
+    "You are the eyes of a small desk robot. You are shown one photograph "
+    "taken by the robot's camera. Answer in at most two short sentences of "
+    "plain spoken English. Never use markdown, emoji or parentheses. "
+    "Describe only what is actually visible. If the photo is too dark, too "
+    "blurred or too close to tell, say exactly that instead of guessing. "
+    "Never guess at a person's name, age, mood, health or nationality."
+)
+
+READ_INSTRUCTION = (
+    "You are shown a photograph. Read the text that appears in it and reply "
+    "with that text only. Do not describe the image, do not explain, do not "
+    "add quotation marks. If there is no readable text, reply exactly: "
+    "I cannot see any text."
 )
 
 GUIDE_INSTRUCTION = (
@@ -183,6 +200,38 @@ class GeminiBackend:
             return None
         return Reply(text)
 
+    def look(
+        self,
+        image: bytes,
+        task: str = "describe",
+        question: str | None = None,
+        target_language: str | None = None,
+    ) -> str | None:
+        """Send one photograph and get a spoken answer back.
+
+        ``task`` is "describe" (what is in front of me), "read" (the words in
+        this photo) or "translate" (read the words, then say them in another
+        language) - which together are most of what a traveller actually points
+        a camera at: a view, a menu, a sign in a script they cannot read.
+        """
+        if self._cooling_down() or not image:
+            return None
+
+        if task == "read":
+            system, prompt = READ_INSTRUCTION, "Read the text in this photo."
+        elif task == "translate":
+            name = LANGUAGE_NAMES.get(target_language or "", target_language or "English")
+            system = READ_INSTRUCTION
+            prompt = (
+                f"Read the text in this photo and give only its {name} "
+                "translation. Nothing else."
+            )
+        else:
+            system = VISION_INSTRUCTION
+            prompt = question or "What is in front of you?"
+
+        return self._generate(system, prompt, image=image)
+
     def fetch_guide(self, city_name: str, country: str | None = None) -> dict | None:
         """Ask for a whole travel guide, as sections, ready to store.
 
@@ -244,6 +293,7 @@ class GeminiBackend:
         prompt: str,
         history: ChatHistory | None = None,
         json_mode: bool = False,
+        image: bytes | None = None,
     ) -> str | None:
         url = f"{API_ROOT}/{self._config.model}:generateContent"
 
@@ -258,7 +308,21 @@ class GeminiBackend:
             contents = [
                 {"role": turn.role, "parts": [{"text": turn.text}]} for turn in turns
             ]
-        contents.append({"role": "user", "parts": [{"text": prompt}]})
+        parts: list[dict] = []
+        if image is not None:
+            # The picture goes before the question: the model reads the parts
+            # in order, and asking about an image it has not been shown yet
+            # gives noticeably vaguer answers.
+            parts.append(
+                {
+                    "inlineData": {
+                        "mimeType": "image/jpeg",
+                        "data": base64.b64encode(image).decode("ascii"),
+                    }
+                }
+            )
+        parts.append({"text": prompt})
+        contents.append({"role": "user", "parts": parts})
 
         payload = {
             "systemInstruction": {"parts": [{"text": system}]},
@@ -270,6 +334,9 @@ class GeminiBackend:
                     if json_mode
                     else self._config.max_output_tokens
                 ),
+                # A photo of a dense menu needs room; a spoken sentence does not.
+                **({"maxOutputTokens": self._config.max_vision_tokens}
+                   if image is not None and not json_mode else {}),
             },
         }
         if json_mode:
@@ -279,9 +346,12 @@ class GeminiBackend:
         headers = {"x-goog-api-key": self._api_key}
 
         try:
-            body = self._transport.post(
-                url, payload, headers, self._config.timeout_s
+            timeout = (
+                self._config.vision_timeout_s
+                if image is not None
+                else self._config.timeout_s
             )
+            body = self._transport.post(url, payload, headers, timeout)
         except urllib.error.HTTPError as exc:
             # 429 is the free tier's per-minute limit; 5xx is Google's problem.
             # Both mean "stop asking for a while".

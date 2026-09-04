@@ -138,7 +138,7 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
 <section>
   <div class="chapter">Chapter 1</div>
   <h2>The parts you need to buy</h2>
-  <p>There are six things. Below is a drawing of each one, what it does, and why we picked it.</p>
+  <p>There are seven things. Below is a drawing of each one, what it does, and why we picked it.</p>
   <p class="big" style="color:var(--ink-3);font-size:16px">The drawings show the little metal pins on each part, because later you will need to find them by name.</p>
 
   <!-- ============ RADXA ============ -->
@@ -304,6 +304,32 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <p>Get the kind with a little plastic <em>socket</em> (a hole) on both ends. These are sold as <strong>"female to female"</strong>.</p>
         <a class="buy" href="https://www.amazon.com/s?k=female+to+female+jumper+wires+dupont">Search shops →</a>
         <div class="why"><p><b>Why start with these:</b> you can pull them off and try again. Get everything working with jumper wires first. Only solder later, when you already know it all works.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CAMERA ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a small USB webcam with a lens and a cable">
+        <rect x="58" y="30" width="84" height="46" rx="10" fill="#2A2A2E"/>
+        <circle cx="100" cy="53" r="16" fill="#111"/>
+        <circle cx="100" cy="53" r="10" fill="#1B3A5C"/>
+        <circle cx="100" cy="53" r="4.5" fill="#4A8FD0"/>
+        <circle cx="95" cy="48" r="2" fill="#BBD9F5"/>
+        <circle cx="128" cy="38" r="2.6" fill="#7ED957"/>
+        <rect x="72" y="76" width="56" height="7" rx="3" fill="#1A1A1D"/>
+        <path d="M100 83 Q100 100 128 104 T170 108" stroke="#2A2A2E" stroke-width="4" fill="none"/>
+        <rect x="168" y="102" width="14" height="10" rx="2" fill="#8A8A8A"/>
+        <text x="100" y="122" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">plugs into a normal USB socket</text>
+      </svg>
+      <div class="part-txt">
+        <h4>USB webcam</h4>
+        <div class="price">any cheap one · roughly $10–20</div>
+        <p>This is the <strong>eye</strong>. It lets the robot look at something and tell you what it is.</p>
+        <p>Point it at a menu in a language you cannot read and ask "what does this say in English". Point it at a street and ask "what do you see".</p>
+        <a class="buy" href="https://www.amazon.com/s?k=usb+webcam+1080p+small">Search shops →</a>
+        <div class="why"><p><b>Why USB and not the ribbon kind:</b> a ribbon camera has a delicate flat cable and needs extra settings turned on. A USB webcam just plugs in. For a first project, take the easy one — you can always change later.</p></div>
       </div>
     </div>
   </div>
@@ -527,6 +553,42 @@ pip install --no-cache-dir -r requirements.txt</div>
 </section>
 
 <section>
+  <div class="chapter">Chapter 6a</div>
+  <h2>Teaching it to see</h2>
+  <p class="big">Plug in the webcam. That is the whole setup.</p>
+  <p>You will need one small program installed so the robot can take a photo. Type this once:</p>
+  <div class="cmd">sudo apt install -y fswebcam</div>
+  <p>Now the robot can look at things when you ask.</p>
+
+  <h3>Ask it to look</h3>
+  <span class="say">"what do you see"</span>
+  <span class="reply">Let me look. … A narrow street of wooden houses, with lanterns strung between the balconies.</span>
+
+  <h3>Ask it to read something</h3>
+  <p>This is the useful one when travelling. Hold up a menu, a sign, a train ticket:</p>
+  <span class="say">"read this"</span>
+  <span class="reply">Ramen 850 yen. Gyoza 400 yen. Green tea free.</span>
+
+  <h3>Ask it to read AND translate</h3>
+  <p>The best trick it does. Point it at writing in a language you cannot read:</p>
+  <span class="say">"what does this menu say in english"</span>
+  <span class="reply">Ramen, 850 yen. Dumplings, 400 yen. Green tea is free.</span>
+
+  <div class="tip">
+    <span class="lbl">It only takes a photo when you ask</span>
+    <p>The camera is <strong>not</strong> always watching. It does not record. It takes one single photo at the moment you ask it to look, and nothing else.</p>
+    <p>It also says <em>"Let me look"</em> out loud first, so you always know when a photo is being taken. And the photo is not kept — it is sent, used to answer you, and thrown away.</p>
+    <p>That is on purpose. A robot that listens is one thing. A camera quietly watching a room is a different thing, and this is not that.</p>
+  </div>
+
+  <div class="warn">
+    <span class="lbl">Seeing needs internet — this part cannot work offline</span>
+    <p>Understanding a photo takes far more memory than your little computer has. So this is the one feature that needs Wi-Fi.</p>
+    <p>With no internet it simply tells you: <em>"I need an internet connection to see."</em> It will not guess at what is in front of it and pretend. Everything else — cities, translation, saved guides — keeps working with no internet as normal.</p>
+  </div>
+</section>
+
+<section>
   <div class="chapter">Chapter 6b</div>
   <h2>It remembers what it learns</h2>
   <p class="big">This is the clever part.</p>
@@ -627,6 +689,8 @@ python3 scripts/guides.py clear</div>
       <tr><td>The voice sounds too fast or too slow</td><td>A small settings file is missing next to the voice file. Run the download script again.</td></tr>
       <tr><td>It answers its own voice</td><td>Move the microphone further from the speaker, or turn the volume down.</td></tr>
       <tr><td>It is slow just after switching on</td><td>Normal. It is loading the translation part into memory. It only happens once.</td></tr>
+      <tr><td>The camera gives a black picture</td><td>Some webcams need a moment to wake up. Set <code>warmup_s = 0.5</code> in the settings file.</td></tr>
+      <tr><td>It says it cannot see</td><td>Either no webcam is plugged in, or there is no internet. Seeing needs both.</td></tr>
       <tr><td>It cannot find any city</td><td>The city file was not copied onto the robot. Check <code>world_cities.db</code> is there and about 50 MB.</td></tr>
     </tbody>
   </table></div>
@@ -657,7 +721,7 @@ python3 scripts/guides.py clear</div>
 </section>
 
 <footer>
-  <p><strong>An honest note.</strong> The software in this project is real and tested — 260 automatic checks run on it. But nobody has yet built this exact robot with these exact parts. The four sound pins in Chapter 4 are the ones most boards use, not something checked on a Cubie A7Z, which is why that chapter asks you to look them up. Prices and times are estimates.</p>
+  <p><strong>An honest note.</strong> The software in this project is real and tested — 350 automatic checks run on it. But nobody has yet built this exact robot with these exact parts. The four sound pins in Chapter 4 are the ones most boards use, not something checked on a Cubie A7Z, which is why that chapter asks you to look them up. Prices and times are estimates.</p>
   <p>If a step does not work the way this book says, the book is probably wrong and you are probably fine. Write down what happened and ask.</p>
 </footer>
 

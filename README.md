@@ -133,6 +133,9 @@ the SD card.
 
 | Say | It does |
 |---|---|
+| "what do you see" | Takes one photo and describes it |
+| "read this" | Reads the text in a photo — a menu, a sign, a label |
+| "what does this sign say in english" | Reads it and translates it |
 | "travel guide for kyoto" | Fetches a full guide online and keeps it on the card |
 | "what are the restaurants in kyoto" | Reads that section back, online or off |
 | "what have you saved" | Lists the cities it has guides for |
@@ -149,6 +152,31 @@ the SD card.
 
 Command phrasing lives in `walle/intents.py` and is plain data — add your own
 without touching the rest.
+
+## What it sees
+
+A camera makes it answer the questions a traveller actually points a lens at: a
+view, a menu, a sign in a script they cannot read.
+
+```
+"what do you see"                     → A narrow street of wooden houses,
+                                        lanterns strung between the balconies.
+"read this"                           → RAMEN 850 YEN, GYOZA 400 YEN
+"what does this menu say in spanish"  → Ramen 850 yenes. Gyoza 400 yenes.
+```
+
+Two rules, both deliberate:
+
+**It captures only when asked.** No background loop, no preview stream, no
+motion trigger. It also says *"Let me look"* aloud before the shutter — a camera
+that fires silently is a worse object to have on a desk than one that announces
+itself. Nothing is stored unless `save_captures` is turned on, which it is not
+by default.
+
+**Vision is online-only, and says so.** There is no room on a 1 GB board for a
+vision model beside speech, translation and synthesis, so with no connection it
+answers *"I need an internet connection to see"* rather than guessing — and does
+not open the shutter at all.
 
 ## Guides it keeps
 
@@ -209,6 +237,7 @@ walle/
   net.py                   cached connectivity probe
   online.py                Gemini backend, rate-limit cooldown
   guides.py                travel guides cached on the card
+  camera.py                single-still capture, on request only
   assistant.py             routing and orchestration
   tts.py                   Piper invocation and playback
   stt.py                   PortAudio capture and Vosk decoding
@@ -218,7 +247,7 @@ scripts/
   build_city_db.py         build world_cities.db from a GeoNames dump
 systemd/                   unit file for running at boot
 docs/                      hardware, architecture, setup, defects fixed
-tests/                     307 tests, stdlib unittest, no hardware needed
+tests/                     350 tests, stdlib unittest, no hardware needed
 ```
 
 ## Tests
@@ -227,7 +256,7 @@ tests/                     307 tests, stdlib unittest, no hardware needed
 python3 -m unittest discover -s tests -t .
 ```
 
-307 tests, no dependencies beyond the standard library — so they also run on the
+350 tests, no dependencies beyond the standard library — so they also run on the
 board itself, where installing pytest is a waste of a card you want for models.
 
 They cover intent routing, city name extraction and lookup, the Piper command

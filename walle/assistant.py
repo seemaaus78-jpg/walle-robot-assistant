@@ -24,6 +24,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Protocol
 
+from .camera import Camera
 from .chat import ChatHistory, OfflineChat
 from .cities import City, CityDatabase, CityNotFound
 from .config import Config
@@ -140,6 +141,7 @@ class Assistant:
         chat: OfflineChat | None = None,
         maps: MapRenderer | None = None,
         guides: GuideStore | None = None,
+        camera: Camera | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.config = config
@@ -154,6 +156,7 @@ class Assistant:
         self.chat = chat or OfflineChat(cities)
         self.maps = maps
         self.guides = guides
+        self.camera = camera
         self.history = ChatHistory(config.chat.history_turns)
         self._clock = clock
         self._visual_until = 0.0
@@ -287,6 +290,9 @@ class Assistant:
             case IntentKind.GUIDE_LIST:
                 return self._list_guides()
 
+            case IntentKind.VISION_QUERY:
+                return self._answer_vision(intent)
+
         return None
 
     def _answer_city(self, intent: Intent) -> Reply:
@@ -370,6 +376,68 @@ class Assistant:
                 )
 
         return Reply(self.chat.reply(body, self.history))
+
+    # -- looking --------------------------------------------------------------
+
+    def _answer_vision(self, intent: Intent) -> Reply:
+        """Take one photograph and ask what is in it.
+
+        Vision is the one thing here that genuinely cannot work offline: there
+        is no room on this board for a vision model beside speech, translation
+        and synthesis. So this path says plainly that it needs a connection
+        rather than degrading into a guess.
+        """
+        if self.camera is None:
+            return Reply(
+                "I do not have a camera connected.", emotion=Emotion.CONFUSED
+            )
+
+        if self.online is None or not self.connectivity.is_online():
+            return Reply(
+                "I need an internet connection to see. My eyes only work "
+                "online.",
+                emotion=Emotion.SAD,
+            )
+
+        # Say it out loud before the shutter. A camera that fires silently is
+        # a worse object to have on a desk than one that announces itself.
+        self.speaker.speak("Let me look.")
+        self._feel(Event.THINKING)
+
+        image = self.camera.capture()
+        if not image:
+            return Reply(
+                "My camera did not give me a picture.", emotion=Emotion.SAD
+            )
+
+        if self.display is not None:
+            try:
+                self.display.show_image_bytes(image)
+            except Exception as exc:  # noqa: BLE001 - a dead panel is not fatal
+                log.debug("could not show capture: %s", exc)
+
+        task = intent.task or "describe"
+        target = intent.language or self.target_lang
+        try:
+            answer = self.online.look(
+                image,
+                task=task,
+                question=intent.text if task == "describe" else None,
+                target_language=target,
+            )
+        except Exception as exc:  # noqa: BLE001 - the cloud never breaks it
+            log.warning("vision request failed: %s", exc)
+            answer = None
+
+        if not answer:
+            return Reply(
+                "I could not make sense of what I saw.", emotion=Emotion.CONFUSED
+            )
+
+        # A translated sign is spoken in the language it was translated into;
+        # a description is spoken in English.
+        lang = target if task == "translate" else "en"
+        return Reply(answer, lang=lang, gesture="nod")
 
     # -- travel guides ------------------------------------------------------
 
@@ -691,6 +759,7 @@ class Assistant:
             ("motion", self.motion),
             ("display", self.display),
             ("guides", self.guides),
+            ("camera", self.camera),
             ("cities", self.cities),
         ):
             if component is None:

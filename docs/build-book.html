@@ -138,7 +138,7 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
 <section>
   <div class="chapter">Chapter 1</div>
   <h2>The parts you need to buy</h2>
-  <p>There are twelve things — six that make it think and talk, and six that make it move. Below is a drawing of each one, what it does, and why we picked it.</p>
+  <p>There are fifteen things. Seven make it think, talk and see; six make it move; two are power. Below is a drawing of each one, what it does, and why we picked it.</p>
   <p class="big" style="color:var(--ink-3);font-size:16px">The drawings show the little metal pins on each part, because later you will need to find them by name.</p>
 
   <!-- ============ RADXA ============ -->
@@ -251,6 +251,33 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <p>"8 ohm" is just the type. Ask for an 8 ohm speaker and you will get the right thing.</p>
         <a class="buy" href="https://www.amazon.com/s?k=8+ohm+2W+small+speaker">Search shops →</a>
         <div class="why"><p><b>Why small:</b> the whole robot is meant to sit on a desk. A big speaker would need a bigger battery and a bigger box, for volume you do not need.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DISPLAY ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a small square colour screen showing two cyan eyes">
+        <rect x="54" y="22" width="92" height="80" rx="5" fill="#2A2A2E"/>
+        <rect x="61" y="29" width="78" height="60" rx="2" fill="#0B0E10"/>
+        <rect x="79" y="45" width="14" height="22" rx="6" fill="#3ECFCF"/>
+        <rect x="107" y="45" width="14" height="22" rx="6" fill="#3ECFCF"/>
+        <g fill="#C9A227">
+          <circle cx="66" cy="97" r="2.2"/><circle cx="78" cy="97" r="2.2"/>
+          <circle cx="90" cy="97" r="2.2"/><circle cx="102" cy="97" r="2.2"/>
+          <circle cx="114" cy="97" r="2.2"/><circle cx="126" cy="97" r="2.2"/>
+          <circle cx="138" cy="97" r="2.2"/>
+        </g>
+        <text x="100" y="116" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">7 pins along the bottom · SPI</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Colour screen</h4>
+        <div class="price">2.0 inch or 2.4 inch ILI9341, 320×240 · roughly $4–7</div>
+        <p>This is the <strong>face</strong>. It shows the eyes that blink and change with the robot's mood, and it shows maps and photos.</p>
+        <p>Search for <strong>"2.4 inch ILI9341 SPI"</strong>. Make sure the listing says <strong>SPI</strong> and shows <strong>7 or 8 pins</strong> — not a wide ribbon connector.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-2.4-inch-ILI9341-SPI-TFT-display-module.html">AliExpress →</a>
+        <div class="why"><p><b>Why not the small 1.54 inch one:</b> the video robot only needs eyes. Yours also shows maps, and a map on a 1.54 inch screen is unreadable. A 2.4 inch costs about the same and makes the robot slightly bigger — worth it.</p></div>
       </div>
     </div>
   </div>
@@ -459,12 +486,65 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <text x="100" y="106" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">buy the TP4056 that says WITH PROTECTION</text>
       </svg>
       <div class="part-txt">
-        <h4>Battery and charger</h4>
-        <div class="price">3.7 V 1000–2000 mAh LiPo + TP4056 with protection · roughly $10</div>
-        <p>This is what makes it <strong>cordless</strong>. Add it last, once everything already works on a wall charger.</p>
-        <a class="buy" href="https://www.aliexpress.com/w/wholesale-TP4056-with-protection-type-c.html">Charger →</a>
-        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-3.7v-lipo-battery-1000mah.html">Battery</a>
-        <div class="why"><p><b>The word "protection" is not optional.</b> The protected version has two extra chips on it that stop the battery being drained too far or short-circuited. The bare version has neither, and a damaged lithium battery can catch fire. Read the listing title carefully.</p></div>
+        <h4>Battery and power board</h4>
+        <div class="price">3.7 V 2000–3000 mAh LiPo + 5 V power bank module · roughly $10</div>
+        <p>This is what makes it <strong>cordless</strong>. Add it last, once everything already works from a wall charger.</p>
+        <p>Search for a <strong>"5V 2A power bank module"</strong> (sometimes called 134N3P). One small board that does three jobs at once — see below.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-5V-2A-power-bank-module-charging-boost.html">Power board →</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-3.7v-lipo-battery-2000mah.html">Battery</a>
+        <div class="why">
+          <p><b>Why not a plain TP4056:</b> your battery makes <strong>3.7 volts</strong>. Your computer needs <strong>5 volts</strong>. A plain charger board does not raise the voltage, so the battery alone cannot run the robot at all.</p>
+          <p>A power bank module charges the battery, raises 3.7 V up to 5 V, <em>and</em> lets the robot run while charging — three boards in one, for about the same money.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CAMERA CABLE ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a flat ribbon cable with a wide connector at one end and a narrow one at the other">
+        <rect x="34" y="52" width="30" height="20" rx="2" fill="#3A3A40"/>
+        <rect x="38" y="56" width="22" height="4" rx="1" fill="#C9A227"/>
+        <path d="M64 62 h72" stroke="#D8D2C4" stroke-width="17"/>
+        <path d="M64 62 h72" stroke="#B9B2A2" stroke-width="17" stroke-dasharray="2 5"/>
+        <rect x="136" y="55" width="24" height="14" rx="2" fill="#3A3A40"/>
+        <rect x="139" y="58" width="18" height="3" rx="1" fill="#C9A227"/>
+        <text x="49" y="88" font-family="monospace" font-size="7" fill="#8A857A" text-anchor="middle">board end</text>
+        <text x="148" y="88" font-family="monospace" font-size="7" fill="#8A857A" text-anchor="middle">camera end</text>
+        <text x="100" y="110" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">COUNT THE PINS ON YOUR BOARD FIRST</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Camera ribbon cable</h4>
+        <div class="price">roughly $2–4 · <strong>check before buying</strong></div>
+        <p>Your Raspberry Pi camera connects with a flat ribbon. The plug on the camera and the socket on your computer board <strong>may not be the same size</strong>.</p>
+        <p><strong>Do this first:</strong> look at the camera socket on your Radxa board and count the tiny gold lines. A Raspberry Pi camera has <strong>15</strong>. If your board has <strong>22</strong>, you need an adapter cable, not a plain one.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-22-pin-to-15-pin-camera-adapter-cable.html">22-to-15 adapter →</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-15-pin-csi-camera-ribbon-cable.html">Plain 15-pin</a>
+        <div class="why"><p><b>Why I cannot just tell you which:</b> I have not held a Cubie A7Z and I will not guess — a wrong cable is wasted money and three weeks of shipping. Count the pins, then buy. It takes thirty seconds.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SWITCH ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a small slide switch with three pins">
+        <rect x="70" y="48" width="60" height="30" rx="3" fill="#2E2E33"/>
+        <rect x="78" y="42" width="20" height="14" rx="3" fill="#D8D2C4"/>
+        <g fill="#C9A227">
+          <rect x="80" y="78" width="4" height="14" rx="1"/>
+          <rect x="98" y="78" width="4" height="14" rx="1"/>
+          <rect x="116" y="78" width="4" height="14" rx="1"/>
+        </g>
+        <text x="100" y="110" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">slide it one way for on, the other for off</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Slide switch</h4>
+        <div class="price">a pack of 10 · roughly $2</div>
+        <p>On and off. Small, but do not skip it.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-SS12D00-slide-switch-3-pin.html">AliExpress →</a>
+        <div class="why"><p><b>Why it matters:</b> without one, turning the robot off means unplugging the battery every time. Those little connectors are only designed for a few dozen plugs and pulls, and then they get loose and unreliable.</p></div>
       </div>
     </div>
   </div>

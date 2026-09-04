@@ -30,6 +30,7 @@ from typing import Callable
 from .assistant import Reply
 from .chat import ChatHistory
 from .config import OnlineConfig
+from .guides import SECTIONS
 from .intents import LANGUAGE_NAMES, Intent, IntentKind
 
 log = logging.getLogger(__name__)
@@ -52,6 +53,15 @@ CHAT_INSTRUCTION = (
     "of plain spoken English. Never use markdown, bullet points, emoji or "
     "parentheses. Do not offer lists of options. If you do not know something, "
     "say so plainly."
+)
+
+GUIDE_INSTRUCTION = (
+    "You write short, practical travel notes for a traveller who will read "
+    "them with no internet connection. Be concrete and name real places. "
+    "Never use markdown, bullet characters, emoji or parentheses - every "
+    "string you write will be read aloud by a speech synthesiser. "
+    "If you are unsure about a fact, leave it out rather than guessing. "
+    "Return JSON only, matching the requested shape exactly."
 )
 
 TRANSLATE_INSTRUCTION = (
@@ -173,6 +183,48 @@ class GeminiBackend:
             return None
         return Reply(text)
 
+    def fetch_guide(self, city_name: str, country: str | None = None) -> dict | None:
+        """Ask for a whole travel guide, as sections, ready to store.
+
+        Requested as JSON rather than prose so each part can be saved and read
+        back on its own later - "what about restaurants in Kyoto" should not
+        have to replay the entire guide.
+        """
+        if self._cooling_down():
+            return None
+
+        where = f"{city_name}, {country}" if country else city_name
+        wanted = "\n".join(
+            f'  "{section.key}": {section.prompt}' for section in SECTIONS
+        )
+        prompt = (
+            f"Write travel notes for {where}.\n"
+            f"Return a JSON object with exactly these keys:\n{wanted}\n"
+            'Use a plain string for "summary", and an array of short strings '
+            "for every other key. Six items maximum per array."
+        )
+
+        body = self._generate_json(GUIDE_INSTRUCTION, prompt)
+        if not isinstance(body, dict):
+            return None
+
+        # Keep only the sections we asked for, and only ones with content, so a
+        # partial answer stores cleanly rather than saving empty keys.
+        sections: dict[str, object] = {}
+        for section in SECTIONS:
+            value = body.get(section.key)
+            if isinstance(value, str) and value.strip():
+                sections[section.key] = clean_for_speech(value)
+            elif isinstance(value, list):
+                items = [
+                    clean_for_speech(str(item))
+                    for item in value
+                    if str(item).strip()
+                ]
+                if items:
+                    sections[section.key] = items[:6]
+        return sections or None
+
     # -- API plumbing ------------------------------------------------------
 
     def _cooling_down(self) -> bool:
@@ -187,7 +239,11 @@ class GeminiBackend:
         )
 
     def _generate(
-        self, system: str, prompt: str, history: ChatHistory | None = None
+        self,
+        system: str,
+        prompt: str,
+        history: ChatHistory | None = None,
+        json_mode: bool = False,
     ) -> str | None:
         url = f"{API_ROOT}/{self._config.model}:generateContent"
 
@@ -209,9 +265,17 @@ class GeminiBackend:
             "contents": contents,
             "generationConfig": {
                 "temperature": self._config.temperature,
-                "maxOutputTokens": self._config.max_output_tokens,
+                "maxOutputTokens": (
+                    self._config.max_guide_tokens
+                    if json_mode
+                    else self._config.max_output_tokens
+                ),
             },
         }
+        if json_mode:
+            # A whole guide truncated mid-object parses as nothing at all, so
+            # it gets a much larger budget than a spoken sentence needs.
+            payload["generationConfig"]["responseMimeType"] = "application/json"
         headers = {"x-goog-api-key": self._api_key}
 
         try:
@@ -235,10 +299,30 @@ class GeminiBackend:
             log.warning("Gemini returned invalid JSON: %s", exc)
             return None
 
-        return self._extract(body)
+        return self._extract(body, raw=json_mode)
+
+    def _generate_json(self, system: str, prompt: str) -> object | None:
+        """Same call, but asking the API for JSON and parsing it."""
+        raw = self._generate(system, prompt, json_mode=True)
+        if raw is None:
+            return None
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            # Models occasionally wrap JSON in a code fence even when asked not
+            # to. Salvage the outermost object rather than losing the whole
+            # answer over punctuation.
+            start, end = raw.find("{"), raw.rfind("}")
+            if start != -1 and end > start:
+                try:
+                    return json.loads(raw[start : end + 1])
+                except json.JSONDecodeError:
+                    pass
+            log.warning("guide response was not valid JSON")
+            return None
 
     @staticmethod
-    def _extract(body: dict) -> str | None:
+    def _extract(body: dict, raw: bool = False) -> str | None:
         """Pull the text out of a generateContent response.
 
         A response can legitimately carry no text: the model may stop on a
@@ -257,7 +341,9 @@ class GeminiBackend:
             log.warning("unexpected Gemini response shape: %s", body)
             return None
 
-        cleaned = clean_for_speech(text)
+        # JSON must survive byte-for-byte: the speech cleaner strips
+        # underscores and asterisks, which are legal inside JSON values.
+        cleaned = text.strip() if raw else clean_for_speech(text)
         if not cleaned:
             reason = body["candidates"][0].get("finishReason", "unknown")
             log.info("Gemini produced no usable text (finishReason=%s)", reason)

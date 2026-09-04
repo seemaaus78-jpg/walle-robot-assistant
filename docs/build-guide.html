@@ -432,6 +432,37 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 </section>
 
 <section>
+  <div class="part-head"><span class="part-num">Part 6b</span><h2>Guides it keeps</h2></div>
+  <p class="lede">Every city asked about with signal permanently improves what the robot knows without it.</p>
+  <p>Asking about a city while online fetches a full travel guide from Gemini — areas worth walking, where to eat, stations and how to get around, where to stay, emergency numbers and hospitals — and writes it to the card, along with the map tiles for that city. Ask again with no connection and it is all still there.</p>
+  <p class="say">"travel guide for kyoto" → fetched, spoken, and saved<br>"what are the restaurants in kyoto" → read back from the card, offline</p>
+
+  <h3>Age is always stated</h3>
+  <p>Every answer ends with how old the guide is — <em>"this guide was saved 3 weeks ago"</em> — because a restaurant list is a snapshot rather than a fact. Past <span class="mono">refresh_after_days</span> it is refetched when online, and read back with an explicit out-of-date warning when not.</p>
+
+  <div class="danger">
+    <span class="lbl">Emergency information is not a lookup</span>
+    <p>A language model can invent a plausible hospital address as easily as recall a real one, and acting on a wrong one matters in a way a wrong restaurant does not. That section is always read with a caution attached telling the listener to check it locally, and that caution cannot be configured away.</p>
+    <p>Do not present this feature to anyone as a source of emergency information.</p>
+  </div>
+
+  <h3>Deleting</h3>
+  <p>Guides live in <span class="mono">travel_guides.db</span>, separate from <span class="mono">world_cities.db</span>. Deleting everything saved is one file, and can never damage the reference data the robot needs to work.</p>
+  <p>By voice: <span class="mono">"forget kyoto"</span>, <span class="mono">"delete all guides"</span>, <span class="mono">"what have you saved"</span>. By keyboard:</p>
+  <div class="scroll"><table>
+    <thead><tr><th class="mono">scripts/guides.py …</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">list</td><td>Every saved city and how old it is</td></tr>
+      <tr><td class="mono">show kyoto</td><td>Print one guide in full</td></tr>
+      <tr><td class="mono">delete kyoto</td><td>Forget one city</td></tr>
+      <tr><td class="mono">clear</td><td>Forget everything (prompts first)</td></tr>
+      <tr><td class="mono">size</td><td>How much space guides take up</td></tr>
+    </tbody>
+  </table></div>
+  <p>The store is bounded at <span class="mono">max_guides</span>, dropping oldest first — housekeeping rather than a space concern, since a guide is a few kilobytes.</p>
+</section>
+
+<section>
   <div class="part-head"><span class="part-num">Part 7</span><h2>Talking to it</h2></div>
   <p>It starts in city mode and switches when you tell it to, in plain speech.</p>
 
@@ -513,7 +544,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 </section>
 
 <footer>
-  <p><strong>What is verified and what is not.</strong> The software is real and tested — 260 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
+  <p><strong>What is verified and what is not.</strong> The software is real and tested — 307 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
 </footer>
 
 </div>

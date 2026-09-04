@@ -527,6 +527,56 @@ pip install --no-cache-dir -r requirements.txt</div>
 </section>
 
 <section>
+  <div class="chapter">Chapter 6b</div>
+  <h2>It remembers what it learns</h2>
+  <p class="big">This is the clever part.</p>
+  <p>When your robot has internet and you ask about a city, it does not just answer. It asks Google's AI for a <strong>full travel guide</strong> — good areas to walk, places to eat, train stations, where to stay, the emergency number and main hospitals — and then <strong>writes all of it onto the memory card</strong>.</p>
+  <p>Later, with no internet at all, that guide is still there. Ask again on the plane and it tells you the same things.</p>
+
+  <div class="tip">
+    <span class="lbl">Why this is worth doing</span>
+    <p>Look up the cities you are going to <em>before</em> you travel, while you still have Wi-Fi at home. Then the robot carries all of it in your bag, and works in a country where your phone does not.</p>
+  </div>
+
+  <h3>Ask for a guide</h3>
+  <span class="say">"travel guide for kyoto"</span>
+  <span class="reply">Kyoto is the old capital of Japan, full of temples and quiet lanes. I can also tell you about areas to visit, food and restaurants, getting around, where to stay and emergency and health. I have saved it, so you will have it without internet.</span>
+
+  <h3>Then ask about one part of it</h3>
+  <span class="say">"what are the restaurants in kyoto"</span>
+  <span class="reply">In Kyoto, for food and restaurants: Nishiki Market for street food. Pontocho Alley for evening dinner. This guide was saved today.</span>
+  <p>You can ask about restaurants, areas to visit, trains and stations, hotels, or hospitals and police.</p>
+
+  <div class="tip">
+    <span class="lbl">It always tells you how old the guide is</span>
+    <p>Notice it said <em>"saved today"</em>. A list of restaurants is not a permanent fact — places close and change. So the robot always tells you when it collected the information, and if it is more than three months old it warns you that it may be wrong now.</p>
+  </div>
+
+  <div class="warn">
+    <span class="lbl">Do not trust the emergency information</span>
+    <p>When you ask about hospitals or police, the robot adds a warning to its answer, and it means it.</p>
+    <p>The AI can invent a hospital address that sounds completely real. For a restaurant that is annoying. In an emergency it is dangerous. <strong>Always check emergency information with a real local source</strong> — a hotel desk, a sign, a paper map.</p>
+  </div>
+
+  <h3>Deleting what you no longer need</h3>
+  <p>Just tell it:</p>
+  <span class="say">"forget kyoto"</span>
+  <span class="reply">Deleted my guide for Kyoto.</span>
+  <span class="say">"delete all guides"</span>
+  <span class="reply">Deleted all 12 saved guides.</span>
+  <p>To see what it is holding, say <strong>"what have you saved"</strong>.</p>
+  <p>If you would rather do it with the keyboard, there is a small tool for it:</p>
+  <div class="cmd">python3 scripts/guides.py list
+python3 scripts/guides.py show kyoto
+python3 scripts/guides.py delete kyoto
+python3 scripts/guides.py clear</div>
+  <div class="tip">
+    <span class="lbl">Nothing you save can break the robot</span>
+    <p>The guides are kept in their own separate file, away from the main list of cities. So deleting all of them — even deleting the file by hand — cannot damage anything. The robot simply starts a fresh empty one next time it turns on.</p>
+  </div>
+</section>
+
+<section>
   <div class="chapter">Chapter 7</div>
   <h2>Talking to your robot</h2>
   <p>Just speak normally.</p>

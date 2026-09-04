@@ -57,6 +57,34 @@ source_lang = "en"
 target_lang = "es"
 
 
+[guides]
+# Travel guides fetched from Gemini and kept on the card. This is what makes
+# the online half worth having: every city you ask about with signal is still
+# there when you have none.
+enabled = true
+
+# Their own database file, separate from world_cities.db. That means "delete
+# everything I saved" is one file, and can never damage the cities database
+# the robot needs to work.
+database = "travel_guides.db"
+
+# Fetch and keep a full guide the first time a city is asked about while
+# online. Set false to only save when you explicitly ask for a guide.
+auto_save = true
+
+# Oldest guides are dropped past this. At a few kilobytes each it is a
+# housekeeping limit, not a space one.
+max_guides = 200
+
+# A guide older than this is refetched when online, and read back with an
+# "it may be out of date" warning when offline.
+refresh_after_days = 90
+
+# Also pull the map tiles for the city while saving, so the map works offline
+# as well as the words.
+save_map_tiles = true
+
+
 [online]
 # The hybrid half. With a key and a connection, Gemini answers city questions
 # and translations; without either, the local models answer and the robot

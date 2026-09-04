@@ -32,6 +32,11 @@ class IntentKind(str, Enum):
     TRANSLATE_QUERY = "translate_query"
     CHAT_QUERY = "chat_query"
     MAP_QUERY = "map_query"
+    GUIDE_QUERY = "guide_query"
+    GUIDE_SAVE = "guide_save"
+    GUIDE_DELETE = "guide_delete"
+    GUIDE_CLEAR = "guide_clear"
+    GUIDE_LIST = "guide_list"
     STATUS = "status"
     HELP = "help"
     SHUTDOWN = "shutdown"
@@ -121,6 +126,18 @@ STATUS_PHRASES = (
     "battery status",
 )
 
+GUIDE_CLEAR_PHRASES = (
+    "delete all guides", "delete everything", "forget everything",
+    "delete all my guides", "clear all guides", "forget all cities",
+    "delete all saved data", "clear my guides",
+)
+
+GUIDE_LIST_PHRASES = (
+    "what have you saved", "what cities have you saved", "list my guides",
+    "which guides do you have", "what guides do you have", "list saved cities",
+    "what do you have saved",
+)
+
 # Phrases that mean "report your state" when the robot is working, and mean
 # small talk when you have explicitly asked it to chat. Routing them as status
 # in chat mode makes the robot answer a friendly question with a diagnostic.
@@ -165,6 +182,21 @@ _MAP_OF = re.compile(
     r"^(?:(?:can you\s+)?(?:show|display|pull up|bring up)\s+(?:me\s+)?)?"
     r"(?:a\s+|the\s+)?map\s+(?:of\s+|for\s+)?(?P<place>.+)$"
 )
+# "a travel guide for kyoto" / "guide to rome"
+_GUIDE_FOR = re.compile(
+    r"\b(?:travel\s+)?(?:guide|notes)\s+(?:for|to|about|on)\s+(?P<place>.+)$"
+)
+# "save a guide for kyoto" / "download tokyo"
+_GUIDE_SAVE = re.compile(
+    r"^(?:save|download|remember|keep)\s+(?:a\s+|the\s+)?"
+    r"(?:(?:travel\s+)?(?:guide|notes)\s+(?:for|to|about|on)\s+)?(?P<place>.+)$"
+)
+# "forget kyoto" / "delete the guide for kyoto"
+_GUIDE_DELETE = re.compile(
+    r"^(?:delete|remove|forget|erase)\s+(?:the\s+|my\s+)?"
+    r"(?:(?:travel\s+)?(?:guide|notes|data)\s+(?:for|about|on)\s+)?(?P<place>.+)$"
+)
+
 _MAP_ON = re.compile(
     r"^(?:show|display|find|put)\s+(?:me\s+)?(?P<place>.+?)\s+on\s+"
     r"(?:a|the)\s+map$"
@@ -236,6 +268,31 @@ def parse(transcript: str, mode: Mode) -> Intent:
 
     if _matches_any(text, HELP_PHRASES):
         return Intent(IntentKind.HELP, text=text)
+
+    # Guide housekeeping is checked before anything that could swallow a city
+    # name: "forget kyoto" must not be looked up as a place to describe.
+    if _matches_any(text, GUIDE_CLEAR_PHRASES):
+        return Intent(IntentKind.GUIDE_CLEAR, text=text)
+
+    if _matches_any(text, GUIDE_LIST_PHRASES):
+        return Intent(IntentKind.GUIDE_LIST, text=text)
+
+    if match := _GUIDE_DELETE.match(text):
+        place = match.group("place").strip()
+        if place:
+            return Intent(IntentKind.GUIDE_DELETE, text=place)
+
+    # Save is matched first: "save a guide for kyoto" contains "guide for
+    # kyoto", so the other pattern would otherwise claim it.
+    if match := _GUIDE_SAVE.match(text):
+        place = match.group("place").strip()
+        if place:
+            return Intent(IntentKind.GUIDE_SAVE, text=place)
+
+    if match := _GUIDE_FOR.search(text):
+        place = match.group("place").strip()
+        if place:
+            return Intent(IntentKind.GUIDE_QUERY, text=place)
 
     # Maps are checked before translation so "show me a map of berlin" is not
     # read as a phrase to translate while in translator mode.

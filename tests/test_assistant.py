@@ -609,3 +609,174 @@ class LanguagePairFlowTests(AssistantHarness):
         assistant.respond("translate from english to german")
         assistant.mode = Mode.CITY
         self.assertIn("english to german", assistant.respond("system status").text)
+
+
+class GuideCacheTests(AssistantHarness):
+    """Ask online, keep the answer, use it offline, delete it when done."""
+
+    GUIDE = {
+        "summary": "Tokyo is enormous and endlessly walkable.",
+        "food": ["Tsukiji outer market", "Omoide Yokocho for grilled skewers"],
+        "emergency": ["Emergency number is 119"],
+    }
+
+    def setUp(self):
+        super().setUp()
+        import tempfile
+        from dataclasses import replace as dc_replace
+        from pathlib import Path
+
+        from walle.config import Config as Cfg
+        from walle.guides import GuideStore
+
+        self._gtmp = tempfile.TemporaryDirectory()
+        base = Cfg()
+        self.config = dc_replace(
+            base,
+            guides=dc_replace(
+                base.guides, database=Path(self._gtmp.name) / "guides.db"
+            ),
+        )
+        self.store = GuideStore(self.config.guides.database)
+
+    def tearDown(self):
+        self.store.close()
+        self._gtmp.cleanup()
+        super().tearDown()
+
+    def backend(self, sections=None, fail=False):
+        outer = self
+
+        class Backend:
+            def __init__(self):
+                self.fetches = 0
+
+            def answer(self, intent, history=None):
+                return None
+
+            def fetch_guide(self, city_name, country=None):
+                self.fetches += 1
+                if fail:
+                    raise ConnectionError("no route")
+                return outer.GUIDE if sections is None else sections
+
+        self.online_backend = Backend()
+        return self.online_backend
+
+    def make_guided(self, online=True, backend=None, auto_save=None):
+        from dataclasses import replace as dc_replace
+
+        config = self.config
+        if auto_save is not None:
+            config = dc_replace(
+                config, guides=dc_replace(config.guides, auto_save=auto_save)
+            )
+        self.connectivity.online = online
+        return Assistant(
+            config=config,
+            speaker=self.speaker,
+            recogniser=ScriptedRecogniser([]),
+            cities=self.cities,
+            translator=self.translator,
+            connectivity=self.connectivity,
+            guides=self.store,
+            online=backend if backend is not None else self.backend(),
+        )
+
+    def test_online_fetch_is_saved_to_the_card(self):
+        assistant = self.make_guided(online=True)
+        reply = assistant.respond("travel guide for tokyo")
+        self.assertIn("endlessly walkable", reply.text)
+        self.assertIn("saved it", reply.text)
+        self.assertEqual(self.store.count(), 1)
+
+    def test_offline_serves_the_saved_guide_without_calling_out(self):
+        backend = self.backend()
+        self.make_guided(online=True, backend=backend).respond("travel guide for tokyo")
+        self.assertEqual(backend.fetches, 1)
+
+        offline = self.make_guided(online=False, backend=backend)
+        reply = offline.respond("travel guide for tokyo")
+        self.assertIn("endlessly walkable", reply.text)
+        self.assertEqual(backend.fetches, 1, "must not call out while offline")
+
+    def test_offline_section_question_answers_from_the_cache(self):
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        offline = self.make_guided(online=False)
+        reply = offline.respond("what are the restaurants in tokyo")
+        self.assertIn("Tsukiji", reply.text)
+
+    def test_every_answer_says_how_old_it_is(self):
+        """A restaurant list is a snapshot, not a fact."""
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        reply = self.make_guided(online=False).respond("travel guide for tokyo")
+        self.assertIn("saved today", reply.text)
+
+    def test_emergency_answers_carry_the_caution(self):
+        from walle.guides import EMERGENCY_CAUTION
+
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        reply = self.make_guided(online=False).respond(
+            "where is the police station in tokyo"
+        )
+        self.assertIn(EMERGENCY_CAUTION, reply.text)
+
+    def test_offline_with_nothing_saved_says_so(self):
+        reply = self.make_guided(online=False).respond("travel guide for tokyo")
+        self.assertIn("no saved guide", reply.text)
+
+    def test_a_failed_fetch_does_not_break_anything(self):
+        assistant = self.make_guided(online=True, backend=self.backend(fail=True))
+        reply = assistant.respond("travel guide for tokyo")
+        self.assertIsNotNone(reply)
+        self.assertEqual(self.store.count(), 0)
+
+    def test_an_empty_response_is_not_saved(self):
+        assistant = self.make_guided(online=True, backend=self.backend(sections={}))
+        assistant.respond("travel guide for tokyo")
+        self.assertEqual(self.store.count(), 0)
+
+    def test_unknown_city_is_not_fetched(self):
+        backend = self.backend()
+        assistant = self.make_guided(online=True, backend=backend)
+        reply = assistant.respond("travel guide for atlantis")
+        self.assertIn("do not know", reply.text)
+        self.assertEqual(backend.fetches, 0)
+
+    def test_city_questions_pick_up_the_saved_guide(self):
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        reply = self.make_guided(online=False).respond("tell me about tokyo")
+        self.assertIn("Tokyo is in Japan", reply.text)
+        self.assertIn("endlessly walkable", reply.text)
+
+    def test_auto_save_can_be_turned_off(self):
+        backend = self.backend()
+        assistant = self.make_guided(online=True, backend=backend, auto_save=False)
+        assistant.respond("tell me about tokyo")
+        self.assertEqual(backend.fetches, 0)
+        self.assertEqual(self.store.count(), 0)
+
+    def test_delete_one_confirms_with_the_stored_name(self):
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        reply = self.make_guided(online=False).respond("forget tokyo")
+        self.assertIn("Deleted my guide for Tokyo", reply.text)
+        self.assertEqual(self.store.count(), 0)
+
+    def test_delete_something_not_saved(self):
+        reply = self.make_guided(online=False).respond("forget tokyo")
+        self.assertIn("nothing saved", reply.text)
+
+    def test_delete_everything(self):
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        reply = self.make_guided(online=False).respond("delete all guides")
+        self.assertIn("Deleted all 1", reply.text)
+        self.assertEqual(self.store.count(), 0)
+
+    def test_listing_what_is_saved(self):
+        self.make_guided(online=True).respond("travel guide for tokyo")
+        reply = self.make_guided(online=False).respond("what have you saved")
+        self.assertIn("Tokyo", reply.text)
+
+    def test_listing_when_empty(self):
+        reply = self.make_guided(online=False).respond("what have you saved")
+        self.assertIn("not saved any", reply.text)

@@ -30,6 +30,7 @@ from .config import Config
 from .display import Card, Display
 from .emotion import EmotionEngine, Event
 from .face import Emotion
+from .guides import Guide, GuideStore, match_section
 from .intents import Intent, IntentKind, LANGUAGE_NAMES, Mode, parse
 from .maps import MapRenderer, MapRequest, zoom_for_population
 from .net import ConnectivityMonitor
@@ -138,6 +139,7 @@ class Assistant:
         emotions: EmotionEngine | None = None,
         chat: OfflineChat | None = None,
         maps: MapRenderer | None = None,
+        guides: GuideStore | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.config = config
@@ -151,6 +153,7 @@ class Assistant:
         )
         self.chat = chat or OfflineChat(cities)
         self.maps = maps
+        self.guides = guides
         self.history = ChatHistory(config.chat.history_turns)
         self._clock = clock
         self._visual_until = 0.0
@@ -272,6 +275,18 @@ class Assistant:
             case IntentKind.MAP_QUERY:
                 return self._answer_map(intent)
 
+            case IntentKind.GUIDE_QUERY | IntentKind.GUIDE_SAVE:
+                return self._answer_guide(intent)
+
+            case IntentKind.GUIDE_DELETE:
+                return self._delete_guide(intent)
+
+            case IntentKind.GUIDE_CLEAR:
+                return self._clear_guides()
+
+            case IntentKind.GUIDE_LIST:
+                return self._list_guides()
+
         return None
 
     def _answer_city(self, intent: Intent) -> Reply:
@@ -288,7 +303,25 @@ class Assistant:
                 "Sorry, I could not find that city in my offline database.",
                 emotion=Emotion.CONFUSED,
             )
-        return Reply(city.summary(), gesture="nod", visual=Visual(card=city_card(city)))
+        # A plain city question gets the guide too when one exists, and fetches
+        # one while online, which is the whole point of caching them.
+        guide = self._cached_guide(city.name)
+        if guide is None and self.config.guides.auto_save:
+            guide = self._fetch_and_store_guide(city)
+
+        facts = city.summary()
+        if guide is None:
+            return Reply(facts, gesture="nod", visual=Visual(card=city_card(city)))
+
+        section = match_section(intent.text)
+        if section is not None and guide.has(section.key):
+            return self._speak_guide(guide, intent.text, city)
+
+        return Reply(
+            f"{facts} {guide.spoken_summary()}",
+            gesture="nod",
+            visual=Visual(card=city_card(city)),
+        )
 
     def _answer_translation(self, intent: Intent) -> Reply:
         target = intent.language or self.target_lang
@@ -337,6 +370,154 @@ class Assistant:
                 )
 
         return Reply(self.chat.reply(body, self.history))
+
+    # -- travel guides ------------------------------------------------------
+
+    def _resolve_city(self, text: str) -> City | None:
+        if self.cities is None:
+            return None
+        try:
+            return self.cities.find_in_utterance(
+                text, max_words=self.config.city.max_name_words
+            )
+        except CityNotFound:
+            return None
+
+    def _fetch_and_store_guide(self, city: City) -> Guide | None:
+        """Ask the cloud for a guide and keep it. Returns None if it could not."""
+        if self.guides is None or self.online is None:
+            return None
+        if not self.connectivity.is_online():
+            return None
+
+        self._feel(Event.THINKING)
+        try:
+            sections = self.online.fetch_guide(city.name, city.country)
+        except Exception as exc:  # noqa: BLE001 - the cloud never breaks the robot
+            log.warning("guide fetch failed for %s: %s", city.name, exc)
+            return None
+        if not sections:
+            return None
+
+        guide = self.guides.save(
+            city.name,
+            sections,
+            country=city.country,
+            latitude=city.latitude,
+            longitude=city.longitude,
+            model=self.config.online.model,
+        )
+        log.info("saved guide for %s (%d sections)", city.name, len(sections))
+
+        # Pull the map tiles too, so the map works offline as well as the words.
+        if self.config.guides.save_map_tiles and self.maps and city.has_location:
+            try:
+                self.maps.render(
+                    MapRequest(
+                        latitude=city.latitude,
+                        longitude=city.longitude,
+                        zoom=zoom_for_population(city.population),
+                        grid=self.config.maps.grid,
+                    ),
+                    self.display.size if self.display else (240, 240),
+                )
+            except Exception as exc:  # noqa: BLE001
+                log.debug("map tiles for %s not cached: %s", city.name, exc)
+        return guide
+
+    def _cached_guide(self, city_name: str) -> Guide | None:
+        return self.guides.get(city_name) if self.guides else None
+
+    def _answer_guide(self, intent: Intent) -> Reply:
+        if self.guides is None:
+            return Reply("I have nowhere to keep guides at the moment.")
+
+        city = self._resolve_city(intent.text)
+        if city is None:
+            return Reply(
+                f"I do not know a city called {intent.text}.",
+                emotion=Emotion.CONFUSED,
+            )
+
+        guide = self._cached_guide(city.name)
+        stale = guide is not None and guide.age_days >= self.config.guides.refresh_after_days
+
+        if guide is None or stale:
+            fresh = self._fetch_and_store_guide(city)
+            if fresh is not None:
+                return Reply(
+                    f"{fresh.spoken_summary()} I have saved it, so you will "
+                    "have it without internet.",
+                    gesture="nod",
+                    visual=Visual(card=city_card(city)),
+                )
+            if guide is None:
+                return Reply(
+                    f"I have no saved guide for {city.name}, and I cannot "
+                    "reach the internet to fetch one.",
+                    emotion=Emotion.CONFUSED,
+                )
+
+        return self._speak_guide(guide, intent.text, city)
+
+    def _speak_guide(self, guide: Guide, asked: str, city: City) -> Reply:
+        """Read a guide back, or just the section that was asked about."""
+        section = match_section(asked)
+        if section is not None and guide.has(section.key):
+            body = guide.section_text(section.key)
+            prefix = f"In {guide.city_name}, for {section.label}: "
+        elif section is not None:
+            return Reply(
+                f"My guide for {guide.city_name} does not cover "
+                f"{section.label}.",
+                emotion=Emotion.CONFUSED,
+            )
+        else:
+            body = guide.spoken_summary()
+            prefix = ""
+
+        # Always say how old it is. A restaurant list is a snapshot, not a fact.
+        age = guide.age_phrase()
+        warning = ", and it may be out of date" if guide.is_stale else ""
+        body = body.rstrip()
+        if body and body[-1] not in ".!?":
+            body += "."
+        return Reply(
+            f"{prefix}{body} This guide was {age}{warning}.",
+            gesture="nod",
+            visual=Visual(card=city_card(city)),
+        )
+
+    def _delete_guide(self, intent: Intent) -> Reply:
+        if self.guides is None:
+            return Reply("I have no saved guides.")
+        # Confirm with the stored name, not the spoken words: saying it back as
+        # "Kyoto" rather than "kyoto" shows it matched the right place.
+        existing = self.guides.get(intent.text)
+        if existing is not None and self.guides.delete(intent.text):
+            return Reply(f"Deleted my guide for {existing.city_name}.", gesture="nod")
+        return Reply(f"I had nothing saved for {intent.text}.")
+
+    def _clear_guides(self) -> Reply:
+        if self.guides is None:
+            return Reply("I have no saved guides.")
+        removed = self.guides.clear()
+        if removed == 0:
+            return Reply("There was nothing saved to delete.")
+        word = "guide" if removed == 1 else "guides"
+        return Reply(f"Deleted all {removed} saved {word}.", gesture="nod")
+
+    def _list_guides(self) -> Reply:
+        if self.guides is None:
+            return Reply("I have no saved guides.")
+        saved = self.guides.list_cities()
+        if not saved:
+            return Reply("I have not saved any guides yet.")
+        # Read a handful rather than all of them; a list of forty is unlistenable.
+        head = saved[:5]
+        listed = ", ".join(f"{name}, {age}" for name, age in head)
+        more = "" if len(saved) <= 5 else f" And {len(saved) - 5} more."
+        return Reply(f"I have guides for {listed}.{more}")
 
     def _answer_map(self, intent: Intent) -> Reply:
         place = intent.text.strip()
@@ -509,6 +690,7 @@ class Assistant:
             ("speaker", self.speaker),
             ("motion", self.motion),
             ("display", self.display),
+            ("guides", self.guides),
             ("cities", self.cities),
         ):
             if component is None:

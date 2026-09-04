@@ -27,6 +27,7 @@ from walle.chat import OfflineChat
 from walle.cities import CityDatabase
 from walle.config import Config, load_config
 from walle.display import build_display
+from walle.guides import GuideStore
 from walle.maps import MapRenderer, TileSource
 from walle.motion import ServoBank
 from walle.net import ConnectivityMonitor
@@ -96,6 +97,20 @@ def open_motion(config: Config, disabled: bool) -> ServoBank | None:
         return None
 
 
+def open_guides(config: Config) -> GuideStore | None:
+    """The saved-guide store. Missing it costs the cache, not the robot."""
+    if not config.guides.enabled:
+        log.info("travel guides disabled in config")
+        return None
+    try:
+        store = GuideStore(config.guides.database, config.guides.max_guides)
+    except Exception as exc:  # noqa: BLE001 - degrade rather than refuse to boot
+        log.warning("saved guides unavailable (%s)", exc)
+        return None
+    log.info("saved guides: %d in %s", store.count(), config.guides.database)
+    return store
+
+
 def open_maps(config: Config, offline: bool) -> MapRenderer:
     """Tiles come from the cache first, so a downloaded pack works offline."""
     source = TileSource(
@@ -152,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         display=display,
         chat=OfflineChat(cities),
         maps=open_maps(config, offline=args.offline),
+        guides=open_guides(config),
         translator=ArgosTranslator(
             config.translate.source_lang, config.translate.target_lang
         ),

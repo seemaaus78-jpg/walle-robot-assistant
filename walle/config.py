@@ -180,6 +180,34 @@ class ChatConfig:
 
 
 @dataclass(frozen=True)
+class GuideConfig:
+    """Travel guides fetched online and kept on the card.
+
+    Guides live in their own database so "delete everything I saved" is one
+    file, and can never damage the cities database the robot needs to work.
+    """
+
+    enabled: bool = True
+    database: Path = Path("travel_guides.db")
+
+    auto_save: bool = True
+    """Fetch and keep a full guide the first time a city is asked about while
+    online. Turn off to only save when explicitly asked."""
+
+    max_guides: int = 200
+    """Oldest are dropped past this. At a few kilobytes each this is a
+    housekeeping limit, not a space one."""
+
+    refresh_after_days: int = 90
+    """A cached guide older than this is refetched when online, and read back
+    with a warning when offline."""
+
+    save_map_tiles: bool = True
+    """Also pull the map tiles for the city while saving, so the map works
+    offline too."""
+
+
+@dataclass(frozen=True)
 class MapConfig:
     enabled: bool = True
     tile_cache: Path = Path("tiles")
@@ -221,6 +249,11 @@ class OnlineConfig:
 
     temperature: float = 0.4
     max_output_tokens: int = 160
+
+    max_guide_tokens: int = 1400
+    """A whole travel guide truncated mid-object parses as nothing at all, so
+    it gets a far larger budget than a single spoken sentence."""
+
     default_target_lang: str = "es"
 
 
@@ -253,6 +286,7 @@ class Config:
     display: DisplayConfig = field(default_factory=DisplayConfig)
     chat: ChatConfig = field(default_factory=ChatConfig)
     maps: MapConfig = field(default_factory=MapConfig)
+    guides: GuideConfig = field(default_factory=GuideConfig)
 
     def resolve_paths(self) -> "Config":
         """Make every model/database path absolute against ``base_dir``."""
@@ -273,6 +307,7 @@ class Config:
             tts=replace(self.tts, voices_dir=under(self.tts.voices_dir), voices=voices),
             city=replace(self.city, database=under(self.city.database)),
             maps=replace(self.maps, tile_cache=under(self.maps.tile_cache)),
+            guides=replace(self.guides, database=under(self.guides.database)),
         )
 
 
@@ -352,6 +387,11 @@ def load_config(path: Path | None = None) -> Config:
         cfg = replace(cfg, display=DisplayConfig(**section))
     if section := raw.get("chat"):
         cfg = replace(cfg, chat=ChatConfig(**section))
+    if section := raw.get("guides"):
+        section = dict(section)
+        if "database" in section:
+            section["database"] = Path(section["database"])
+        cfg = replace(cfg, guides=GuideConfig(**section))
     if section := raw.get("maps"):
         section = dict(section)
         if "tile_cache" in section:

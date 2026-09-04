@@ -133,6 +133,10 @@ the SD card.
 
 | Say | It does |
 |---|---|
+| "travel guide for kyoto" | Fetches a full guide online and keeps it on the card |
+| "what are the restaurants in kyoto" | Reads that section back, online or off |
+| "what have you saved" | Lists the cities it has guides for |
+| "forget kyoto" / "delete all guides" | Deletes saved guides |
 | "tell me about *city*", "how big is *city*", "where is *city*" | Looks the place up and describes it |
 | "switch to translator" / "switch to city guide" | Changes mode, waves |
 | "translate *phrase*" | Translates into the current target language |
@@ -145,6 +149,35 @@ the SD card.
 
 Command phrasing lives in `walle/intents.py` and is plain data — add your own
 without touching the rest.
+
+## Guides it keeps
+
+Asking about a city while online fetches a full travel guide — areas worth
+walking, where to eat, stations and how to get around, where to stay, emergency
+numbers and hospitals — and writes it to the card. Ask again with no signal and
+it is still there, along with the map tiles for that city.
+
+Every answer says how old the guide is (*"this guide was saved 3 weeks ago"*),
+because a restaurant list is a snapshot rather than a fact. Anything past
+`refresh_after_days` is read back with an explicit out-of-date warning.
+
+The emergency section is handled differently. A language model can invent a
+plausible hospital address as easily as recall a real one, and acting on a wrong
+one matters in a way that a wrong restaurant does not — so that section is
+always read with a caution attached, telling you to check it against a local
+source.
+
+Guides live in `travel_guides.db`, separate from `world_cities.db`. Deleting
+everything you saved is one file, and it can never damage the reference data the
+robot needs to work. Manage them by voice, or with `scripts/guides.py`:
+
+```bash
+python3 scripts/guides.py list          # what is saved, and how old
+python3 scripts/guides.py show kyoto    # print one in full
+python3 scripts/guides.py delete kyoto  # forget one city
+python3 scripts/guides.py clear         # forget everything (asks first)
+python3 scripts/guides.py size          # how much space it takes
+```
 
 ## How it fits together
 
@@ -175,6 +208,7 @@ walle/
   translation.py           Argos wrapper with cached language pairs
   net.py                   cached connectivity probe
   online.py                Gemini backend, rate-limit cooldown
+  guides.py                travel guides cached on the card
   assistant.py             routing and orchestration
   tts.py                   Piper invocation and playback
   stt.py                   PortAudio capture and Vosk decoding
@@ -184,7 +218,7 @@ scripts/
   build_city_db.py         build world_cities.db from a GeoNames dump
 systemd/                   unit file for running at boot
 docs/                      hardware, architecture, setup, defects fixed
-tests/                     143 tests, stdlib unittest, no hardware needed
+tests/                     307 tests, stdlib unittest, no hardware needed
 ```
 
 ## Tests
@@ -193,7 +227,7 @@ tests/                     143 tests, stdlib unittest, no hardware needed
 python3 -m unittest discover -s tests -t .
 ```
 
-143 tests, no dependencies beyond the standard library — so they also run on the
+307 tests, no dependencies beyond the standard library — so they also run on the
 board itself, where installing pytest is a waste of a card you want for models.
 
 They cover intent routing, city name extraction and lookup, the Piper command

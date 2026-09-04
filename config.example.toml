@@ -154,6 +154,29 @@ timeout_s = 1.5
 cache_ttl_s = 30.0
 
 
+[drive]
+# The two tracks. A mini L298N takes four control lines, two per motor:
+# direction comes from which of a pair is high, speed from pulsing them.
+enabled = true
+chip = "gpiochip1"
+
+left_forward_line = 20
+left_backward_line = 21
+right_forward_line = 22
+right_backward_line = 23
+
+pwm_hz = 200.0
+default_speed = 0.75
+# Below roughly a third a small gear motor buzzes and warms without turning,
+# so slower requests are clamped up to this.
+min_speed = 0.35
+
+# Every movement is time limited. There is no floor sensor on this robot, so a
+# bounded run is what stops it driving off the edge of a table.
+default_seconds = 1.2
+max_seconds = 5.0
+
+
 [motion]
 enabled = true
 # Confirm with `gpioinfo`. The chip that carries the 40-pin header is NOT

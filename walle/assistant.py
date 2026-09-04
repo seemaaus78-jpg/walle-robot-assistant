@@ -29,6 +29,7 @@ from .chat import ChatHistory, OfflineChat
 from .cities import City, CityDatabase, CityNotFound
 from .config import Config
 from .display import Card, Display
+from .drive import DriveBase, Direction
 from .emotion import EmotionEngine, Event
 from .face import Emotion
 from .guides import Guide, GuideStore, match_section
@@ -142,6 +143,7 @@ class Assistant:
         maps: MapRenderer | None = None,
         guides: GuideStore | None = None,
         camera: Camera | None = None,
+        drive: DriveBase | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.config = config
@@ -157,6 +159,7 @@ class Assistant:
         self.maps = maps
         self.guides = guides
         self.camera = camera
+        self.drive = drive
         self.history = ChatHistory(config.chat.history_turns)
         self._clock = clock
         self._visual_until = 0.0
@@ -184,6 +187,13 @@ class Assistant:
 
         if intent.kind is IntentKind.EMPTY:
             return None
+
+        # Stopping the motors must never wait on a network round trip. If the
+        # robot is rolling toward the edge of a table, a two-second API call
+        # between hearing "stop" and stopping is the whole problem.
+        if intent.kind is IntentKind.DRIVE:
+            self._feel(Event.HEARD)
+            return self._answer_drive(intent)
 
         self._feel(Event.HEARD)
         self.history.add_user(intent.text or transcript)
@@ -293,6 +303,9 @@ class Assistant:
             case IntentKind.VISION_QUERY:
                 return self._answer_vision(intent)
 
+            case IntentKind.DRIVE:
+                return self._answer_drive(intent)
+
         return None
 
     def _answer_city(self, intent: Intent) -> Reply:
@@ -376,6 +389,40 @@ class Assistant:
                 )
 
         return Reply(self.chat.reply(body, self.history))
+
+    # -- driving ----------------------------------------------------------
+
+    DRIVE_REPLIES = {
+        "forward": "", "backward": "", "left": "", "right": "",
+        "around": "", "stop": "Stopped.",
+    }
+
+    def _answer_drive(self, intent: Intent) -> Reply:
+        """Move the tracks. Short, silent and bounded.
+
+        Movement commands answer with as little speech as possible - saying
+        "Moving forward" while already moving forward is noise, and the robot
+        talking over its own motors is worse.
+        """
+        if self.drive is None:
+            return Reply("I do not have motors connected.", emotion=Emotion.CONFUSED)
+
+        direction = intent.direction or "stop"
+        if direction == "stop":
+            self.drive.stop()
+            return Reply("Stopped.")
+
+        if direction == "around":
+            # Half the turn budget in each direction is close enough to a
+            # half-turn on tracks, and does not need a compass to be useful.
+            self.drive.move(Direction.LEFT, seconds=self.config.drive.max_seconds / 2)
+            return Reply("", gesture=None)
+
+        try:
+            self.drive.move(Direction(direction))
+        except ValueError:
+            return Reply("I did not understand where to go.", emotion=Emotion.CONFUSED)
+        return Reply("")
 
     # -- looking --------------------------------------------------------------
 
@@ -760,6 +807,7 @@ class Assistant:
             ("display", self.display),
             ("guides", self.guides),
             ("camera", self.camera),
+            ("drive", self.drive),
             ("cities", self.cities),
         ):
             if component is None:

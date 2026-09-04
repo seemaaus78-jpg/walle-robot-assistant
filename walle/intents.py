@@ -38,11 +38,30 @@ class IntentKind(str, Enum):
     GUIDE_CLEAR = "guide_clear"
     GUIDE_LIST = "guide_list"
     VISION_QUERY = "vision_query"
+    DRIVE = "drive"
     STATUS = "status"
     HELP = "help"
     SHUTDOWN = "shutdown"
     EMPTY = "empty"
 
+
+# Order matters: "stop" is checked before everything, and the longer phrases
+# before the shorter ones they contain.
+DRIVE_PHRASES: tuple[tuple[str, str], ...] = (
+    ("go forward", "forward"), ("move forward", "forward"),
+    ("drive forward", "forward"), ("go straight", "forward"),
+    ("come here", "forward"), ("forwards", "forward"), ("forward", "forward"),
+    ("go backward", "backward"), ("move backward", "backward"),
+    ("go back", "backward"), ("back up", "backward"), ("reverse", "backward"),
+    ("backwards", "backward"), ("backward", "backward"),
+    ("turn left", "left"), ("go left", "left"), ("look left", "left"),
+    ("left", "left"),
+    ("turn right", "right"), ("go right", "right"), ("look right", "right"),
+    ("right", "right"),
+    ("turn around", "around"), ("spin", "around"),
+)
+
+STOP_PHRASES = ("stop", "halt", "stay", "wait there", "stop moving", "freeze")
 
 VISION_DESCRIBE_PHRASES = (
     "what do you see", "what can you see", "look at this", "look at that",
@@ -75,6 +94,11 @@ class Intent:
     text: str = ""
     mode: Mode | None = None
     gesture: str | None = None
+    direction: str | None = None
+    """For a drive request: forward, backward, left, right or stop."""
+
+    seconds: float | None = None
+
     task: str | None = None
     """For a vision request: "describe", "read" or "translate"."""
 
@@ -297,6 +321,16 @@ def parse(transcript: str, mode: Mode) -> Intent:
 
     if _matches_any(text, HELP_PHRASES):
         return Intent(IntentKind.HELP, text=text)
+
+    # Stopping outranks everything. If the robot is rolling toward the edge of
+    # a table, "stop" must not be parsed as a city, a chat message, or
+    # anything else that takes a network round trip first.
+    if _matches_any(text, STOP_PHRASES):
+        return Intent(IntentKind.DRIVE, text=text, direction="stop")
+
+    for phrase, direction in DRIVE_PHRASES:
+        if phrase in text:
+            return Intent(IntentKind.DRIVE, text=text, direction=direction)
 
     # Looking is checked early: "what does this say" must reach the camera,
     # not be looked up as a city or handed to the chat responder.

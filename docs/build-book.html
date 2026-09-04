@@ -138,7 +138,7 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
 <section>
   <div class="chapter">Chapter 1</div>
   <h2>The parts you need to buy</h2>
-  <p>There are seven things. Below is a drawing of each one, what it does, and why we picked it.</p>
+  <p>There are twelve things — six that make it think and talk, and six that make it move. Below is a drawing of each one, what it does, and why we picked it.</p>
   <p class="big" style="color:var(--ink-3);font-size:16px">The drawings show the little metal pins on each part, because later you will need to find them by name.</p>
 
   <!-- ============ RADXA ============ -->
@@ -334,6 +334,141 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
     </div>
   </div>
 
+  <h3 style="margin-top:38px">Parts that make it move</h3>
+  <p>These give the robot its body — the tracks it drives on and the frame that holds everything.</p>
+
+  <!-- ============ MOTORS ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a small gear motor: a metal box with a round motor body and a shaft">
+        <rect x="72" y="40" width="42" height="34" rx="3" fill="#B8B8BC"/>
+        <text x="93" y="61" font-family="monospace" font-size="7" fill="#444" text-anchor="middle">GEAR</text>
+        <rect x="114" y="46" width="38" height="22" rx="11" fill="#5A5A60"/>
+        <rect x="52" y="53" width="22" height="7" rx="2" fill="#8A8A8E"/>
+        <circle cx="54" cy="56.5" r="6" fill="#C9A227"/>
+        <path d="M152 52 h20" stroke="#C0392B" stroke-width="3"/>
+        <path d="M152 62 h20" stroke="#222" stroke-width="3"/>
+        <text x="100" y="96" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">shaft on the left, two wires on the right</text>
+        <text x="100" y="110" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">slow on purpose: 17 to 68 turns a minute</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Gear motors × 2</h4>
+        <div class="price">"N20 gear motor 6V 30RPM" · roughly $4–8 each</div>
+        <p>These are the <strong>legs</strong>. One for each track. They turn slowly and with a lot of force, which is what you want — a fast motor makes the robot skitter and fall over.</p>
+        <p>Buy <strong>two the same</strong>. Two different speeds means it curves instead of going straight.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-N20-gear-motor-6V-30RPM.html">AliExpress →</a>
+        <a class="buy alt" href="https://www.amazon.com/s?k=N20+gear+motor+6V+30RPM">Amazon</a>
+        <div class="why"><p><b>What "gear motor" means:</b> a plain motor spins very fast and very weakly. A gear motor has a little gearbox on the front that trades that speed for strength. Without one the robot would whirr and not move.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ L298N ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a mini L298N motor driver board with input pins and motor output terminals">
+        <rect x="50" y="26" width="100" height="70" rx="4" fill="#8C2F39"/>
+        <rect x="60" y="34" width="34" height="20" rx="2" fill="#1E1E1E"/>
+        <text x="77" y="47" font-family="monospace" font-size="6.5" fill="#CCC" text-anchor="middle">L298N</text>
+        <g font-family="monospace" font-size="6.5" fill="#F0E0E0">
+          <text x="58" y="66">IN1</text><text x="80" y="66">IN2</text>
+          <text x="102" y="66">IN3</text><text x="124" y="66">IN4</text>
+          <text x="58" y="88">GND · VCC · 5V</text>
+        </g>
+        <g fill="#C9A227">
+          <circle cx="62" cy="72" r="2.3"/><circle cx="84" cy="72" r="2.3"/>
+          <circle cx="106" cy="72" r="2.3"/><circle cx="128" cy="72" r="2.3"/>
+        </g>
+        <rect x="44" y="36" width="10" height="18" rx="2" fill="#2B2B2B"/>
+        <rect x="146" y="36" width="10" height="18" rx="2" fill="#2B2B2B"/>
+        <text x="100" y="112" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">4 control pins in, 2 motors out</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Mini L298N motor driver</h4>
+        <div class="price">roughly $2–5 · also sold as "L298N mini dual H-bridge"</div>
+        <p>This is the <strong>muscle</strong>. It sits between the brain and the motors.</p>
+        <p>The brain can only whisper — a few milliamps. The motors need a shove — hundreds. This board takes the whisper as an instruction and delivers the shove from the battery.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-mini-L298N-motor-driver.html">AliExpress →</a>
+        <a class="buy alt" href="https://www.amazon.com/s?k=mini+L298N+motor+driver+module">Amazon</a>
+        <div class="why"><p><b>Never skip this.</b> Wiring a motor straight to a brain pin destroys the pin, and usually the whole board. It is the single most common way a first project dies. The driver exists precisely to stop that.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CHAIN ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a small toy chain track looped around two sprocket wheels">
+        <path d="M62 40 h56 a26 26 0 0 1 0 52 h-56 a26 26 0 0 1 0 -52 z" fill="none" stroke="#B8912E" stroke-width="9"/>
+        <path d="M62 40 h56 a26 26 0 0 1 0 52 h-56 a26 26 0 0 1 0 -52 z" fill="none" stroke="#D9B24C" stroke-width="4" stroke-dasharray="5 4"/>
+        <circle cx="62" cy="66" r="15" fill="#7A7A80"/><circle cx="62" cy="66" r="5" fill="#3A3A3E"/>
+        <circle cx="118" cy="66" r="15" fill="#7A7A80"/><circle cx="118" cy="66" r="5" fill="#3A3A3E"/>
+        <text x="100" y="116" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">chain loops around two toothed wheels</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Toy chain and sprockets</h4>
+        <div class="price">"model tank track" or "toy roller chain" · roughly $5–10</div>
+        <p>These are the <strong>tracks</strong> — the caterpillar treads that make it look like WALL·E rather than a box on wheels.</p>
+        <p>You need the chain and two toothed wheels (sprockets) per side for it to run around.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-model-tank-track-chain-sprocket.html">AliExpress →</a>
+        <div class="why"><p><b>Getting the tension right:</b> the chain should turn freely with a little slack. Too tight and the motors stall and flatten your battery in minutes. Too loose and it falls off every time the robot reverses.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ COPPER WIRE ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a coil of copper wire and a length of brass tube">
+        <g fill="none" stroke="#B87333" stroke-width="4">
+          <circle cx="72" cy="58" r="26"/><circle cx="72" cy="58" r="19"/><circle cx="72" cy="58" r="12"/>
+        </g>
+        <rect x="118" y="44" width="62" height="9" rx="4.5" fill="#C9A227"/>
+        <ellipse cx="118" cy="48.5" rx="3" ry="4.5" fill="#8A6A18"/>
+        <rect x="118" y="62" width="62" height="9" rx="4.5" fill="#C9A227"/>
+        <ellipse cx="118" cy="66.5" rx="3" ry="4.5" fill="#8A6A18"/>
+        <text x="72" y="100" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">copper wire 1 mm</text>
+        <text x="149" y="88" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">brass tube 1.5 mm</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Copper wire and brass tube</h4>
+        <div class="price">1 mm copper wire · 1.5 mm brass tube · roughly $8 together</div>
+        <p>This is the <strong>skeleton</strong>. You bend the copper wire by hand into the shape of the robot and solder the corners.</p>
+        <p>The brass tube is stiffer. It makes the axles the track wheels spin on, and the copper wire slides inside it.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-1mm-copper-wire-craft.html">Copper wire →</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-brass-tube-1.5mm.html">Brass tube</a>
+        <div class="why"><p><b>Why copper and not plastic:</b> copper is soft enough to bend by hand and hard enough to hold its shape once bent. It also solders beautifully, so the joints become part of the structure. And it looks like the video.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BATTERY ============ -->
+  <div class="part">
+    <div class="part-top">
+      <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a flat lithium battery pouch and a small USB-C charging board">
+        <rect x="38" y="38" width="66" height="46" rx="4" fill="#3D5A80"/>
+        <rect x="38" y="38" width="66" height="10" rx="4" fill="#4E6E96"/>
+        <text x="71" y="66" font-family="monospace" font-size="8" fill="#DDE6F0" text-anchor="middle">3.7V</text>
+        <text x="71" y="77" font-family="monospace" font-size="7" fill="#AEC2D8" text-anchor="middle">1000mAh</text>
+        <path d="M104 50 h16" stroke="#C0392B" stroke-width="3"/>
+        <path d="M104 60 h16" stroke="#222" stroke-width="3"/>
+        <rect x="122" y="40" width="46" height="42" rx="3" fill="#1D6B4F"/>
+        <text x="145" y="58" font-family="monospace" font-size="6.5" fill="#DFF0E8" text-anchor="middle">TP4056</text>
+        <rect x="138" y="64" width="14" height="8" rx="2" fill="#2B2B2B"/>
+        <text x="145" y="78" font-family="monospace" font-size="5.5" fill="#AACFBB" text-anchor="middle">USB-C</text>
+        <text x="100" y="106" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">buy the TP4056 that says WITH PROTECTION</text>
+      </svg>
+      <div class="part-txt">
+        <h4>Battery and charger</h4>
+        <div class="price">3.7 V 1000–2000 mAh LiPo + TP4056 with protection · roughly $10</div>
+        <p>This is what makes it <strong>cordless</strong>. Add it last, once everything already works on a wall charger.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-TP4056-with-protection-type-c.html">Charger →</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-3.7v-lipo-battery-1000mah.html">Battery</a>
+        <div class="why"><p><b>The word "protection" is not optional.</b> The protected version has two extra chips on it that stop the battery being drained too far or short-circuited. The bare version has neither, and a damaged lithium battery can catch fire. Read the listing title carefully.</p></div>
+      </div>
+    </div>
+  </div>
+
   <p>You also need a <strong>USB-C power supply</strong> (a phone charger that gives 5 volts and 3 amps — check the small print on it) and a computer with an SD card slot or a USB card reader.</p>
 </section>
 
@@ -441,6 +576,81 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
   <div class="win">
     <span class="lbl">Test — do this before going on</span>
     <p>Nothing soldered, just wires pushed on. Plug in the power. Nothing should get hot, and no burning smell. If something feels warm, unplug it right away and check every wire again.</p>
+  </div>
+</section>
+
+<section>
+  <div class="chapter">Chapter 4b</div>
+  <h2>Building the body</h2>
+  <p class="big">Now the part that makes it a robot and not a box.</p>
+
+  <div class="tip">
+    <span class="lbl">About jumper wires and copper wire</span>
+    <p>You will use <strong>both</strong>, at different times, and this is on purpose.</p>
+    <p><strong>Jumper wires first.</strong> They push on and pull off, so you can get everything working and fix mistakes without a soldering iron. Do all your testing like this.</p>
+    <p><strong>Copper wire last.</strong> In the video, the copper wire is not just wiring — it <em>is</em> the robot's frame. The same piece of copper holds the shape and carries the electricity. That is why the finished one looks so neat and has no loose cables. But you only want to solder it once you already know which wire goes where.</p>
+  </div>
+
+  <h3>Step by step</h3>
+  <div class="step"><div class="n">1</div><div class="body">
+    <h4>Print the shape</h4>
+    <p>The person who designed this robot gives away a paper template. Print it at <strong>100 percent</strong> — not "fit to page", which quietly shrinks it and then nothing lines up.</p>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div class="body">
+    <h4>Bend the copper wire on top of the paper</h4>
+    <p>Lay the wire on the printed line and bend it with pliers to follow. Copper is soft and stays where you put it.</p>
+    <p>Try to get each bend right the first time. If you bend and straighten the same spot over and over it becomes hard and snaps.</p>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div class="body">
+    <h4>Solder the corners</h4>
+    <p>Copper pulls heat away fast, so hold the iron on longer than feels right and use plenty of flux. If a joint looks starved and grey rather than smooth and shiny, it is starved — reheat it.</p>
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div class="body">
+    <h4>Make the axles from brass tube</h4>
+    <p>Roll a craft knife around the tube to cut it, rather than squeezing it with cutters, which crushes the end shut.</p>
+  </div></div>
+
+  <div class="step"><div class="n">5</div><div class="body">
+    <h4>Fit the sprockets and chain</h4>
+    <p>The chain should turn freely with a <em>little</em> slack. Too tight stalls the motors. Too loose and it jumps off when reversing.</p>
+  </div></div>
+
+  <div class="step"><div class="n">6</div><div class="body">
+    <h4>Mount the motors so the sprockets line up</h4>
+    <p>If a sprocket is even slightly out of line with the chain, the track will come off every time the robot changes direction.</p>
+  </div></div>
+
+  <div class="warn">
+    <span class="lbl">Your frame is made of metal, and metal conducts</span>
+    <p>The copper frame carries electricity. Anything you bolt to it must not touch it directly, or you will short something out. Put tape between every board and the frame where they meet.</p>
+  </div>
+
+  <h3>Connecting the motors</h3>
+  <p>The motors do not connect to the brain. They connect to the <strong>driver board</strong>, and the driver board connects to the brain.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>From</th><th>To</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Left motor, 2 wires</td><td>Driver "MOTOR A"</td><td>Power for the left track</td></tr>
+      <tr><td>Right motor, 2 wires</td><td>Driver "MOTOR B"</td><td>Power for the right track</td></tr>
+      <tr><td>Driver <code>IN1 IN2 IN3 IN4</code></td><td>4 brain pins</td><td>The instructions</td></tr>
+      <tr><td>Driver <code>VCC</code> and <code>GND</code></td><td>Battery + and −</td><td>Where the real power comes from</td></tr>
+      <tr><td>Driver <code>GND</code></td><td>Brain <code>GND</code> too</td><td>Rule 1 — they must share ground</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="warn">
+    <span class="lbl">Never connect a motor straight to the brain</span>
+    <p>A brain pin can whisper. A motor needs a shove. Connect them directly and the motor pulls far more electricity than the pin can give, and the board dies. This is the most common way a first project ends.</p>
+    <p>That is the entire reason the driver board exists. Always go through it.</p>
+  </div>
+
+  <div class="win">
+    <span class="lbl">Test — drive the bare frame</span>
+    <p>Before you add any of the sound or camera parts, test just this: motors, driver, battery, brain. It should go forward, backward, and spin on the spot.</p>
+    <p>Finding a fault now, with four wires connected, is easy. Finding it later inside a finished robot is miserable.</p>
   </div>
 </section>
 
@@ -657,6 +867,16 @@ python3 scripts/guides.py clear</div>
   <span class="reply">¿dónde está la estación de tren?</span>
   <p>It keeps doing that until you ask for something different. To change, just say <em>"speak french"</em> or <em>"translate from english to german"</em>.</p>
 
+  <h3>Make it move</h3>
+  <span class="say">"go forward" · "go back" · "turn left" · "turn right" · "stop"</span>
+  <p>It moves for about a second and then stops on its own. That is deliberate — there is nothing on this robot that can see the edge of a table, so it never keeps going indefinitely.</p>
+  <div class="tip">
+    <span class="lbl">"Stop" jumps the queue</span>
+    <p>Every other thing you say might take a moment while it thinks or asks the internet. <strong>"Stop" never does.</strong> It goes straight to the motors ahead of everything else.</p>
+    <p>If your robot is rolling toward the edge of a desk, a two second pause while it contacts Google is exactly the wrong behaviour. So stopping was built to skip all of that.</p>
+  </div>
+  <p>It does not say anything when it moves. Talking over its own motors would just be noise.</p>
+
   <h3>Other things to say</h3>
   <div class="scroll"><table>
     <thead><tr><th>Say this</th><th>It does</th></tr></thead>
@@ -689,6 +909,11 @@ python3 scripts/guides.py clear</div>
       <tr><td>The voice sounds too fast or too slow</td><td>A small settings file is missing next to the voice file. Run the download script again.</td></tr>
       <tr><td>It answers its own voice</td><td>Move the microphone further from the speaker, or turn the volume down.</td></tr>
       <tr><td>It is slow just after switching on</td><td>Normal. It is loading the translation part into memory. It only happens once.</td></tr>
+      <tr><td>Only one track moves</td><td>Check that motor's two wires at the driver board. One is probably loose.</td></tr>
+      <tr><td>It turns instead of going straight</td><td>One motor is wired the other way round. Swap that motor's two wires.</td></tr>
+      <tr><td>The motors buzz but do not turn</td><td>Either the chain is too tight, or the battery is low. Buzzing is a stalled motor.</td></tr>
+      <tr><td>The track falls off when reversing</td><td>The sprockets are not lined up, or the chain is too loose.</td></tr>
+      <tr><td>It restarts whenever it moves</td><td>The motors are pulling the power down. Give them their own battery connection, not the brain's.</td></tr>
       <tr><td>The camera gives a black picture</td><td>Some webcams need a moment to wake up. Set <code>warmup_s = 0.5</code> in the settings file.</td></tr>
       <tr><td>It says it cannot see</td><td>Either no webcam is plugged in, or there is no internet. Seeing needs both.</td></tr>
       <tr><td>It cannot find any city</td><td>The city file was not copied onto the robot. Check <code>world_cities.db</code> is there and about 50 MB.</td></tr>

@@ -63,6 +63,7 @@ Two rules keep that honest:
 | INMP441 | I²S MEMS microphone |
 | MAX98357A + 8 Ω speaker | I²S amplifier and audio out |
 | 4 × SG90 | Neck pan/tilt, two arms |
+| 2 × DC gear motors + mini L298N | The tracks |
 | 3.7 V 6000 mAh LiPo + TP4056 + 5 V boost | Power |
 
 Wiring, pin straps, the servo signalling caveats and the power design are in
@@ -133,6 +134,7 @@ the SD card.
 
 | Say | It does |
 |---|---|
+| "go forward" / "turn left" / "stop" | Drives the tracks — "stop" bypasses everything |
 | "what do you see" | Takes one photo and describes it |
 | "read this" | Reads the text in a photo — a menu, a sign, a label |
 | "what does this sign say in english" | Reads it and translates it |
@@ -238,6 +240,7 @@ walle/
   online.py                Gemini backend, rate-limit cooldown
   guides.py                travel guides cached on the card
   camera.py                single-still capture, on request only
+  drive.py                 two tracks through an H-bridge
   assistant.py             routing and orchestration
   tts.py                   Piper invocation and playback
   stt.py                   PortAudio capture and Vosk decoding
@@ -247,7 +250,7 @@ scripts/
   build_city_db.py         build world_cities.db from a GeoNames dump
 systemd/                   unit file for running at boot
 docs/                      hardware, architecture, setup, defects fixed
-tests/                     350 tests, stdlib unittest, no hardware needed
+tests/                     372 tests, stdlib unittest, no hardware needed
 ```
 
 ## Tests
@@ -256,7 +259,7 @@ tests/                     350 tests, stdlib unittest, no hardware needed
 python3 -m unittest discover -s tests -t .
 ```
 
-350 tests, no dependencies beyond the standard library — so they also run on the
+372 tests, no dependencies beyond the standard library — so they also run on the
 board itself, where installing pytest is a waste of a card you want for models.
 
 They cover intent routing, city name extraction and lookup, the Piper command

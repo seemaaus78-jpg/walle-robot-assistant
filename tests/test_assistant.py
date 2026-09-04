@@ -885,3 +885,88 @@ class VisionTests(AssistantHarness):
         # "read this" must not be looked up as a place called "this".
         reply = self.make_seeing().respond("read this")
         self.assertNotIn("could not find", reply.text.lower())
+
+
+class DriveTests(AssistantHarness):
+    class FakeDrive:
+        def __init__(self):
+            self.moves = []
+            self.stops = 0
+
+        def move(self, direction, seconds=None, speed=None):
+            self.moves.append((str(getattr(direction, "value", direction)), seconds))
+
+        def stop(self):
+            self.stops += 1
+
+        @property
+        def is_moving(self):
+            return False
+
+        def close(self):
+            return None
+
+    def make_driving(self, online=False, backend=None):
+        self.drive = self.FakeDrive()
+        self.connectivity.online = online
+        return Assistant(
+            config=Config(),
+            speaker=self.speaker,
+            recogniser=ScriptedRecogniser([]),
+            cities=self.cities,
+            translator=self.translator,
+            connectivity=self.connectivity,
+            drive=self.drive,
+            online=backend,
+        )
+
+    def test_directions_reach_the_motors(self):
+        assistant = self.make_driving()
+        for phrase, expected in [
+            ("go forward", "forward"),
+            ("move backward", "backward"),
+            ("turn left", "left"),
+            ("turn right", "right"),
+        ]:
+            assistant.respond(phrase)
+            self.assertEqual(self.drive.moves[-1][0], expected, phrase)
+
+    def test_stop_stops(self):
+        assistant = self.make_driving()
+        assistant.respond("stop")
+        self.assertEqual(self.drive.stops, 1)
+
+    def test_stop_never_waits_on_the_network(self):
+        """A robot rolling toward the edge must not pause for an API call."""
+
+        class Backend:
+            def answer(self, intent, history=None):
+                raise AssertionError("stop must not reach the cloud")
+
+        assistant = self.make_driving(online=True, backend=Backend())
+        assistant.respond("stop")
+        self.assertEqual(self.drive.stops, 1)
+
+    def test_driving_never_reaches_the_cloud_either(self):
+        class Backend:
+            def answer(self, intent, history=None):
+                raise AssertionError("driving must not reach the cloud")
+
+        assistant = self.make_driving(online=True, backend=Backend())
+        assistant.respond("go forward")
+        self.assertEqual(self.drive.moves[-1][0], "forward")
+
+    def test_movement_is_not_narrated(self):
+        # Talking over your own motors is noise.
+        assistant = self.make_driving()
+        self.assertEqual(assistant.respond("go forward").text, "")
+
+    def test_turn_around_uses_a_longer_run(self):
+        assistant = self.make_driving()
+        assistant.respond("turn around")
+        self.assertEqual(self.drive.moves[-1][1], Config().drive.max_seconds / 2)
+
+    def test_no_motors_is_reported_clearly(self):
+        assistant = self.make_driving()
+        assistant.drive = None
+        self.assertIn("motors", assistant.respond("go forward").text.lower())

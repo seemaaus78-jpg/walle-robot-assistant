@@ -432,6 +432,35 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 </section>
 
 <section>
+  <div class="part-head"><span class="part-num">Part 5b</span><h2>The tracks</h2></div>
+  <p class="lede">Two DC gear motors through a mini L298N, four control lines.</p>
+  <p><span class="mono">walle/drive.py</span> is deliberately separate from <span class="mono">walle/motion.py</span>. That module positions servos — it thinks in angles and holds a pose. This one drives wheels: direction and speed, with no position to hold. Direction comes from which of a control pair is high; speed from pulsing them, since the mini L298N normally ties its enable pins high rather than breaking them out.</p>
+
+  <div class="scroll"><table>
+    <thead><tr><th>Driver pin</th><th class="mono">Default line</th><th>Drives</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">IN1</td><td class="mono">20</td><td>Left track forward</td></tr>
+      <tr><td class="mono">IN2</td><td class="mono">21</td><td>Left track backward</td></tr>
+      <tr><td class="mono">IN3</td><td class="mono">22</td><td>Right track forward</td></tr>
+      <tr><td class="mono">IN4</td><td class="mono">23</td><td>Right track backward</td></tr>
+    </tbody>
+  </table></div>
+  <p>Motor power comes from the battery through the driver, never from the board. A GPIO pin supplies a few milliamps; a small gear motor wants hundreds. Wiring one straight to a pin destroys the pin and usually the board.</p>
+
+  <div class="note">
+    <span class="lbl">Two safety properties, both tested</span>
+    <p><strong>The bridge is never shorted.</strong> Both pins of a pair high is a short through the H-bridge; the level table cannot produce it, and a test asserts that across every direction.</p>
+    <p><strong>Every movement is time-limited</strong> and clamped to <span class="mono">max_seconds</span>. There is no floor sensor here, so a bounded run is what stops it driving off a table.</p>
+  </div>
+
+  <div class="danger">
+    <span class="lbl">"Stop" bypasses the whole pipeline</span>
+    <p>A drive intent short-circuits <span class="mono">respond()</span> before history, before the connectivity check and before any cloud call. A two-second API round trip between hearing "stop" and stopping is the entire problem that command exists to solve.</p>
+  </div>
+  <p>Speeds are clamped up to <span class="mono">min_speed</span>: below roughly a third, a small gear motor buzzes and warms without turning.</p>
+</section>
+
+<section>
   <div class="part-head"><span class="part-num">Part 6a</span><h2>What it sees</h2></div>
   <p class="lede">A USB webcam on <span class="mono">/dev/video0</span>, or a ribbon camera on the CSI connector.</p>
   <p>Capture goes through an external program rather than a Python imaging library, because the right tool differs by camera: <span class="mono">libcamera-still</span> for a ribbon camera, <span class="mono">fswebcam</span> or <span class="mono">ffmpeg</span> for USB. The first one installed is detected and used. For a first build, a USB webcam is far easier — no ribbon cable, no overlay.</p>
@@ -566,7 +595,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 </section>
 
 <footer>
-  <p><strong>What is verified and what is not.</strong> The software is real and tested — 350 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
+  <p><strong>What is verified and what is not.</strong> The software is real and tested — 372 tests covering intent routing, city lookup, the language-pair switching, translation failure handling, the Gemini backend and its failure paths, all running with no hardware attached. None of the hardware is verified: I have no Cubie, microphone, amplifier or speaker. The four I²S pin positions in Part 3, the RAM figures in Part 8, and the overlay procedure in Part 4 are reasoned from datasheets and your specification, not measured. Check them on the bench.</p>
 </footer>
 
 </div>

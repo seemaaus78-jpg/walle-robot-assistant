@@ -28,6 +28,7 @@ from walle.chat import OfflineChat
 from walle.cities import CityDatabase
 from walle.config import Config, load_config
 from walle.display import build_display
+from walle.drive import DriveBase
 from walle.guides import GuideStore
 from walle.maps import MapRenderer, TileSource
 from walle.motion import ServoBank
@@ -84,6 +85,18 @@ def open_cities(config: Config) -> CityDatabase | None:
             "scripts/build_city_db.py.",
             exc,
         )
+        return None
+
+
+def open_drive(config: Config, disabled: bool) -> DriveBase | None:
+    """The tracks. A robot that cannot move is still a useful assistant."""
+    if disabled or not config.drive.enabled:
+        log.info("drive disabled")
+        return None
+    try:
+        return DriveBase(config.drive)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("drive disabled (%s)", exc)
         return None
 
 
@@ -164,6 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         speaker=speaker,
         recogniser=recogniser,
         motion=open_motion(config, args.no_motion or dry_run),
+        drive=open_drive(config, args.no_motion or dry_run),
         cities=cities,
         display=display,
         chat=OfflineChat(cities),

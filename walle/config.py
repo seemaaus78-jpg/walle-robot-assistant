@@ -98,6 +98,37 @@ class ServoConfig:
 
 
 @dataclass(frozen=True)
+class DriveConfig:
+    """The tracks: two DC gear motors through a mini L298N H-bridge.
+
+    Four control lines, two per motor. Direction comes from which of a pair is
+    high; speed comes from pulsing them, because the mini L298N normally has
+    its enable pins tied high rather than broken out.
+    """
+
+    enabled: bool = True
+    chip: str = "gpiochip1"
+
+    left_forward_line: int = 20
+    left_backward_line: int = 21
+    right_forward_line: int = 22
+    right_backward_line: int = 23
+
+    pwm_hz: float = 200.0
+    """Fast enough that the motor averages it out rather than stepping."""
+
+    default_speed: float = 0.75
+    min_speed: float = 0.35
+    """Below roughly a third, a small gear motor buzzes and warms without
+    actually turning. Speeds are clamped up to this."""
+
+    default_seconds: float = 1.2
+    max_seconds: float = 5.0
+    """Every movement is time-limited. There is no floor sensor on this robot,
+    so a bounded run is what stops it driving off the edge of the desk."""
+
+
+@dataclass(frozen=True)
 class MotionConfig:
     """Servo bank settings.
 
@@ -309,6 +340,7 @@ class Config:
     speech: SpeechConfig = field(default_factory=SpeechConfig)
     tts: TTSConfig = field(default_factory=TTSConfig)
     motion: MotionConfig = field(default_factory=MotionConfig)
+    drive: DriveConfig = field(default_factory=DriveConfig)
     network: NetworkConfig = field(default_factory=NetworkConfig)
     city: CityConfig = field(default_factory=CityConfig)
     translate: TranslateConfig = field(default_factory=TranslateConfig)
@@ -404,6 +436,8 @@ def load_config(path: Path | None = None) -> Config:
         if "servos" in section:
             section["servos"] = _servos_from(section["servos"])
         cfg = replace(cfg, motion=MotionConfig(**section))
+    if section := raw.get("drive"):
+        cfg = replace(cfg, drive=DriveConfig(**section))
     if section := raw.get("network"):
         cfg = replace(cfg, network=NetworkConfig(**section))
     if section := raw.get("city"):

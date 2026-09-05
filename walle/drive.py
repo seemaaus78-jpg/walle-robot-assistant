@@ -4,10 +4,19 @@ Separate from ``walle/motion.py`` on purpose. That module positions servos -
 it thinks in angles, and holds a pose. This one drives wheels: it thinks in
 direction and speed, and a wheel has no position to hold.
 
-The reference build uses two 17-68 RPM gear motors and a mini L298N. That board
-takes four control lines - two per motor - and decides direction from which of
-the pair is high. Speed comes from pulsing those lines, since the mini L298N
-usually has its enable pins tied high rather than broken out.
+The reference build uses two 17-68 RPM gear motors and a mini L298N. Either
+that board or a DRV8833 works here: both take four control lines - two per
+motor - and decide direction from which of the pair is high. Speed comes from
+pulsing those lines, since neither breaks out a usable enable pin by default.
+
+Prefer a DRV8833 on a single-cell LiPo. The L298N drops roughly 1.8 V across
+itself, which from 3.7 V leaves under 2 V at a 6 V motor; the MOSFET-based
+parts drop about a tenth of that. Nothing in this module changes either way.
+
+Motor speed matters more than the driver. Aim for 30 RPM and no more than 60:
+RPM on an N20 is set by the gear ratio, so a fast part has little gearing and
+little torque, and a tracked chassis has far more friction than wheels. PWM
+cannot give torque back to a motor that does not have it.
 
 Why an H-bridge at all: a GPIO pin can signal but not push. It supplies a few
 milliamps, and a small gear motor wants hundreds. Wiring a motor straight to a

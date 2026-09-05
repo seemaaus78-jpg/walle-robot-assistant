@@ -433,7 +433,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 
 <section>
   <div class="part-head"><span class="part-num">Part 5b</span><h2>The tracks</h2></div>
-  <p class="lede">Two DC gear motors through a mini L298N, four control lines.</p>
+  <p class="lede">Two 30 RPM DC gear motors through a DRV8833, four control lines.</p>
   <p><span class="mono">walle/drive.py</span> is deliberately separate from <span class="mono">walle/motion.py</span>. That module positions servos — it thinks in angles and holds a pose. This one drives wheels: direction and speed, with no position to hold. Direction comes from which of a control pair is high; speed from pulsing them, since the mini L298N normally ties its enable pins high rather than breaking them out.</p>
 
   <div class="scroll"><table>
@@ -445,6 +445,12 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
       <tr><td class="mono">IN4</td><td class="mono">23</td><td>Right track backward</td></tr>
     </tbody>
   </table></div>
+  <div class="danger">
+    <span class="lbl">Pick the driver for the battery voltage, not by habit</span>
+    <p>The reference build uses a mini L298N. On a 3.7 V LiPo that is the wrong part: the L298N is a bipolar design that drops roughly 1.8 V across itself, leaving under 2 V at a 6 V motor. A <strong>DRV8833</strong> or TB6612FNG is MOSFET-based, drops around 0.1 V and works down to 2.7 V supply. Same four control lines, so <span class="mono">walle/drive.py</span> is unchanged either way.</p>
+    <p>Motor choice matters as much: <strong>30 RPM</strong>, up to 60. RPM on an N20 is set by the gear ratio, so a 1000 RPM part has almost no gearing and almost no torque — it will not turn a tracked chassis, and PWM cannot give torque back.</p>
+  </div>
+
   <p>Motor power comes from the battery through the driver, never from the board. A GPIO pin supplies a few milliamps; a small gear motor wants hundreds. Wiring one straight to a pin destroys the pin and usually the board.</p>
 
   <div class="note">

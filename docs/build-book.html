@@ -380,12 +380,16 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
       </svg>
       <div class="part-txt">
         <h4>Gear motors × 2</h4>
-        <div class="price">"N20 gear motor 6V 30RPM" · roughly $4–8 each</div>
-        <p>These are the <strong>legs</strong>. One for each track. They turn slowly and with a lot of force, which is what you want — a fast motor makes the robot skitter and fall over.</p>
+        <div class="price">"N20 gear motor 6V <strong>30RPM</strong>" · roughly $4–8 each</div>
+        <p>These are the <strong>legs</strong>. One for each track.</p>
+        <p><strong>The RPM number matters more than anything else on this page.</strong> Get <strong>30 RPM</strong>. Up to 60 is fine. Nothing higher.</p>
         <p>Buy <strong>two the same</strong>. Two different speeds means it curves instead of going straight.</p>
         <a class="buy" href="https://www.aliexpress.com/w/wholesale-N20-gear-motor-6V-30RPM.html">AliExpress →</a>
         <a class="buy alt" href="https://www.amazon.com/s?k=N20+gear+motor+6V+30RPM">Amazon</a>
-        <div class="why"><p><b>What "gear motor" means:</b> a plain motor spins very fast and very weakly. A gear motor has a little gearbox on the front that trades that speed for strength. Without one the robot would whirr and not move.</p></div>
+        <div class="why">
+          <p><b>What "gear motor" means:</b> a plain motor spins very fast and very weakly. A gear motor has a little gearbox on the front that trades that speed for strength. Without one the robot would whirr and not move.</p>
+          <p><b>Why not a faster one:</b> the same shop sells 100, 300, even 1000 RPM versions, and it is tempting to think faster is better. It is not. At 1000 RPM this robot would cross your desk in one second and fall off the edge. Worse, a high RPM motor has almost no gearing, so it has almost no strength — it would probably just buzz and fail to move the tracks at all, which have a lot of friction.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -396,7 +400,7 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
       <svg width="236" height="150" viewBox="0 0 200 130" role="img" aria-label="Drawing of a mini L298N motor driver board with input pins and motor output terminals">
         <rect x="50" y="26" width="100" height="70" rx="4" fill="#8C2F39"/>
         <rect x="60" y="34" width="34" height="20" rx="2" fill="#1E1E1E"/>
-        <text x="77" y="47" font-family="monospace" font-size="6.5" fill="#CCC" text-anchor="middle">L298N</text>
+        <text x="77" y="47" font-family="monospace" font-size="6" fill="#CCC" text-anchor="middle">DRV8833</text>
         <g font-family="monospace" font-size="6.5" fill="#F0E0E0">
           <text x="58" y="66">IN1</text><text x="80" y="66">IN2</text>
           <text x="102" y="66">IN3</text><text x="124" y="66">IN4</text>
@@ -411,13 +415,15 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <text x="100" y="112" font-family="monospace" font-size="8.5" fill="#8A857A" text-anchor="middle">4 control pins in, 2 motors out</text>
       </svg>
       <div class="part-txt">
-        <h4>Mini L298N motor driver</h4>
-        <div class="price">roughly $2–5 · also sold as "L298N mini dual H-bridge"</div>
+        <h4>DRV8833 motor driver</h4>
+        <div class="price">roughly $1–3 · search "DRV8833 motor driver module"</div>
         <p>This is the <strong>muscle</strong>. It sits between the brain and the motors.</p>
         <p>The brain can only whisper — a few milliamps. The motors need a shove — hundreds. This board takes the whisper as an instruction and delivers the shove from the battery.</p>
-        <a class="buy" href="https://www.aliexpress.com/w/wholesale-mini-L298N-motor-driver.html">AliExpress →</a>
-        <a class="buy alt" href="https://www.amazon.com/s?k=mini+L298N+motor+driver+module">Amazon</a>
-        <div class="why"><p><b>Never skip this.</b> Wiring a motor straight to a brain pin destroys the pin, and usually the whole board. It is the single most common way a first project dies. The driver exists precisely to stop that.</p></div>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-DRV8833-motor-driver-module.html">AliExpress →</a>
+        <div class="why">
+          <p><b>Never skip this.</b> Wiring a motor straight to a brain pin destroys the pin, and usually the whole board. It is the single most common way a first project dies. The driver exists precisely to stop that.</p>
+          <p><b>Why this one and not the L298N</b> that the original robot uses: the L298N is an older design that uses up about <strong>1.8 volts</strong> of whatever you feed it, just heating itself. Your battery only makes 3.7 volts, so the motors would receive under 2 — barely enough to twitch. The DRV8833 wastes almost nothing and works happily on a small battery. It uses the same four control wires, so nothing else changes.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -736,8 +742,8 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
   <div class="scroll"><table>
     <thead><tr><th>From</th><th>To</th><th>Why</th></tr></thead>
     <tbody>
-      <tr><td>Left motor, 2 wires</td><td>Driver "MOTOR A"</td><td>Power for the left track</td></tr>
-      <tr><td>Right motor, 2 wires</td><td>Driver "MOTOR B"</td><td>Power for the right track</td></tr>
+      <tr><td>Left motor, 2 wires</td><td>Driver "MOTOR A" / OUT1 OUT2</td><td>Power for the left track</td></tr>
+      <tr><td>Right motor, 2 wires</td><td>Driver "MOTOR B" / OUT3 OUT4</td><td>Power for the right track</td></tr>
       <tr><td>Driver <code>IN1 IN2 IN3 IN4</code></td><td>4 brain pins</td><td>The instructions</td></tr>
       <tr><td>Driver <code>VCC</code> and <code>GND</code></td><td>Battery + and −</td><td>Where the real power comes from</td></tr>
       <tr><td>Driver <code>GND</code></td><td>Brain <code>GND</code> too</td><td>Rule 1 — they must share ground</td></tr>

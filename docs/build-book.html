@@ -465,11 +465,16 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
       </svg>
       <div class="part-txt">
         <h4>Copper wire and brass tube</h4>
-        <div class="price">1 mm copper wire · brass tube <strong>OD 2 × ID 1 mm</strong> and <strong>OD 3 × ID 2 mm</strong> · roughly $8</div>
+        <div class="price">copper wire in <strong>two thicknesses</strong> · brass tube <strong>OD 2 × ID 1 mm</strong> and <strong>OD 3 × ID 2 mm</strong> · roughly $10</div>
         <p>This is the <strong>skeleton</strong>. You bend the copper wire by hand into the shape of the robot and solder the corners.</p>
+        <p><strong>Buy two thicknesses, and this matters:</strong></p>
+        <ul>
+          <li><strong>1 mm</strong> — the frame. Thick enough to hold the robot's shape.</li>
+          <li><strong>0.6 mm</strong> — the connections. The little holes on the electronic boards are only about 0.8 mm across, so <strong>1 mm wire will not go through them.</strong> If you buy only the thick wire you will not be able to connect anything.</li>
+        </ul>
         <p>Brass tube is sold by two numbers: <strong>OD</strong> is the outside, <strong>ID</strong> is the hole down the middle. <strong>The hole has to match your wire.</strong> Your wire is 1 mm, so you need ID 1 mm — the size sold as <strong>OD 2 × ID 1 mm</strong>.</p>
         <a class="buy" href="https://www.aliexpress.com/w/wholesale-brass-tube-OD-2mm-ID-1mm.html">Brass tube →</a>
-        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-1mm-copper-wire-craft.html">Copper wire</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-copper-wire-0.6mm-1mm-solid.html">Copper wire ×2 sizes</a>
         <div class="why">
           <p><b>Buy two sizes and you get free bearings.</b> Also get <strong>OD 3 × ID 2 mm</strong>. The 2 mm tube's outside is 2 mm and the 3 mm tube's hole is 2 mm, so one slides inside the other and turns smoothly:</p>
           <p style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--eye);margin:10px 0">1 mm wire → inside → 2×1 tube → inside → 3×2 tube</p>
@@ -725,8 +730,9 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
     <span class="lbl">About jumper wires and copper wire</span>
     <p>You will use <strong>both</strong>, at different times, and this is on purpose.</p>
     <p><strong>Jumper wires first.</strong> They push on and pull off, so you can get everything working and fix mistakes without a soldering iron. Do all your testing like this.</p>
-    <p><strong>Copper wire last.</strong> The thick copper wire is the robot's <em>skeleton</em> — it holds the shape. Looking closely at the original robot, the electrical connections are separate thin wires threaded through and along that copper cage, not the copper itself.</p>
-    <p>So the plan is: get everything working on jumper wires, then build the copper frame around it and replace the jumpers with neat thin wire tucked along the frame. That is what makes the finished robot look tidy instead of like a bundle of cables.</p>
+    <p><strong>Copper wire last.</strong> The thick 1 mm wire is the robot's <em>skeleton</em>. The thin 0.6 mm wire is what actually carries the electricity — it is thin enough to push through the little holes on the edge of each board and solder in place, which is what gives the original robot its bare, tidy look with no cables.</p>
+    <p>So the plan is: get everything working on jumper wires, then build the copper frame around it and replace the jumpers one at a time with thin copper soldered straight into the board holes.</p>
+    <p><strong>One warning about bare copper.</strong> It has no insulation, so every run has to stay clear of every other one — including when the motors shake and when you pick the robot up. Two runs touching is a short circuit, and a short on the 5 volt line can destroy the computer board. Check each connection with the multimeter as you make it, rather than all of them at the end.</p>
   </div>
 
   <h3>Step by step</h3>

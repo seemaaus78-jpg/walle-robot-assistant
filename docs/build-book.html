@@ -492,16 +492,19 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <text x="100" y="106" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">buy the TP4056 that says WITH PROTECTION</text>
       </svg>
       <div class="part-txt">
-        <h4>Battery and power board</h4>
-        <div class="price">3.7 V 2000–3000 mAh LiPo + 5 V power bank module · roughly $10</div>
-        <p>This is what makes it <strong>cordless</strong>. Add it last, once everything already works from a wall charger.</p>
-        <p>Search for a <strong>"5V 2A power bank module"</strong> (sometimes called 134N3P). One small board that does three jobs at once — see below.</p>
-        <a class="buy" href="https://www.aliexpress.com/w/wholesale-5V-2A-power-bank-module-charging-boost.html">Power board →</a>
-        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-3.7v-lipo-battery-2000mah.html">Battery</a>
+        <h4>Power — the easy way</h4>
+        <div class="price">a small USB power bank · roughly $8–15</div>
+        <p>The simplest answer, and the one to start with: <strong>an ordinary phone power bank</strong>.</p>
+        <p>It already has the battery, the USB-C charging, the 5 volt output and all the safety circuits inside one sealed box. You plug one cable into the robot. <strong>Nothing to solder, nothing extra to buy.</strong></p>
+        <p>Get a slim 5000 mAh one — about the size of a phone but thinner. That runs the robot for roughly three hours.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-slim-5000mah-power-bank.html">AliExpress →</a>
         <div class="why">
-          <p><b>Why not a plain TP4056:</b> your battery makes <strong>3.7 volts</strong>. Your computer needs <strong>5 volts</strong>. A plain charger board does not raise the voltage, so the battery alone cannot run the robot at all.</p>
-          <p>A power bank module charges the battery, raises 3.7 V up to 5 V, <em>and</em> lets the robot run while charging — three boards in one, for about the same money.</p>
+          <p><b>Why this beats a loose battery:</b> a bare lithium battery needs a charger board, a booster board to raise 3.7 V up to 5 V, and careful wiring — and if you get that wiring wrong, a bare lithium cell is the one part of this project that can actually catch fire. A power bank has all of that done for you, safely, in a sealed case.</p>
+          <p><b>One thing to watch:</b> some power banks switch themselves off if the thing plugged in is drawing very little. Your robot draws plenty while it is listening, so this is unlikely — but if yours does cut out, look for one that mentions a "low current" or "wearable" mode.</p>
         </div>
+        <p style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--edge)"><strong>The smaller, harder way:</strong> a 3.7 V 2000 mAh LiPo plus a "5V 2A power bank module". Same idea, but you solder it yourself. Choose this only once the robot works and you want to slim it down.</p>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-5V-2A-power-bank-module-charging-boost.html">Power module</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-3.7v-lipo-battery-2000mah.html">LiPo cell</a>
       </div>
     </div>
   </div>
@@ -571,6 +574,14 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
   <div class="warn">
     <span class="lbl">Batteries (only if you add one later)</span>
     <p>Start with a wall charger. If you add a rechargeable battery later, buy one that says <strong>"with protection"</strong>. These batteries hold a lot of energy and can catch fire if damaged. Never bend one, never poke it, and if it ever swells up or feels hot, put it outside on concrete and do not charge it again.</p>
+  </div>
+
+  <div class="warn">
+    <span class="lbl">Do not use USB-C rechargeable AA or AAA batteries</span>
+    <p>They look perfect — rechargeable over USB, no extra parts. They are not, for three reasons.</p>
+    <p><strong>The capacity printed on them is invented.</strong> A listing saying "AAA 1.5 V 6800 mAh" is claiming about seven times more energy than physically fits inside a AAA-sized shell. Real usable capacity is nearer 500 mAh.</p>
+    <p><strong>They would mean more parts, not fewer.</strong> Each gives 1.5 V and your robot needs 5 V, so you would need four of them in series plus a holder plus a regulator to bring 6 V back down. And once they are wired in series inside the robot, you cannot charge them over USB any more without pulling each one out.</p>
+    <p><strong>They would run the robot for about half an hour.</strong> A power bank runs it for three.</p>
   </div>
 
   <div class="warn">

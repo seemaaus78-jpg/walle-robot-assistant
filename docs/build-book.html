@@ -352,7 +352,7 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
       </svg>
       <div class="part-txt">
         <h4>USB webcam</h4>
-        <div class="price">any cheap one · roughly $10–20</div>
+        <div class="price">any cheap one · roughly $10–20 · <strong>the reliable choice</strong></div>
         <p>This is the <strong>eye</strong>. It lets the robot look at something and tell you what it is.</p>
         <p>Point it at a menu in a language you cannot read and ask "what does this say in English". Point it at a street and ask "what do you see".</p>
         <a class="buy" href="https://www.amazon.com/s?k=usb+webcam+1080p+small">Search shops →</a>
@@ -541,13 +541,21 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <text x="100" y="110" font-family="monospace" font-size="8" fill="#8A857A" text-anchor="middle">COUNT THE PINS ON YOUR BOARD FIRST</text>
       </svg>
       <div class="part-txt">
-        <h4>Camera ribbon cable</h4>
-        <div class="price">roughly $2–4 · <strong>check before buying</strong></div>
-        <p>Your Raspberry Pi camera connects with a flat ribbon. The plug on the camera and the socket on your computer board <strong>may not be the same size</strong>.</p>
-        <p><strong>Do this first:</strong> look at the camera socket on your Radxa board and count the tiny gold lines. A Raspberry Pi camera has <strong>15</strong>. If your board has <strong>22</strong>, you need an adapter cable, not a plain one.</p>
-        <a class="buy" href="https://www.aliexpress.com/w/wholesale-22-pin-to-15-pin-camera-adapter-cable.html">22-to-15 adapter →</a>
-        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-15-pin-csi-camera-ribbon-cable.html">Plain 15-pin</a>
-        <div class="why"><p><b>Why I cannot just tell you which:</b> I have not held a Cubie A7Z and I will not guess — a wrong cable is wasted money and three weeks of shipping. Count the pins, then buy. It takes thirty seconds.</p></div>
+        <h4>Camera — read this before buying anything</h4>
+        <div class="price">USB webcam ~$10 · or a $3 ribbon cable and some luck</div>
+        <p>Connecting a Raspberry Pi camera to this board is <strong>harder than it looks</strong>. The plugs are different sizes:</p>
+        <ul>
+          <li>Raspberry Pi camera: <strong>15 pins</strong>, 1 mm apart</li>
+          <li>Radxa Cubie A7Z board: <strong>31 pins</strong>, 0.3 mm apart</li>
+        </ul>
+        <p>So you need a special adapter ribbon, and on Radxa's own forum someone trying exactly this could not buy one, then could not get their homemade one working.</p>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-usb-webcam-1080p-mini.html">USB webcam →</a>
+        <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-radxa-15-pin-to-31-pin-camera-FPC-cable.html">15-to-31 ribbon</a>
+        <div class="why">
+          <p><b>What to actually do:</b> buy a cheap <strong>USB webcam</strong>. It plugs into a USB socket, the software already knows how to use it, and it will simply work. That is the whole setup.</p>
+          <p>If you already own a Raspberry Pi camera and want to try it, order the 15-to-31 ribbon too — it is only a few dollars. If it works, lovely. If it does not, you still have the webcam and you have lost three dollars instead of your evening.</p>
+          <p><b>Do not make the Pi camera your only plan.</b> Nobody on Radxa's forum has reported getting one working on this board yet.</p>
+        </div>
       </div>
     </div>
   </div>

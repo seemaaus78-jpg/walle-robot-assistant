@@ -469,7 +469,13 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
 <section>
   <div class="part-head"><span class="part-num">Part 6a</span><h2>What it sees</h2></div>
   <p class="lede">A USB webcam on <span class="mono">/dev/video0</span>, or a ribbon camera on the CSI connector.</p>
-  <p>Capture goes through an external program rather than a Python imaging library, because the right tool differs by camera: <span class="mono">libcamera-still</span> for a ribbon camera, <span class="mono">fswebcam</span> or <span class="mono">ffmpeg</span> for USB. The first one installed is detected and used. For a first build, a USB webcam is far easier — no ribbon cable, no overlay.</p>
+  <p>Capture goes through an external program rather than a Python imaging library, because the right tool differs by camera: <span class="mono">libcamera-still</span> for a ribbon camera, <span class="mono">fswebcam</span> or <span class="mono">ffmpeg</span> for USB. The first one installed is detected and used.</p>
+
+  <div class="danger">
+    <span class="lbl">Use USB. The CSI route on this board is not proven</span>
+    <p>The Cubie A7Z's MIPI-CSI port is a <strong>31-pin 0.3 mm pitch</strong> FPC connector, not the 15-pin 1.0 mm one a Raspberry Pi camera carries. Attaching an IMX219 module needs a 15-pin-1.0 mm to 31-pin-0.3 mm <em>same side</em> cable, which is scarce; a <a href="https://forum.radxa.com/t/support-to-connect-the-radxa-cubie-a7z-to-waveshare-imx219-modules/30354">Radxa forum thread on exactly this</a> ends with the author unable to source one and stuck on unmapped pins 20 (MCLK) and 23 (standby), with no reported success.</p>
+    <p>Radxa's own Camera 8M 219 is an IMX219 on a 15-pin 1.0 mm connector, so the sensor driver exists and the camera-side connector matches — the gap is purely the cable and its pin mapping. Worth a $3 gamble, not worth being the only plan.</p>
+  </div>
   <p class="say">"what do you see" · "read this" · "what does this menu say in spanish"</p>
   <p>Three tasks: describe a scene, read the text in a photo, or read it and translate it. The third is the one that earns its place on a trip — a menu or a sign in a script you cannot read.</p>
 

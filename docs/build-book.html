@@ -497,10 +497,21 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
         <p>The simplest answer, and the one to start with: <strong>an ordinary phone power bank</strong>.</p>
         <p>It already has the battery, the USB-C charging, the 5 volt output and all the safety circuits inside one sealed box. You plug one cable into the robot. <strong>Nothing to solder, nothing extra to buy.</strong></p>
         <p>Get a slim 5000 mAh one — about the size of a phone but thinner. That runs the robot for roughly three hours.</p>
-        <a class="buy" href="https://www.aliexpress.com/w/wholesale-slim-5000mah-power-bank.html">AliExpress →</a>
+        <a class="buy" href="https://www.aliexpress.com/w/wholesale-power-bank-5000mah-2A-output.html">AliExpress →</a>
+
+        <div style="margin-top:16px;padding:14px 16px;background:var(--sunk);border-radius:10px">
+          <p style="margin:0 0 8px;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)">Check these four things before buying</p>
+          <ul style="margin:0;font-size:16px">
+            <li><strong>The battery must be included.</strong> If the listing says "DIY", "case", "kit", "shell", or "not including battery", it is an empty box. You would then have to buy loose 18650 cells and fit them the right way round — and fitting one backwards can destroy it or start a fire.</li>
+            <li><strong>Output must say at least 5V 2A.</strong> Many cheap ones say 1A. That is not enough once the motors start, and the robot will keep restarting itself for reasons that look like a software fault.</li>
+            <li><strong>Output must say 5V</strong>, not 5.5V. Anything above 5.25 V is outside what the board expects.</li>
+            <li><strong>5000 mAh or more.</strong> That is roughly three hours of use.</li>
+          </ul>
+        </div>
         <div class="why">
           <p><b>Why this beats a loose battery:</b> a bare lithium battery needs a charger board, a booster board to raise 3.7 V up to 5 V, and careful wiring — and if you get that wiring wrong, a bare lithium cell is the one part of this project that can actually catch fire. A power bank has all of that done for you, safely, in a sealed case.</p>
           <p><b>One thing to watch:</b> some power banks switch themselves off if the thing plugged in is drawing very little. Your robot draws plenty while it is listening, so this is unlikely — but if yours does cut out, look for one that mentions a "low current" or "wearable" mode.</p>
+          <p><b>Worth buying this one locally.</b> This is the single part that can catch fire if it is poorly made, and the cheapest listings are the most likely to have fake cells inside. A basic 10000 mAh power bank from a shop, from a name you recognise, costs a little more and actually delivers what it says. Out of a build costing around fifty dollars, it is a good place to spend fifteen.</p>
         </div>
         <p style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--edge)"><strong>The smaller, harder way:</strong> a 3.7 V 2000 mAh LiPo plus a "5V 2A power bank module". Same idea, but you solder it yourself. Choose this only once the robot works and you want to slim it down.</p>
         <a class="buy alt" href="https://www.aliexpress.com/w/wholesale-5V-2A-power-bank-module-charging-boost.html">Power module</a>

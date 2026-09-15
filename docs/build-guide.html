@@ -299,7 +299,7 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
     <div class="pin odd gnd"><span>GND</span><span class="n">9</span></div>
     <div class="pin"><span class="n">10</span><span>—</span></div>
     <div class="pin odd"><span>—</span><span class="n">11</span></div>
-    <div class="pin use"><span class="n">12</span><span>I²S BCLK ?</span></div>
+    <div class="pin use"><span class="n">12</span><span>I²S BCLK</span></div>
     <div class="pin odd"><span>—</span><span class="n">13</span></div>
     <div class="pin gnd"><span class="n">14</span><span>GND</span></div>
     <div class="pin odd"><span>—</span><span class="n">15</span></div>
@@ -322,23 +322,24 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
     <div class="pin"><span class="n">32</span><span>—</span></div>
     <div class="pin odd"><span>—</span><span class="n">33</span></div>
     <div class="pin gnd"><span class="n">34</span><span>GND</span></div>
-    <div class="pin odd use"><span>I²S LRCLK ?</span><span class="n">35</span></div>
+    <div class="pin odd use"><span>I²S LRCLK</span><span class="n">35</span></div>
     <div class="pin"><span class="n">36</span><span>—</span></div>
     <div class="pin odd"><span>—</span><span class="n">37</span></div>
-    <div class="pin use"><span class="n">38</span><span>I²S DATA IN ?</span></div>
+    <div class="pin use"><span class="n">38</span><span>I²S DIN0</span></div>
     <div class="pin odd gnd"><span>GND</span><span class="n">39</span></div>
-    <div class="pin use"><span class="n">40</span><span>I²S DATA OUT ?</span></div>
+    <div class="pin use"><span class="n">40</span><span>I²S DOUT0</span></div>
   </div>
   <div class="legend">
     <span><i class="swatch" style="background:var(--rust)"></i> Power</span>
     <span><i class="swatch" style="background:var(--ink)"></i> Ground — use any</span>
-    <span><i class="swatch" style="background:var(--brass)"></i> I²S — verify these four</span>
+    <span><i class="swatch" style="background:var(--brass)"></i> I²S — verified</span>
   </div>
 
-  <div class="danger">
-    <span class="lbl">Verify the four brass pins before you solder</span>
-    <p>Pins 1, 2, 4, 17 (power) and every ground above are fixed by the 40-pin standard and are safe. <strong>The four I²S pins are marked with a question mark because I have not verified them on a Cubie A7Z</strong> — they are the positions most 40-pin boards use for HAT compatibility, not a fact I have checked on your board.</p>
-    <p>Confirm them yourself before soldering: run <span class="mono">gpioinfo</span> on the board and check Radxa's official pinout page for the A7Z. Five minutes there saves a dead board.</p>
+  <div class="note">
+    <span class="lbl">These are verified against Radxa's own pin table</span>
+    <p>Taken from the A7Z's <a href="https://docs.radxa.com/en/cubie/a7z/hardware-use/pin-gpio">40-pin GPIO documentation</a>: pin 12 is PB5 / I2S0-BCLK, pin 35 is PB6 / I2S0-LRCK, pin 38 is PB8 / I2S0-DIN0 and pin 40 is PB7 / I2S0-DOUT0. Pin 36 (PB4) carries I2S0-MCLK if a codec needs it; the MAX98357A and INMP441 do not.</p>
+    <p>SPI1 for the display sits on the familiar positions: <strong>19 MOSI, 21 MISO, 23 CLK, 24 CS0</strong> (PD12, PD13, PD11, PD10).</p>
+    <p>Confirm with <span class="mono">gpioinfo</span> on the board anyway — it costs thirty seconds and the table above is a document, not your hardware.</p>
   </div>
 
   <div class="note">
@@ -437,12 +438,12 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);color:v
   <p><span class="mono">walle/drive.py</span> is deliberately separate from <span class="mono">walle/motion.py</span>. That module positions servos — it thinks in angles and holds a pose. This one drives wheels: direction and speed, with no position to hold. Direction comes from which of a control pair is high; speed from pulsing them, since the mini L298N normally ties its enable pins high rather than breaking them out.</p>
 
   <div class="scroll"><table>
-    <thead><tr><th>Driver pin</th><th class="mono">Default line</th><th>Drives</th></tr></thead>
+    <thead><tr><th>Driver pin</th><th class="mono">Header · GPIO · line</th><th>Drives</th></tr></thead>
     <tbody>
-      <tr><td class="mono">IN1</td><td class="mono">20</td><td>Left track forward</td></tr>
-      <tr><td class="mono">IN2</td><td class="mono">21</td><td>Left track backward</td></tr>
-      <tr><td class="mono">IN3</td><td class="mono">22</td><td>Right track forward</td></tr>
-      <tr><td class="mono">IN4</td><td class="mono">23</td><td>Right track backward</td></tr>
+      <tr><td class="mono">IN1</td><td class="mono">pin 7 · PB0 · 32</td><td>Left track forward</td></tr>
+      <tr><td class="mono">IN2</td><td class="mono">pin 11 · PB1 · 33</td><td>Left track backward</td></tr>
+      <tr><td class="mono">IN3</td><td class="mono">pin 29 · PB2 · 34</td><td>Right track forward</td></tr>
+      <tr><td class="mono">IN4</td><td class="mono">pin 31 · PB3 · 35</td><td>Right track backward</td></tr>
     </tbody>
   </table></div>
   <div class="danger">

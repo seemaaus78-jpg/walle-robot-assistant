@@ -671,7 +671,21 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
   </table></div>
 
   <h3>Then: the four sound pins</h3>
-  <p>Four more pins carry the sound. These four are <strong>different on different boards</strong>, so you must look them up for yours — see the warning below.</p>
+  <p>These are the ones that carry sound and picture. They come from Radxa's own pin list for this exact board:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Pin</th><th>What it is</th><th>Goes to</th></tr></thead>
+    <tbody>
+      <tr><td class="m">12</td><td>I2S BCLK</td><td>Microphone <code>SCK</code> AND amplifier <code>BCLK</code></td></tr>
+      <tr><td class="m">35</td><td>I2S LRCK</td><td>Microphone <code>WS</code> AND amplifier <code>LRC</code></td></tr>
+      <tr><td class="m">38</td><td>I2S data in</td><td>Microphone <code>SD</code></td></tr>
+      <tr><td class="m">40</td><td>I2S data out</td><td>Amplifier <code>DIN</code></td></tr>
+      <tr><td class="m">19</td><td>SPI data</td><td>Screen <code>SDA</code> / <code>MOSI</code></td></tr>
+      <tr><td class="m">23</td><td>SPI clock</td><td>Screen <code>SCK</code></td></tr>
+      <tr><td class="m">24</td><td>SPI select</td><td>Screen <code>CS</code></td></tr>
+      <tr><td class="m">22</td><td>spare pin</td><td>Screen <code>DC</code></td></tr>
+      <tr><td class="m">18</td><td>spare pin</td><td>Screen <code>RST</code></td></tr>
+    </tbody>
+  </table></div>
 
   <div class="scroll"><table>
     <thead><tr><th>Part</th><th>Its pin</th><th>Goes to</th></tr></thead>
@@ -694,12 +708,6 @@ footer{margin-top:70px;padding-top:24px;border-top:2px solid var(--ink);color:va
     <span class="lbl">Why two parts share the same wire</span>
     <p>Look again: the microphone's <code>SCK</code> and the amplifier's <code>BCLK</code> go to the <em>same</em> pin. So do <code>WS</code> and <code>LRC</code>.</p>
     <p>That is on purpose. Those two wires are a shared heartbeat that keeps the ear and the mouth in time with each other. Only the wires carrying the actual sound are separate — one coming in, one going out.</p>
-  </div>
-
-  <div class="warn">
-    <span class="lbl">You must look up four pins yourself</span>
-    <p>I do not know exactly which pins carry sound on your board, and I will not guess, because a wrong guess can damage it.</p>
-    <p>Find them in two places: search the internet for <strong>"Radxa Cubie A7Z pinout"</strong> and look at the official picture, and type <code>gpioinfo</code> on the board once it is running. Look for pins named with <strong>I2S</strong> in them. Five minutes of checking saves you a broken board.</p>
   </div>
 
   <div class="warn">

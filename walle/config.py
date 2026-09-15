@@ -107,12 +107,17 @@ class DriveConfig:
     """
 
     enabled: bool = True
-    chip: str = "gpiochip1"
 
-    left_forward_line: int = 20
-    left_backward_line: int = 21
-    right_forward_line: int = 22
-    right_backward_line: int = 23
+    chip: str = "gpiochip0"
+    """PB0..PB3 are the four free contiguous GPIOs left on the Cubie A7Z header
+    once I2S has taken PB4..PB8 and SPI1 has taken PD10..PD13. GPIO number is
+    NUM + 32 * letter-index, and B is index 1, so they are lines 32-35:
+    header pins 7, 11, 29 and 31 respectively."""
+
+    left_forward_line: int = 32
+    left_backward_line: int = 33
+    right_forward_line: int = 34
+    right_backward_line: int = 35
 
     pwm_hz: float = 200.0
     """Fast enough that the motor averages it out rather than stepping."""

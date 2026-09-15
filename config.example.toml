@@ -57,6 +57,51 @@ source_lang = "en"
 target_lang = "es"
 
 
+# --- Verified against Radxa's 40-pin table for the Cubie A7Z ---------------
+#   https://docs.radxa.com/en/cubie/a7z/hardware-use/pin-gpio
+#
+#   I2S   pin 12  PB5   BCLK   shared by the microphone and the amplifier
+#         pin 35  PB6   LRCK   shared by the microphone and the amplifier
+#         pin 38  PB8   DIN0   microphone data into the board
+#         pin 40  PB7   DOUT0  board data out to the amplifier
+#         pin 36  PB4   MCLK   unused; neither INMP441 nor MAX98357A needs it
+#
+#   SPI1  pin 19  PD12  MOSI   screen SDA
+#         pin 23  PD11  CLK    screen SCK
+#         pin 24  PD10  CS0    screen CS
+#         pin 21  PD13  MISO   unused by the screen
+#
+#   Spare pins for the screen's control lines:
+#         pin 22  PL5          screen DC
+#         pin 18  PJ25         screen RST
+#
+#   GPIO numbers are NUM + 32 * letter-index, with A=0 inside gpiochip0 and
+#   L=0 inside gpiochip1. PD12 is 12 + 32*3 = 108 on gpiochip0; PL5 is 5 on
+#   gpiochip1. Confirm against `gpioinfo` before trusting any of it.
+
+[display]
+# The screen is driven as a Linux framebuffer, not from Python over SPI. That
+# means the panel is bound by a device tree overlay - which is where the SPI
+# and DC/RST pins above are configured - and this program simply writes pixels
+# to the device the overlay creates.
+enabled = true
+
+# /dev/fb1 for an SPI panel bound through fbtft, /dev/fb0 for HDMI. Geometry is
+# read from sysfs, so there is nothing to set here beyond the device itself.
+device = "/dev/fb1"
+
+# Some ILI9341 boards are wired big-endian. If the face renders in the wrong
+# colours, flip this before suspecting the wiring.
+swap_bytes = false
+
+# Silence before the eyes close. Also the point at which it visibly stops
+# listening, which is worth being able to see across a room.
+sleep_after_s = 120.0
+
+# How long a map or an information card stays up before the face returns.
+card_seconds = 6.0
+
+
 [camera]
 # The eye. It captures ONE still when you ask it to look, and at no other
 # time - there is no background stream and no motion trigger. A microphone
@@ -155,15 +200,24 @@ cache_ttl_s = 30.0
 
 
 [drive]
-# The two tracks. A mini L298N takes four control lines, two per motor:
+# The two tracks. A DRV8833 (or L298N) takes four control lines, two per motor:
 # direction comes from which of a pair is high, speed from pulsing them.
 enabled = true
-chip = "gpiochip1"
 
-left_forward_line = 20
-left_backward_line = 21
-right_forward_line = 22
-right_backward_line = 23
+# PB0..PB3 are the four free, contiguous GPIOs left on the header once I2S has
+# taken PB4..PB8 and SPI1 has taken PD10..PD13. They are gpiochip0 lines 32-35,
+# because the number is NUM + 32 * letter-index and B is index 1.
+#
+#   header pin  7  = PB0 = line 32   IN1  left forward
+#   header pin 11  = PB1 = line 33   IN2  left backward
+#   header pin 29  = PB2 = line 34   IN3  right forward
+#   header pin 31  = PB3 = line 35   IN4  right backward
+chip = "gpiochip0"
+
+left_forward_line = 32
+left_backward_line = 33
+right_forward_line = 34
+right_backward_line = 35
 
 pwm_hz = 200.0
 default_speed = 0.75

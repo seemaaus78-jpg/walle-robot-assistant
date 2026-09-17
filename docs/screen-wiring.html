@@ -1,0 +1,518 @@
+<title>Screen Wiring Map</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root{
+    --ground:#eceff2; --surface:#ffffff; --surface-2:#f5f7f9;
+    --ink:#151d24; --ink-soft:#5a6873; --rule:#ccd5dc; --rule-soft:#e0e6ea;
+    --accent:#a4500c; --accent-soft:#f4e6d8;
+    --danger:#b02222; --danger-soft:#fae9e9;
+    --ok:#166b40; --ok-soft:#e3f2e9;
+    --w-vcc:#d31f42; --w-gnd:#66727d; --w-led:#c07c00; --w-clk:#2a72d4;
+    --w-mosi:#1a8f4d; --w-cs:#7c4ddb; --w-dc:#0a8f9c; --w-rst:#cb2c8e;
+    --dg-board:#e2e8ec; --dg-glass:#2b363f; --dg-strip:#414d57;
+    --dg-pinbg:#f7f9fa;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
+      --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
+      --accent:#e0914f; --accent-soft:#33261b;
+      --danger:#ff8080; --danger-soft:#331a1b;
+      --ok:#4fc98a; --ok-soft:#14291f;
+      --w-vcc:#ff6b81; --w-gnd:#9aa9b6; --w-led:#f0b54a; --w-clk:#6fb1ff;
+      --w-mosi:#48d17f; --w-cs:#b79bff; --w-dc:#3ecfdb; --w-rst:#ff7ec9;
+      --dg-board:#232e36; --dg-glass:#080d11; --dg-strip:#38454f;
+      --dg-pinbg:#101920;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
+    --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
+    --accent:#e0914f; --accent-soft:#33261b;
+    --danger:#ff8080; --danger-soft:#331a1b;
+    --ok:#4fc98a; --ok-soft:#14291f;
+    --w-vcc:#ff6b81; --w-gnd:#9aa9b6; --w-led:#f0b54a; --w-clk:#6fb1ff;
+    --w-mosi:#48d17f; --w-cs:#b79bff; --w-dc:#3ecfdb; --w-rst:#ff7ec9;
+    --dg-board:#232e36; --dg-glass:#080d11; --dg-strip:#38454f;
+    --dg-pinbg:#101920;
+  }
+
+  body{
+    background:var(--ground); color:var(--ink);
+    font-family:"Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size:17px; line-height:1.6;
+  }
+  .wrap{ max-width:820px; margin:0 auto; padding-inline:20px; padding-block:40px 72px; }
+
+  h1,h2,h3{ font-family:"Archivo", ui-sans-serif, system-ui, sans-serif; text-wrap:balance; margin:0; }
+  h1{ font-size:clamp(30px,6vw,42px); font-weight:700; letter-spacing:-.022em; line-height:1.1; }
+  h2{ font-size:22px; font-weight:600; letter-spacing:-.012em; }
+  h3{ font-size:16px; font-weight:600; letter-spacing:-.005em; }
+  p{ margin:0; max-width:62ch; }
+
+  .eyebrow{
+    font-family:"Archivo", sans-serif; font-size:11px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0;
+  }
+  .lede{ font-size:19px; color:var(--ink-soft); }
+
+  header.top{ display:flex; flex-direction:column; gap:12px; padding-bottom:28px;
+    border-bottom:1px solid var(--rule); }
+  .facts{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+  .fact{
+    font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px;
+    padding:5px 10px; border:1px solid var(--rule); border-radius:999px;
+    color:var(--ink-soft); background:var(--surface);
+  }
+
+  section{ display:flex; flex-direction:column; gap:14px; padding-block:34px;
+    border-bottom:1px solid var(--rule-soft); }
+  section:last-of-type{ border-bottom:0; }
+
+  /* ---- callouts ---- */
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft);
+    padding:14px 16px; border-radius:0 6px 6px 0; display:flex; flex-direction:column; gap:6px; }
+  .note.stop{ border-left-color:var(--danger); background:var(--danger-soft); }
+  .note.good{ border-left-color:var(--ok); background:var(--ok-soft); }
+  .note strong{ font-family:"Archivo",sans-serif; font-weight:600; }
+  .note p{ max-width:58ch; }
+
+  /* ---- diagram ---- */
+  figure{ margin:0; display:flex; flex-direction:column; gap:10px; }
+  .scroller{ overflow-x:auto; background:var(--surface); border:1px solid var(--rule);
+    border-radius:8px; padding:8px; }
+  .wiring{ display:block; width:100%; min-width:840px; height:auto; }
+  figcaption{ font-size:14px; color:var(--ink-soft); max-width:62ch; }
+  .hint{ font-size:13px; color:var(--ink-soft); font-style:italic; }
+  @media (min-width:900px){ .hint{ display:none; } }
+
+  .dg-board{ fill:var(--dg-board); stroke:var(--rule); stroke-width:1.5; }
+  .dg-glass{ fill:var(--dg-glass); }
+  .dg-strip{ fill:var(--dg-strip); }
+  .dg-pad{ fill:var(--dg-pinbg); stroke:var(--ink-soft); stroke-width:1.5; }
+  .dg-pin{ fill:var(--dg-pinbg); stroke:var(--rule); stroke-width:1.2; }
+  .dg-pin-used{ stroke-width:2.6; }
+  .dg-pin-danger{ stroke:var(--danger); stroke-width:1.6; stroke-dasharray:3 2.5; }
+  .p-vcc{stroke:var(--w-vcc)} .p-gnd{stroke:var(--w-gnd)} .p-led{stroke:var(--w-led)}
+  .p-clk{stroke:var(--w-clk)} .p-mosi{stroke:var(--w-mosi)} .p-cs{stroke:var(--w-cs)}
+  .p-dc{stroke:var(--w-dc)} .p-rst{stroke:var(--w-rst)}
+  .sw-vcc{fill:var(--w-vcc)} .sw-gnd{fill:var(--w-gnd)} .sw-led{fill:var(--w-led)}
+  .sw-clk{fill:var(--w-clk)} .sw-mosi{fill:var(--w-mosi)} .sw-cs{fill:var(--w-cs)}
+  .sw-dc{fill:var(--w-dc)} .sw-rst{fill:var(--w-rst)}
+  .dg-wire{ fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+  .w-vcc{stroke:var(--w-vcc)} .w-gnd{stroke:var(--w-gnd)} .w-led{stroke:var(--w-led)}
+  .w-clk{stroke:var(--w-clk)} .w-mosi{stroke:var(--w-mosi)} .w-cs{stroke:var(--w-cs)}
+  .w-dc{stroke:var(--w-dc)} .w-rst{stroke:var(--w-rst)}
+  .dg-wire-none{ stroke:var(--rule); stroke-width:2; stroke-dasharray:4 4; }
+  .dg-num{ font-family:"JetBrains Mono", monospace; font-size:9px; fill:var(--ink-soft);
+    text-anchor:middle; }
+  .dg-num-used{ fill:var(--ink); font-weight:600; }
+  .dg-num-danger{ fill:var(--danger); }
+  .dg-label{ font-family:"Source Sans 3",sans-serif; font-size:11.5px; fill:var(--ink); }
+  .dg-name{ font-weight:600; }
+  .dg-arrow{ fill:var(--ink-soft); }
+  .dg-target{ font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:600; fill:var(--ink); }
+  .dg-label-none{ fill:var(--ink-soft); }
+  .dg-func{ font-family:"JetBrains Mono",monospace; font-size:10px; fill:var(--ink-soft); }
+  .dg-func-danger{ fill:var(--danger); }
+  .dg-head{ font-family:"Archivo",sans-serif; font-size:12.5px; font-weight:600;
+    fill:var(--ink); text-anchor:middle; }
+  .dg-call{ font-family:"Source Sans 3",sans-serif; font-size:10.5px; fill:var(--ink-soft);
+    text-anchor:end; }
+  .dg-callline{ stroke:var(--ink-soft); stroke-width:1; fill:none; }
+
+  /* ---- tables ---- */
+  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:8px;
+    background:var(--surface); }
+  table{ border-collapse:collapse; width:100%; font-size:15px; }
+  th,td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule-soft);
+    vertical-align:top; }
+  thead th{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600;
+    letter-spacing:.09em; text-transform:uppercase; color:var(--ink-soft);
+    background:var(--surface-2); border-bottom:1px solid var(--rule); white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:0; }
+  .mono{ font-family:"JetBrains Mono",monospace; font-size:13.5px; font-variant-numeric:tabular-nums; }
+  .pinno{ font-family:"JetBrains Mono",monospace; font-weight:600; font-size:14px;
+    font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .chip{ display:inline-block; width:10px; height:10px; border-radius:2px;
+    margin-right:8px; vertical-align:baseline; }
+  .alt{ color:var(--ink-soft); font-size:13.5px; display:block; }
+
+  /* ---- steps ---- */
+  ol.steps{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0;
+    counter-reset:step; border:1px solid var(--rule); border-radius:8px; background:var(--surface);
+    overflow:hidden; }
+  ol.steps li{ counter-increment:step; display:grid; grid-template-columns:44px 1fr; gap:14px;
+    padding:15px 16px; border-bottom:1px solid var(--rule-soft); align-items:start; }
+  ol.steps li:last-child{ border-bottom:0; }
+  ol.steps li::before{
+    content:counter(step); font-family:"JetBrains Mono",monospace; font-size:13px;
+    font-weight:600; color:var(--accent); background:var(--accent-soft);
+    width:28px; height:28px; border-radius:50%; display:grid; place-items:center;
+  }
+  ol.steps li > div{ display:flex; flex-direction:column; gap:4px; }
+  ol.steps b{ font-family:"Archivo",sans-serif; font-weight:600; }
+  ol.steps small{ color:var(--ink-soft); font-size:14px; line-height:1.5; }
+
+  ul.check{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  ul.check li{ display:grid; grid-template-columns:22px 1fr; gap:10px; align-items:start;
+    font-size:16px; }
+  ul.check li::before{ content:"\2610"; color:var(--accent); font-size:18px; line-height:1.35; }
+
+  footer{ margin-top:40px; padding-top:22px; border-top:1px solid var(--rule);
+    font-size:14px; color:var(--ink-soft); display:flex; flex-direction:column; gap:6px; }
+
+  @media (max-width:520px){
+    body{ font-size:16px; }
+    ol.steps li{ grid-template-columns:34px 1fr; gap:10px; padding:13px 12px; }
+    ol.steps li::before{ width:24px; height:24px; font-size:12px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">WALL&middot;E build &mdash; step 3a</p>
+    <h1>Wiring the screen to the board</h1>
+    <p class="lede">Eight wires go from the back of the little screen to numbered
+      pins on the Radxa board. Nothing is soldered. Nothing is cut.</p>
+    <div class="facts">
+      <span class="fact">8 wires</span>
+      <span class="fact">~20 minutes</span>
+      <span class="fact">female&ndash;to&ndash;female</span>
+      <span class="fact">power OFF throughout</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Before you touch anything</h2>
+    <div class="note stop">
+      <strong>Unplug the board first.</strong>
+      <p>No USB cable, no battery, no power bank. Wires pushed onto a live board can
+        kill the screen in a second. Plug power in only at the very end.</p>
+    </div>
+    <div class="note stop">
+      <strong>The red wire goes to pin&nbsp;1, never pin&nbsp;2 or pin&nbsp;4.</strong>
+      <p>Pin&nbsp;1 gives 3.3&nbsp;volts, which is what the screen wants. Pins&nbsp;2
+        and&nbsp;4 give 5&nbsp;volts and will burn it out. They are right next to each
+        other, so count carefully. On the drawing below those two pins are ringed in red.</p>
+    </div>
+    <h3>What you need</h3>
+    <p>The screen module, the Radxa board, and eight <em>female-to-female</em> jumper
+      wires &mdash; the kind with a little plastic socket on <em>both</em> ends. Both the
+      screen and the board have bare metal pins sticking up, so you need sockets at each
+      end. Wires with a pin on one end will not fit.</p>
+  </section>
+
+  <section>
+    <h2>The map</h2>
+    <p class="hint">Scroll the drawing sideways to see all of it.</p>
+    <figure>
+      <div class="scroller">
+        <svg class="wiring" viewBox="0 0 900 690" role="img"
+             aria-label="Eight coloured wires running from the nine pins on the back of the SPI screen module to numbered pins on the Radxa Cubie A7Z forty-pin header: VCC to pin 1, GND to pin 6, CS to pin 24, RESET to pin 18, DC to pin 22, SDI MOSI to pin 19, SCK to pin 23, LED to pin 17. SDO MISO is left empty. Pins 2 and 4 are marked as 5 volts and must not be used.">
+
+          <text x="145" y="106" class="dg-head">Back of the screen</text>
+          <text x="690" y="26" class="dg-head">Radxa Cubie A7Z &middot; 40-pin header</text>
+
+          <text x="626" y="52" class="dg-call">pin 1 is the square pad</text>
+          <path d="M632,56 L652,74" class="dg-callline"/>
+
+          <rect x="40" y="120" width="210" height="380" rx="7" class="dg-board"/>
+          <rect x="52" y="138" width="170" height="344" rx="3" class="dg-glass"/>
+          <rect x="232" y="145" width="18" height="320" rx="3" class="dg-strip"/>
+
+          <rect x="636" y="66" width="108" height="587" rx="8" class="dg-board"/>
+
+          <path d="M241,160 H390 C480,160 550,84 660,84" class="dg-wire w-vcc"/>
+      <path d="M241,196 H390 C490,196 570,156.5 660,156.5 L720,142" class="dg-wire w-gnd"/>
+      <path d="M241,232 H390 C490,232 560,417.5 660,417.5 L720,403" class="dg-wire w-cs"/>
+      <path d="M241,268 H390 C490,268 570,301.5 660,301.5 L720,316" class="dg-wire w-rst"/>
+      <path d="M241,304 H390 C490,304 570,359.5 660,359.5 L720,374" class="dg-wire w-dc"/>
+      <path d="M241,340 H390 C490,340 570,345 660,345" class="dg-wire w-mosi"/>
+      <path d="M241,376 H390 C490,376 570,403 660,403" class="dg-wire w-clk"/>
+      <path d="M241,412 H390 C560,412 560,316 660,316" class="dg-wire w-led"/>
+      <path d="M241,448 H300" class="dg-wire dg-wire-none"/>
+
+          <rect x="651.5" y="75.5" width="17" height="17" rx="2.5" class="dg-pin dg-pin-used p-vcc"/>
+      <text x="660" y="87.2" class="dg-num dg-num-used">1</text>
+      <circle cx="720" cy="84" r="8.5" class="dg-pin dg-pin-danger"/>
+      <text x="720" y="87.2" class="dg-num dg-num-danger">2</text>
+      <circle cx="660" cy="113" r="8.5" class="dg-pin"/>
+      <text x="660" y="116.2" class="dg-num">3</text>
+      <circle cx="720" cy="113" r="8.5" class="dg-pin dg-pin-danger"/>
+      <text x="720" y="116.2" class="dg-num dg-num-danger">4</text>
+      <circle cx="660" cy="142" r="8.5" class="dg-pin"/>
+      <text x="660" y="145.2" class="dg-num">5</text>
+      <circle cx="720" cy="142" r="8.5" class="dg-pin dg-pin-used p-gnd"/>
+      <text x="720" y="145.2" class="dg-num dg-num-used">6</text>
+      <circle cx="660" cy="171" r="8.5" class="dg-pin"/>
+      <text x="660" y="174.2" class="dg-num">7</text>
+      <circle cx="720" cy="171" r="8.5" class="dg-pin"/>
+      <text x="720" y="174.2" class="dg-num">8</text>
+      <circle cx="660" cy="200" r="8.5" class="dg-pin"/>
+      <text x="660" y="203.2" class="dg-num">9</text>
+      <circle cx="720" cy="200" r="8.5" class="dg-pin"/>
+      <text x="720" y="203.2" class="dg-num">10</text>
+      <circle cx="660" cy="229" r="8.5" class="dg-pin"/>
+      <text x="660" y="232.2" class="dg-num">11</text>
+      <circle cx="720" cy="229" r="8.5" class="dg-pin"/>
+      <text x="720" y="232.2" class="dg-num">12</text>
+      <circle cx="660" cy="258" r="8.5" class="dg-pin"/>
+      <text x="660" y="261.2" class="dg-num">13</text>
+      <circle cx="720" cy="258" r="8.5" class="dg-pin"/>
+      <text x="720" y="261.2" class="dg-num">14</text>
+      <circle cx="660" cy="287" r="8.5" class="dg-pin"/>
+      <text x="660" y="290.2" class="dg-num">15</text>
+      <circle cx="720" cy="287" r="8.5" class="dg-pin"/>
+      <text x="720" y="290.2" class="dg-num">16</text>
+      <circle cx="660" cy="316" r="8.5" class="dg-pin dg-pin-used p-led"/>
+      <text x="660" y="319.2" class="dg-num dg-num-used">17</text>
+      <circle cx="720" cy="316" r="8.5" class="dg-pin dg-pin-used p-rst"/>
+      <text x="720" y="319.2" class="dg-num dg-num-used">18</text>
+      <circle cx="660" cy="345" r="8.5" class="dg-pin dg-pin-used p-mosi"/>
+      <text x="660" y="348.2" class="dg-num dg-num-used">19</text>
+      <circle cx="720" cy="345" r="8.5" class="dg-pin"/>
+      <text x="720" y="348.2" class="dg-num">20</text>
+      <circle cx="660" cy="374" r="8.5" class="dg-pin"/>
+      <text x="660" y="377.2" class="dg-num">21</text>
+      <circle cx="720" cy="374" r="8.5" class="dg-pin dg-pin-used p-dc"/>
+      <text x="720" y="377.2" class="dg-num dg-num-used">22</text>
+      <circle cx="660" cy="403" r="8.5" class="dg-pin dg-pin-used p-clk"/>
+      <text x="660" y="406.2" class="dg-num dg-num-used">23</text>
+      <circle cx="720" cy="403" r="8.5" class="dg-pin dg-pin-used p-cs"/>
+      <text x="720" y="406.2" class="dg-num dg-num-used">24</text>
+      <circle cx="660" cy="432" r="8.5" class="dg-pin"/>
+      <text x="660" y="435.2" class="dg-num">25</text>
+      <circle cx="720" cy="432" r="8.5" class="dg-pin"/>
+      <text x="720" y="435.2" class="dg-num">26</text>
+      <circle cx="660" cy="461" r="8.5" class="dg-pin"/>
+      <text x="660" y="464.2" class="dg-num">27</text>
+      <circle cx="720" cy="461" r="8.5" class="dg-pin"/>
+      <text x="720" y="464.2" class="dg-num">28</text>
+      <circle cx="660" cy="490" r="8.5" class="dg-pin"/>
+      <text x="660" y="493.2" class="dg-num">29</text>
+      <circle cx="720" cy="490" r="8.5" class="dg-pin"/>
+      <text x="720" y="493.2" class="dg-num">30</text>
+      <circle cx="660" cy="519" r="8.5" class="dg-pin"/>
+      <text x="660" y="522.2" class="dg-num">31</text>
+      <circle cx="720" cy="519" r="8.5" class="dg-pin"/>
+      <text x="720" y="522.2" class="dg-num">32</text>
+      <circle cx="660" cy="548" r="8.5" class="dg-pin"/>
+      <text x="660" y="551.2" class="dg-num">33</text>
+      <circle cx="720" cy="548" r="8.5" class="dg-pin"/>
+      <text x="720" y="551.2" class="dg-num">34</text>
+      <circle cx="660" cy="577" r="8.5" class="dg-pin"/>
+      <text x="660" y="580.2" class="dg-num">35</text>
+      <circle cx="720" cy="577" r="8.5" class="dg-pin"/>
+      <text x="720" y="580.2" class="dg-num">36</text>
+      <circle cx="660" cy="606" r="8.5" class="dg-pin"/>
+      <text x="660" y="609.2" class="dg-num">37</text>
+      <circle cx="720" cy="606" r="8.5" class="dg-pin"/>
+      <text x="720" y="609.2" class="dg-num">38</text>
+      <circle cx="660" cy="635" r="8.5" class="dg-pin"/>
+      <text x="660" y="638.2" class="dg-num">39</text>
+      <circle cx="720" cy="635" r="8.5" class="dg-pin"/>
+      <text x="720" y="638.2" class="dg-num">40</text>
+
+          <circle cx="241" cy="160" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="196" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="232" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="268" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="304" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="340" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="376" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="412" r="4.5" class="dg-pad"/>
+      <circle cx="241" cy="448" r="4.5" class="dg-pad"/>
+
+          <text x="258" y="150" class="dg-label"><tspan class="dg-name">VCC</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 1</tspan></text>
+      <text x="258" y="186" class="dg-label"><tspan class="dg-name">GND</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 6</tspan></text>
+      <text x="258" y="222" class="dg-label"><tspan class="dg-name">CS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 24</tspan></text>
+      <text x="258" y="258" class="dg-label"><tspan class="dg-name">RESET</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 18</tspan></text>
+      <text x="258" y="294" class="dg-label"><tspan class="dg-name">DC / RS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 22</tspan></text>
+      <text x="258" y="330" class="dg-label"><tspan class="dg-name">SDI (MOSI)</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 19</tspan></text>
+      <text x="258" y="366" class="dg-label"><tspan class="dg-name">SCK</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 23</tspan></text>
+      <text x="258" y="402" class="dg-label"><tspan class="dg-name">LED</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 17</tspan></text>
+      <text x="258" y="438" class="dg-label dg-label-none">SDO (MISO) — leave empty</text>
+
+          <rect x="754" y="81.0" width="8" height="8" rx="1.5" class="sw-vcc"/>
+      <text x="768" y="88" class="dg-func">3.3 V</text>
+      <text x="754" y="117" class="dg-func dg-func-danger">5 V — not for the screen</text>
+      <rect x="754" y="139.0" width="8" height="8" rx="1.5" class="sw-gnd"/>
+      <text x="768" y="146" class="dg-func">Ground</text>
+      <rect x="754" y="303.0" width="8" height="8" rx="1.5" class="sw-led"/>
+      <text x="768" y="310" class="dg-func">3.3 V</text>
+      <rect x="754" y="316.0" width="8" height="8" rx="1.5" class="sw-rst"/>
+      <text x="768" y="323" class="dg-func">PJ25</text>
+      <rect x="754" y="342.0" width="8" height="8" rx="1.5" class="sw-mosi"/>
+      <text x="768" y="349" class="dg-func">SPI1 MOSI</text>
+      <rect x="754" y="371.0" width="8" height="8" rx="1.5" class="sw-dc"/>
+      <text x="768" y="378" class="dg-func">PL5</text>
+      <rect x="754" y="390.0" width="8" height="8" rx="1.5" class="sw-clk"/>
+      <text x="768" y="397" class="dg-func">SPI1 CLK</text>
+      <rect x="754" y="403.0" width="8" height="8" rx="1.5" class="sw-cs"/>
+      <text x="768" y="410" class="dg-func">SPI1 CS0</text>
+        </svg>
+      </div>
+      <figcaption>Each wire colour here is only so you can follow one line with your eye
+        &mdash; the actual colour of the wire you use makes no difference. The ninth pin,
+        <span class="mono">SDO&nbsp;(MISO)</span>, gets nothing at all.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>The same thing as a list</h2>
+    <p>Screens are printed with different short names for the same pin. Yours will say one
+      of the names in the first column.</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>On the screen it says</th><th>Goes to</th><th>What it is</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="chip sw-vcc"></span><span class="mono">VCC</span>
+                <span class="alt">also printed VDD or 3V3</span></td>
+            <td class="pinno">pin 1</td>
+            <td>Power for the screen, 3.3&nbsp;V</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-gnd"></span><span class="mono">GND</span>
+                <span class="alt">also printed G or &minus;</span></td>
+            <td class="pinno">pin 6</td>
+            <td>Ground &mdash; the return path</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-led"></span><span class="mono">LED</span>
+                <span class="alt">also printed BL or BLK</span></td>
+            <td class="pinno">pin 17</td>
+            <td>Backlight. No light without it</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-rst"></span><span class="mono">RESET</span>
+                <span class="alt">also printed RST or RES</span></td>
+            <td class="pinno">pin 18</td>
+            <td>Lets the board restart the screen</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-mosi"></span><span class="mono">SDI</span>
+                <span class="alt">also printed MOSI or SDA</span></td>
+            <td class="pinno">pin 19</td>
+            <td>Picture data going to the screen</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-dc"></span><span class="mono">DC</span>
+                <span class="alt">also printed RS or A0</span></td>
+            <td class="pinno">pin 22</td>
+            <td>Tells the screen: order, or picture?</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-clk"></span><span class="mono">SCK</span>
+                <span class="alt">also printed SCL or CLK</span></td>
+            <td class="pinno">pin 23</td>
+            <td>The beat the data is sent on</td>
+          </tr>
+          <tr>
+            <td><span class="chip sw-cs"></span><span class="mono">CS</span>
+                <span class="alt">also printed CE</span></td>
+            <td class="pinno">pin 24</td>
+            <td>Wakes the screen up to listen</td>
+          </tr>
+          <tr>
+            <td><span class="mono" style="opacity:.6">SDO</span>
+                <span class="alt">also printed MISO</span></td>
+            <td class="pinno" style="opacity:.6">&mdash;</td>
+            <td>Leave it empty. We never read from the screen</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Finding the right pin on the board</h2>
+    <p>The board has forty pins in two long rows. They are <strong>not</strong> numbered
+      1&ndash;20 down one side and 21&ndash;40 down the other. They go in pairs across:</p>
+    <div class="note">
+      <p><span class="mono">1</span> and <span class="mono">2</span> are side by side.
+        Below them, <span class="mono">3</span> and <span class="mono">4</span>. Then
+        <span class="mono">5</span> and <span class="mono">6</span>. And so on.</p>
+      <p>So the odd numbers run down one row and the even numbers run down the other.</p>
+    </div>
+    <p>Pin&nbsp;1 is the corner where the solder pad underneath is a <strong>square</strong>
+      instead of a circle &mdash; every other pad is round. Turn the board over and look; it
+      is the only square one. That corner is pin&nbsp;1, and pin&nbsp;2 is its neighbour.</p>
+    <p>To find pin&nbsp;17, count down the odd row from pin&nbsp;1: 1, 3, 5, 7, 9, 11, 13,
+      15, 17 &mdash; the ninth pin down. Count it twice.</p>
+  </section>
+
+  <section>
+    <h2>Do it in this order</h2>
+    <ol class="steps">
+      <li><div><b>Unplug the board.</b>
+        <small>Everything out. Check the power bank is disconnected too.</small></div></li>
+      <li><div><b>Turn the screen over.</b>
+        <small>The glass faces down. Along one edge you will see a row of nine metal pins
+          with names printed next to them on the board.</small></div></li>
+      <li><div><b>Find pin 1 on the Radxa board.</b>
+        <small>The square solder pad. Put a small dot of marker pen or a sticker next to it
+          so you never lose it.</small></div></li>
+      <li><div><b>Do the red wire first: VCC to pin 1.</b>
+        <small>Push each socket straight down onto the pin. Press until it stops. Do not
+          rock it side to side &mdash; the pins bend.</small></div></li>
+      <li><div><b>Then the black wire: GND to pin 6.</b>
+        <small>Pin 6 is in the even row, the third one down: 2, 4, 6.</small></div></li>
+      <li><div><b>Then the other six, one at a time.</b>
+        <small>Work down the list above and tick each one off. Finish a wire completely
+          before picking up the next one. This is where mistakes happen.</small></div></li>
+      <li><div><b>Leave SDO empty.</b>
+        <small>Nine pins, eight wires. One stays bare. That is correct.</small></div></li>
+      <li><div><b>Count everything again.</b>
+        <small>Go back to pin 1 and count along the board for each wire. Two minutes now
+          saves a dead screen.</small></div></li>
+      <li><div><b>Now plug the power in.</b>
+        <small>Watch the screen. See the next section for what should happen.</small></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Check before you switch on</h2>
+    <ul class="check">
+      <li>Nothing is plugged into the red wire except pin&nbsp;1.</li>
+      <li>No wire is on pin&nbsp;2 or pin&nbsp;4.</li>
+      <li>Every socket is pushed fully down &mdash; no metal pin still showing.</li>
+      <li>No two wires share a pin.</li>
+      <li>Exactly one screen pin (<span class="mono">SDO</span>) is empty.</li>
+      <li>No loose wire is touching the metal of the board.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>What should happen &mdash; and what should not</h2>
+    <div class="note good">
+      <strong>Expected: the screen lights up white or grey, and stays that way.</strong>
+      <p>That is a pass. The backlight is working and the screen has power. It will stay
+        blank until the software is set up &mdash; the board has not been told to draw
+        anything yet. A blank lit screen is a <em>working</em> screen at this stage.</p>
+    </div>
+    <div class="note stop">
+      <strong>Pull the power out immediately if&hellip;</strong>
+      <p>anything feels warm, you smell anything at all, or the board does not start.
+        Unplug, then check the red wire and the black wire before anything else. Those
+        two are the only wires that can do damage.</p>
+    </div>
+    <p>A screen that stays completely dark usually means the <span class="mono">LED</span>
+      wire is on the wrong pin, or is not pushed all the way down. That one is harmless
+      &mdash; just power off and re-seat it.</p>
+  </section>
+
+  <footer>
+    <p>Part of the WALL&middot;E robot assistant build. The pin numbers here are for the
+      Radxa Cubie A7Z 40-pin header, using SPI1 on PD10&ndash;PD12 with PL5 and PJ25 as
+      the two spare control lines.</p>
+    <p>Audio (microphone and amplifier) uses pins 12, 35, 38 and 40 &mdash; a separate step,
+      once those parts arrive.</p>
+  </footer>
+
+</div>

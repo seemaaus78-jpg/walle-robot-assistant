@@ -121,6 +121,9 @@
   .dg-call{ font-family:"Source Sans 3",sans-serif; font-size:10.5px; fill:var(--ink-soft);
     text-anchor:end; }
   .dg-callline{ stroke:var(--ink-soft); stroke-width:1; fill:none; }
+  .dg-divider{ stroke:var(--ink-soft); stroke-width:1; stroke-dasharray:3 3; opacity:.55; fill:none; }
+  .dg-group{ font-family:"Source Sans 3",sans-serif; font-size:10.5px; fill:var(--ink-soft);
+    text-anchor:middle; letter-spacing:.04em; }
 
   /* ---- tables ---- */
   .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:8px;
@@ -138,6 +141,7 @@
   .chip{ display:inline-block; width:10px; height:10px; border-radius:2px;
     margin-right:8px; vertical-align:baseline; }
   .alt{ color:var(--ink-soft); font-size:13.5px; display:block; }
+  tr.unused td{ opacity:.6; }
 
   /* ---- steps ---- */
   ol.steps{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:0;
@@ -182,7 +186,7 @@
       pins on the Radxa board. The 40-pin strip has to be soldered on once first.
       After that, nothing is soldered and nothing is cut.</p>
     <div class="facts">
-      <span class="fact">8 wires</span>
+      <span class="fact">14 screen pins, 8 wires</span>
       <span class="fact">~20 minutes</span>
       <span class="fact">header soldered on once</span>
       <span class="fact">power OFF throughout</span>
@@ -253,151 +257,170 @@
     <figure>
       <div class="scroller">
         <svg class="wiring" viewBox="0 0 900 690" role="img"
-             aria-label="Eight coloured wires running from the nine pins on the back of the SPI screen module to numbered pins on the Radxa Cubie A7Z forty-pin header: VCC to pin 1, GND to pin 6, CS to pin 24, RESET to pin 18, DC to pin 22, SDI MOSI to pin 19, SCK to pin 23, LED to pin 17. SDO MISO is left empty. Pins 2 and 4 are marked as 5 volts and must not be used.">
+             aria-label="A fourteen-pin SPI screen module wired to the Radxa Cubie A7Z forty-pin header. Eight coloured wires: VCC to pin 1, GND to pin 6, CS to pin 24, RESET to pin 18, DC to pin 22, SDI MOSI to pin 19, SCK to pin 23, LED to pin 17. Six pins are left empty: SDO MISO and the five touch-panel pins T_CLK, T_CS, T_DIN, T_DO and T_IRQ. Pins 2 and 4 on the header are marked 5 volts and must not be used.">
 
-          <text x="145" y="106" class="dg-head">Back of the screen</text>
+          <text x="145" y="96" class="dg-head">Back of the screen</text>
           <text x="690" y="26" class="dg-head">Radxa Cubie A7Z &middot; 40-pin header</text>
 
           <text x="626" y="52" class="dg-call">pin 1 is the square pad</text>
           <path d="M632,56 L652,74" class="dg-callline"/>
 
-          <rect x="40" y="120" width="210" height="380" rx="7" class="dg-board"/>
-          <rect x="52" y="138" width="170" height="344" rx="3" class="dg-glass"/>
-          <rect x="232" y="145" width="18" height="320" rx="3" class="dg-strip"/>
+          <rect x="40" y="110" width="210" height="500" rx="7" class="dg-board"/>
+          <rect x="52" y="126" width="170" height="340" rx="3" class="dg-glass"/>
+          <rect x="232" y="135" width="18" height="440" rx="3" class="dg-strip"/>
+
+          <path d="M52,382 H222" class="dg-divider"/>
+          <text x="137" y="400" class="dg-group">touch panel &mdash; not used</text>
 
           <rect x="636" y="66" width="108" height="587" rx="8" class="dg-board"/>
 
-          <path d="M241,160 H390 C480,160 550,84 660,84" class="dg-wire w-vcc"/>
-      <path d="M241,196 H390 C490,196 570,156.5 660,156.5 L720,142" class="dg-wire w-gnd"/>
-      <path d="M241,232 H390 C490,232 560,417.5 660,417.5 L720,403" class="dg-wire w-cs"/>
-      <path d="M241,268 H390 C490,268 570,301.5 660,301.5 L720,316" class="dg-wire w-rst"/>
-      <path d="M241,304 H390 C490,304 570,359.5 660,359.5 L720,374" class="dg-wire w-dc"/>
-      <path d="M241,340 H390 C490,340 570,345 660,345" class="dg-wire w-mosi"/>
-      <path d="M241,376 H390 C490,376 570,403 660,403" class="dg-wire w-clk"/>
-      <path d="M241,412 H390 C560,412 560,316 660,316" class="dg-wire w-led"/>
-      <path d="M241,448 H300" class="dg-wire dg-wire-none"/>
+          <path d="M241,150 H390 C480,150 550,84 660,84" class="dg-wire w-vcc"/>
+          <path d="M241,181 H390 C490,181 570,156.5 660,156.5 L720,142" class="dg-wire w-gnd"/>
+          <path d="M241,212 H390 C490,212 560,417.5 660,417.5 L720,403" class="dg-wire w-cs"/>
+          <path d="M241,243 H390 C490,243 570,301.5 660,301.5 L720,316" class="dg-wire w-rst"/>
+          <path d="M241,274 H390 C490,274 570,359.5 660,359.5 L720,374" class="dg-wire w-dc"/>
+          <path d="M241,305 H390 C490,305 570,345 660,345" class="dg-wire w-mosi"/>
+          <path d="M241,336 H390 C490,336 570,403 660,403" class="dg-wire w-clk"/>
+          <path d="M241,367 H390 C560,367 560,316 660,316" class="dg-wire w-led"/>
+          <path d="M241,398 H302" class="dg-wire dg-wire-none"/>
+          <path d="M241,429 H302" class="dg-wire dg-wire-none"/>
+          <path d="M241,460 H302" class="dg-wire dg-wire-none"/>
+          <path d="M241,491 H302" class="dg-wire dg-wire-none"/>
+          <path d="M241,522 H302" class="dg-wire dg-wire-none"/>
+          <path d="M241,553 H302" class="dg-wire dg-wire-none"/>
 
           <rect x="651.5" y="75.5" width="17" height="17" rx="2.5" class="dg-pin dg-pin-used p-vcc"/>
-      <text x="660" y="87.2" class="dg-num dg-num-used">1</text>
-      <circle cx="720" cy="84" r="8.5" class="dg-pin dg-pin-danger"/>
-      <text x="720" y="87.2" class="dg-num dg-num-danger">2</text>
-      <circle cx="660" cy="113" r="8.5" class="dg-pin"/>
-      <text x="660" y="116.2" class="dg-num">3</text>
-      <circle cx="720" cy="113" r="8.5" class="dg-pin dg-pin-danger"/>
-      <text x="720" y="116.2" class="dg-num dg-num-danger">4</text>
-      <circle cx="660" cy="142" r="8.5" class="dg-pin"/>
-      <text x="660" y="145.2" class="dg-num">5</text>
-      <circle cx="720" cy="142" r="8.5" class="dg-pin dg-pin-used p-gnd"/>
-      <text x="720" y="145.2" class="dg-num dg-num-used">6</text>
-      <circle cx="660" cy="171" r="8.5" class="dg-pin"/>
-      <text x="660" y="174.2" class="dg-num">7</text>
-      <circle cx="720" cy="171" r="8.5" class="dg-pin"/>
-      <text x="720" y="174.2" class="dg-num">8</text>
-      <circle cx="660" cy="200" r="8.5" class="dg-pin"/>
-      <text x="660" y="203.2" class="dg-num">9</text>
-      <circle cx="720" cy="200" r="8.5" class="dg-pin"/>
-      <text x="720" y="203.2" class="dg-num">10</text>
-      <circle cx="660" cy="229" r="8.5" class="dg-pin"/>
-      <text x="660" y="232.2" class="dg-num">11</text>
-      <circle cx="720" cy="229" r="8.5" class="dg-pin"/>
-      <text x="720" y="232.2" class="dg-num">12</text>
-      <circle cx="660" cy="258" r="8.5" class="dg-pin"/>
-      <text x="660" y="261.2" class="dg-num">13</text>
-      <circle cx="720" cy="258" r="8.5" class="dg-pin"/>
-      <text x="720" y="261.2" class="dg-num">14</text>
-      <circle cx="660" cy="287" r="8.5" class="dg-pin"/>
-      <text x="660" y="290.2" class="dg-num">15</text>
-      <circle cx="720" cy="287" r="8.5" class="dg-pin"/>
-      <text x="720" y="290.2" class="dg-num">16</text>
-      <circle cx="660" cy="316" r="8.5" class="dg-pin dg-pin-used p-led"/>
-      <text x="660" y="319.2" class="dg-num dg-num-used">17</text>
-      <circle cx="720" cy="316" r="8.5" class="dg-pin dg-pin-used p-rst"/>
-      <text x="720" y="319.2" class="dg-num dg-num-used">18</text>
-      <circle cx="660" cy="345" r="8.5" class="dg-pin dg-pin-used p-mosi"/>
-      <text x="660" y="348.2" class="dg-num dg-num-used">19</text>
-      <circle cx="720" cy="345" r="8.5" class="dg-pin"/>
-      <text x="720" y="348.2" class="dg-num">20</text>
-      <circle cx="660" cy="374" r="8.5" class="dg-pin"/>
-      <text x="660" y="377.2" class="dg-num">21</text>
-      <circle cx="720" cy="374" r="8.5" class="dg-pin dg-pin-used p-dc"/>
-      <text x="720" y="377.2" class="dg-num dg-num-used">22</text>
-      <circle cx="660" cy="403" r="8.5" class="dg-pin dg-pin-used p-clk"/>
-      <text x="660" y="406.2" class="dg-num dg-num-used">23</text>
-      <circle cx="720" cy="403" r="8.5" class="dg-pin dg-pin-used p-cs"/>
-      <text x="720" y="406.2" class="dg-num dg-num-used">24</text>
-      <circle cx="660" cy="432" r="8.5" class="dg-pin"/>
-      <text x="660" y="435.2" class="dg-num">25</text>
-      <circle cx="720" cy="432" r="8.5" class="dg-pin"/>
-      <text x="720" y="435.2" class="dg-num">26</text>
-      <circle cx="660" cy="461" r="8.5" class="dg-pin"/>
-      <text x="660" y="464.2" class="dg-num">27</text>
-      <circle cx="720" cy="461" r="8.5" class="dg-pin"/>
-      <text x="720" y="464.2" class="dg-num">28</text>
-      <circle cx="660" cy="490" r="8.5" class="dg-pin"/>
-      <text x="660" y="493.2" class="dg-num">29</text>
-      <circle cx="720" cy="490" r="8.5" class="dg-pin"/>
-      <text x="720" y="493.2" class="dg-num">30</text>
-      <circle cx="660" cy="519" r="8.5" class="dg-pin"/>
-      <text x="660" y="522.2" class="dg-num">31</text>
-      <circle cx="720" cy="519" r="8.5" class="dg-pin"/>
-      <text x="720" y="522.2" class="dg-num">32</text>
-      <circle cx="660" cy="548" r="8.5" class="dg-pin"/>
-      <text x="660" y="551.2" class="dg-num">33</text>
-      <circle cx="720" cy="548" r="8.5" class="dg-pin"/>
-      <text x="720" y="551.2" class="dg-num">34</text>
-      <circle cx="660" cy="577" r="8.5" class="dg-pin"/>
-      <text x="660" y="580.2" class="dg-num">35</text>
-      <circle cx="720" cy="577" r="8.5" class="dg-pin"/>
-      <text x="720" y="580.2" class="dg-num">36</text>
-      <circle cx="660" cy="606" r="8.5" class="dg-pin"/>
-      <text x="660" y="609.2" class="dg-num">37</text>
-      <circle cx="720" cy="606" r="8.5" class="dg-pin"/>
-      <text x="720" y="609.2" class="dg-num">38</text>
-      <circle cx="660" cy="635" r="8.5" class="dg-pin"/>
-      <text x="660" y="638.2" class="dg-num">39</text>
-      <circle cx="720" cy="635" r="8.5" class="dg-pin"/>
-      <text x="720" y="638.2" class="dg-num">40</text>
+          <text x="660" y="87.2" class="dg-num dg-num-used">1</text>
+          <circle cx="720" cy="84" r="8.5" class="dg-pin dg-pin-danger"/>
+          <text x="720" y="87.2" class="dg-num dg-num-danger">2</text>
+          <circle cx="660" cy="113" r="8.5" class="dg-pin"/>
+          <text x="660" y="116.2" class="dg-num">3</text>
+          <circle cx="720" cy="113" r="8.5" class="dg-pin dg-pin-danger"/>
+          <text x="720" y="116.2" class="dg-num dg-num-danger">4</text>
+          <circle cx="660" cy="142" r="8.5" class="dg-pin"/>
+          <text x="660" y="145.2" class="dg-num">5</text>
+          <circle cx="720" cy="142" r="8.5" class="dg-pin dg-pin-used p-gnd"/>
+          <text x="720" y="145.2" class="dg-num dg-num-used">6</text>
+          <circle cx="660" cy="171" r="8.5" class="dg-pin"/>
+          <text x="660" y="174.2" class="dg-num">7</text>
+          <circle cx="720" cy="171" r="8.5" class="dg-pin"/>
+          <text x="720" y="174.2" class="dg-num">8</text>
+          <circle cx="660" cy="200" r="8.5" class="dg-pin"/>
+          <text x="660" y="203.2" class="dg-num">9</text>
+          <circle cx="720" cy="200" r="8.5" class="dg-pin"/>
+          <text x="720" y="203.2" class="dg-num">10</text>
+          <circle cx="660" cy="229" r="8.5" class="dg-pin"/>
+          <text x="660" y="232.2" class="dg-num">11</text>
+          <circle cx="720" cy="229" r="8.5" class="dg-pin"/>
+          <text x="720" y="232.2" class="dg-num">12</text>
+          <circle cx="660" cy="258" r="8.5" class="dg-pin"/>
+          <text x="660" y="261.2" class="dg-num">13</text>
+          <circle cx="720" cy="258" r="8.5" class="dg-pin"/>
+          <text x="720" y="261.2" class="dg-num">14</text>
+          <circle cx="660" cy="287" r="8.5" class="dg-pin"/>
+          <text x="660" y="290.2" class="dg-num">15</text>
+          <circle cx="720" cy="287" r="8.5" class="dg-pin"/>
+          <text x="720" y="290.2" class="dg-num">16</text>
+          <circle cx="660" cy="316" r="8.5" class="dg-pin dg-pin-used p-led"/>
+          <text x="660" y="319.2" class="dg-num dg-num-used">17</text>
+          <circle cx="720" cy="316" r="8.5" class="dg-pin dg-pin-used p-rst"/>
+          <text x="720" y="319.2" class="dg-num dg-num-used">18</text>
+          <circle cx="660" cy="345" r="8.5" class="dg-pin dg-pin-used p-mosi"/>
+          <text x="660" y="348.2" class="dg-num dg-num-used">19</text>
+          <circle cx="720" cy="345" r="8.5" class="dg-pin"/>
+          <text x="720" y="348.2" class="dg-num">20</text>
+          <circle cx="660" cy="374" r="8.5" class="dg-pin"/>
+          <text x="660" y="377.2" class="dg-num">21</text>
+          <circle cx="720" cy="374" r="8.5" class="dg-pin dg-pin-used p-dc"/>
+          <text x="720" y="377.2" class="dg-num dg-num-used">22</text>
+          <circle cx="660" cy="403" r="8.5" class="dg-pin dg-pin-used p-clk"/>
+          <text x="660" y="406.2" class="dg-num dg-num-used">23</text>
+          <circle cx="720" cy="403" r="8.5" class="dg-pin dg-pin-used p-cs"/>
+          <text x="720" y="406.2" class="dg-num dg-num-used">24</text>
+          <circle cx="660" cy="432" r="8.5" class="dg-pin"/>
+          <text x="660" y="435.2" class="dg-num">25</text>
+          <circle cx="720" cy="432" r="8.5" class="dg-pin"/>
+          <text x="720" y="435.2" class="dg-num">26</text>
+          <circle cx="660" cy="461" r="8.5" class="dg-pin"/>
+          <text x="660" y="464.2" class="dg-num">27</text>
+          <circle cx="720" cy="461" r="8.5" class="dg-pin"/>
+          <text x="720" y="464.2" class="dg-num">28</text>
+          <circle cx="660" cy="490" r="8.5" class="dg-pin"/>
+          <text x="660" y="493.2" class="dg-num">29</text>
+          <circle cx="720" cy="490" r="8.5" class="dg-pin"/>
+          <text x="720" y="493.2" class="dg-num">30</text>
+          <circle cx="660" cy="519" r="8.5" class="dg-pin"/>
+          <text x="660" y="522.2" class="dg-num">31</text>
+          <circle cx="720" cy="519" r="8.5" class="dg-pin"/>
+          <text x="720" y="522.2" class="dg-num">32</text>
+          <circle cx="660" cy="548" r="8.5" class="dg-pin"/>
+          <text x="660" y="551.2" class="dg-num">33</text>
+          <circle cx="720" cy="548" r="8.5" class="dg-pin"/>
+          <text x="720" y="551.2" class="dg-num">34</text>
+          <circle cx="660" cy="577" r="8.5" class="dg-pin"/>
+          <text x="660" y="580.2" class="dg-num">35</text>
+          <circle cx="720" cy="577" r="8.5" class="dg-pin"/>
+          <text x="720" y="580.2" class="dg-num">36</text>
+          <circle cx="660" cy="606" r="8.5" class="dg-pin"/>
+          <text x="660" y="609.2" class="dg-num">37</text>
+          <circle cx="720" cy="606" r="8.5" class="dg-pin"/>
+          <text x="720" y="609.2" class="dg-num">38</text>
+          <circle cx="660" cy="635" r="8.5" class="dg-pin"/>
+          <text x="660" y="638.2" class="dg-num">39</text>
+          <circle cx="720" cy="635" r="8.5" class="dg-pin"/>
+          <text x="720" y="638.2" class="dg-num">40</text>
 
-          <circle cx="241" cy="160" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="196" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="232" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="268" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="304" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="340" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="376" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="412" r="4.5" class="dg-pad"/>
-      <circle cx="241" cy="448" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="150" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="181" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="212" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="243" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="274" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="305" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="336" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="367" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="398" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="429" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="460" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="491" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="522" r="4.5" class="dg-pad"/>
+          <circle cx="241" cy="553" r="4.5" class="dg-pad"/>
 
-          <text x="258" y="150" class="dg-label"><tspan class="dg-name">VCC</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 1</tspan></text>
-      <text x="258" y="186" class="dg-label"><tspan class="dg-name">GND</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 6</tspan></text>
-      <text x="258" y="222" class="dg-label"><tspan class="dg-name">CS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 24</tspan></text>
-      <text x="258" y="258" class="dg-label"><tspan class="dg-name">RESET</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 18</tspan></text>
-      <text x="258" y="294" class="dg-label"><tspan class="dg-name">DC / RS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 22</tspan></text>
-      <text x="258" y="330" class="dg-label"><tspan class="dg-name">SDI (MOSI)</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 19</tspan></text>
-      <text x="258" y="366" class="dg-label"><tspan class="dg-name">SCK</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 23</tspan></text>
-      <text x="258" y="402" class="dg-label"><tspan class="dg-name">LED</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 17</tspan></text>
-      <text x="258" y="438" class="dg-label dg-label-none">SDO (MISO) — leave empty</text>
+          <text x="258" y="140" class="dg-label"><tspan class="dg-name">VCC</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 1</tspan></text>
+          <text x="258" y="171" class="dg-label"><tspan class="dg-name">GND</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 6</tspan></text>
+          <text x="258" y="202" class="dg-label"><tspan class="dg-name">CS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 24</tspan></text>
+          <text x="258" y="233" class="dg-label"><tspan class="dg-name">RESET</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 18</tspan></text>
+          <text x="258" y="264" class="dg-label"><tspan class="dg-name">DC / RS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 22</tspan></text>
+          <text x="258" y="295" class="dg-label"><tspan class="dg-name">SDI (MOSI)</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 19</tspan></text>
+          <text x="258" y="326" class="dg-label"><tspan class="dg-name">SCK</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 23</tspan></text>
+          <text x="258" y="357" class="dg-label"><tspan class="dg-name">LED</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 17</tspan></text>
+          <text x="258" y="388" class="dg-label dg-label-none">SDO (MISO) — leave empty</text>
+          <text x="258" y="419" class="dg-label dg-label-none">T_CLK — leave empty</text>
+          <text x="258" y="450" class="dg-label dg-label-none">T_CS — leave empty</text>
+          <text x="258" y="481" class="dg-label dg-label-none">T_DIN — leave empty</text>
+          <text x="258" y="512" class="dg-label dg-label-none">T_DO — leave empty</text>
+          <text x="258" y="543" class="dg-label dg-label-none">T_IRQ — leave empty</text>
 
           <rect x="754" y="81.0" width="8" height="8" rx="1.5" class="sw-vcc"/>
-      <text x="768" y="88" class="dg-func">3.3 V</text>
-      <text x="754" y="117" class="dg-func dg-func-danger">5 V — not for the screen</text>
-      <rect x="754" y="139.0" width="8" height="8" rx="1.5" class="sw-gnd"/>
-      <text x="768" y="146" class="dg-func">Ground</text>
-      <rect x="754" y="303.0" width="8" height="8" rx="1.5" class="sw-led"/>
-      <text x="768" y="310" class="dg-func">3.3 V</text>
-      <rect x="754" y="316.0" width="8" height="8" rx="1.5" class="sw-rst"/>
-      <text x="768" y="323" class="dg-func">PJ25</text>
-      <rect x="754" y="342.0" width="8" height="8" rx="1.5" class="sw-mosi"/>
-      <text x="768" y="349" class="dg-func">SPI1 MOSI</text>
-      <rect x="754" y="371.0" width="8" height="8" rx="1.5" class="sw-dc"/>
-      <text x="768" y="378" class="dg-func">PL5</text>
-      <rect x="754" y="390.0" width="8" height="8" rx="1.5" class="sw-clk"/>
-      <text x="768" y="397" class="dg-func">SPI1 CLK</text>
-      <rect x="754" y="403.0" width="8" height="8" rx="1.5" class="sw-cs"/>
-      <text x="768" y="410" class="dg-func">SPI1 CS0</text>
+          <text x="768" y="88" class="dg-func">3.3 V</text>
+          <text x="754" y="117" class="dg-func dg-func-danger">5 V — not for the screen</text>
+          <rect x="754" y="139.0" width="8" height="8" rx="1.5" class="sw-gnd"/>
+          <text x="768" y="146" class="dg-func">Ground</text>
+          <rect x="754" y="303.0" width="8" height="8" rx="1.5" class="sw-led"/>
+          <text x="768" y="310" class="dg-func">3.3 V</text>
+          <rect x="754" y="316.0" width="8" height="8" rx="1.5" class="sw-rst"/>
+          <text x="768" y="323" class="dg-func">PJ25</text>
+          <rect x="754" y="342.0" width="8" height="8" rx="1.5" class="sw-mosi"/>
+          <text x="768" y="349" class="dg-func">SPI1 MOSI</text>
+          <rect x="754" y="371.0" width="8" height="8" rx="1.5" class="sw-dc"/>
+          <text x="768" y="378" class="dg-func">PL5</text>
+          <rect x="754" y="390.0" width="8" height="8" rx="1.5" class="sw-clk"/>
+          <text x="768" y="397" class="dg-func">SPI1 CLK</text>
+          <rect x="754" y="403.0" width="8" height="8" rx="1.5" class="sw-cs"/>
+          <text x="768" y="410" class="dg-func">SPI1 CS0</text>
         </svg>
       </div>
-      <figcaption>The forty circles are your board&rsquo;s holes &mdash; and, once the
+      <figcaption>Your screen has fourteen pins. Only the top eight get a wire; the bottom
+        six stay bare. The forty circles are your board&rsquo;s holes &mdash; and, once the
         header is soldered in, the forty pins standing in them. The numbering is the same
         either way. Wire colours here are only so you can follow one line with your eye;
         the real colour of the wire makes no difference. The ninth screen pin,
@@ -469,9 +492,81 @@
             <td class="pinno" style="opacity:.6">&mdash;</td>
             <td>Leave it empty. We never read from the screen</td>
           </tr>
+          <tr class="unused">
+            <td><span class="mono">T_CLK</span><span class="alt">touch</span></td>
+            <td class="pinno">&mdash;</td>
+            <td>Touch panel. Leave empty</td>
+          </tr>
+          <tr class="unused">
+            <td><span class="mono">T_CS</span><span class="alt">touch</span></td>
+            <td class="pinno">&mdash;</td>
+            <td>Touch panel. Leave empty</td>
+          </tr>
+          <tr class="unused">
+            <td><span class="mono">T_DIN</span><span class="alt">touch</span></td>
+            <td class="pinno">&mdash;</td>
+            <td>Touch panel. Leave empty</td>
+          </tr>
+          <tr class="unused">
+            <td><span class="mono">T_DO</span><span class="alt">touch</span></td>
+            <td class="pinno">&mdash;</td>
+            <td>Touch panel. Leave empty</td>
+          </tr>
+          <tr class="unused">
+            <td><span class="mono">T_IRQ</span><span class="alt">touch</span></td>
+            <td class="pinno">&mdash;</td>
+            <td>Touch panel. Leave empty</td>
+          </tr>
         </tbody>
       </table>
     </div>
+  </section>
+
+  <section>
+    <h2>The five <span class="mono">T_</span> pins &mdash; and why they stay empty</h2>
+    <p>Your screen has two chips on it, not one. The top chip draws the picture. The
+      second one, underneath, reads a finger press through a thin clear film over the
+      glass. It is a separate chip with its own five pins, all starting with
+      <span class="mono">T_</span> for touch.</p>
+    <div class="note">
+      <strong>Leave all five empty.</strong>
+      <p>The screen is going inside WALL&middot;E&rsquo;s head, behind the eyes. Nobody is
+        going to poke him in the eye to give him an order &mdash; that is what the
+        microphone is for. Wiring touch costs five more wires, a second chip to set up in
+        software, and memory this board does not have to spare.</p>
+    </div>
+    <p>Nothing bad happens by leaving them bare. The touch chip simply sits there unused.
+      It cannot interfere with the picture, because the one wire it would speak back on
+      (<span class="mono">T_DO</span>) is not connected to anything either.</p>
+
+    <h3>If you ever do want touch</h3>
+    <p>It shares the same three data wires as the screen and needs two of its own. You do
+      not need to rewire anything that is already on &mdash; you only add:</p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Touch pin</th><th>Goes to</th><th>Why that one</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="mono">T_CLK</span></td><td class="pinno">pin 23</td>
+              <td>Same clock the screen already uses &mdash; two wires on one pin</td></tr>
+          <tr><td><span class="mono">T_DIN</span></td><td class="pinno">pin 19</td>
+              <td>Same data line out &mdash; two wires on one pin</td></tr>
+          <tr><td><span class="mono">T_DO</span></td><td class="pinno">pin 21</td>
+              <td><span class="mono">PD13</span>, the SPI1 read-back line. New wire</td></tr>
+          <tr><td><span class="mono">T_CS</span></td><td class="pinno">pin 26</td>
+              <td><span class="mono">PD14</span>, a free pin, to wake the touch chip on its own</td></tr>
+          <tr><td><span class="mono">T_IRQ</span></td><td class="pinno">pin 16</td>
+              <td><span class="mono">PJ24</span>, a free pin, so it can say &ldquo;pressed&rdquo;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="aside">Pins 21, 26 and 16 are all free in this build. Pins 27 and 28 look free
+      too, but they are reserved for add-on board identification, so this avoids them.
+      <span class="mono">T_CS</span> and <span class="mono">T_IRQ</span> are ordinary pins,
+      not special ones &mdash; any free pin works if the software is told which.</p>
+    <p class="aside">This is untested. Nothing in this build has run on real hardware yet,
+      and the touch chip is not set up anywhere in the software.</p>
   </section>
 
   <section>
@@ -515,8 +610,10 @@
       <li><div><b>Then the other six, one at a time.</b>
         <small>Work down the list above and tick each one off. Finish a wire completely
           before picking up the next one. This is where mistakes happen.</small></div></li>
-      <li><div><b>Leave SDO empty.</b>
-        <small>Nine pins, eight wires. One stays bare. That is correct.</small></div></li>
+      <li><div><b>Leave the bottom six screen pins empty.</b>
+        <small>Fourteen pins, eight wires. <span class="mono">SDO</span> and the five
+          <span class="mono">T_</span> pins get nothing. That is correct, not a
+          mistake.</small></div></li>
       <li><div><b>Count everything again.</b>
         <small>Go back to pin 1 and count along the board for each wire. Two minutes now
           saves a dead screen.</small></div></li>
@@ -533,7 +630,8 @@
       <li>No wire is on pin&nbsp;2 or pin&nbsp;4.</li>
       <li>Every socket is pushed fully down &mdash; no metal pin still showing.</li>
       <li>No two wires share a pin.</li>
-      <li>Exactly one screen pin (<span class="mono">SDO</span>) is empty.</li>
+      <li>Six screen pins are empty &mdash; <span class="mono">SDO</span> and all five
+        <span class="mono">T_</span> pins.</li>
       <li>No loose wire is touching the metal of the board.</li>
     </ul>
   </section>

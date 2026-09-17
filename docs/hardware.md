@@ -16,6 +16,31 @@
 | TP4056 **with protection** | Charging | Must be the DW01+FS8205 protected variant. See the warning below. |
 | 5 V 3 A boost converter | Rail | Two of them is better than one — see "Power". |
 
+## The touch panel is not used
+
+The 2.8" ILI9341 modules ship in two forms: 9-pin (display only) and 14-pin (display plus
+an XPT2046 resistive touch controller). The 14-pin board adds `T_CLK`, `T_CS`, `T_DIN`,
+`T_DO` and `T_IRQ`.
+
+All five are left unconnected. The panel sits inside the head behind the eyes, so touch is
+not a usable input — the microphone is the interface — and a second SPI device costs RAM
+the 1 GB build does not have. Leaving them bare is safe: the touch controller is never
+selected, and `T_DO` has nowhere to drive.
+
+If touch is ever wanted, the XPT2046 shares SPI1 with the panel and needs two extra lines:
+
+| Touch pin | Header pin | Signal |
+|---|---|---|
+| `T_CLK` | 23 | shared SPI1 CLK (`PD11`) |
+| `T_DIN` | 19 | shared SPI1 MOSI (`PD12`) |
+| `T_DO` | 21 | SPI1 MISO (`PD13`) — otherwise unused |
+| `T_CS` | 26 | `PD14` as a GPIO chip select via `cs-gpios` |
+| `T_IRQ` | 16 | `PJ24`, interrupt-capable |
+
+SPI1 exposes only CS0 (pin 24, `PD10`), so a second device needs a GPIO chip select rather
+than a hardware one. Pins 27 and 28 are avoided — they are the HAT ID EEPROM I²C pair.
+None of this has been tested and no touch driver is configured in the software.
+
 ## The 40-pin header
 
 The Cubie A7Z is sold both with the 40-pin GPIO header soldered on and with it left as

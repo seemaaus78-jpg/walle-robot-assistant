@@ -5,6 +5,8 @@
 | Part | Role | Notes |
 |---|---|---|
 | Radxa Cubie A7Z | Compute | 1 GB or 2 GB LPDDR4. The 2 GB variant is strongly preferred — see the RAM budget in [architecture.md](architecture.md). |
+| 2×20 male pin header, 2.54 mm | GPIO header | **Check your board.** The A7Z ships with the 40-pin header soldered or unpopulated depending on SKU ([CNX Software](https://www.cnx-software.com/2025/08/25/pi-zero-sized-radxa-cubie-a7z-sbc-features-allwinner-a733-cortex-a76-a55-soc-up-to-16gb-ram-wifi-6/)). On an unpopulated board it is 40 bare through-holes and nothing can be plugged in until a header is soldered on. |
+| Soldering iron + 0.8 mm rosin-core solder | Assembly | Needed for the header above and for the copper/brass frame. Not optional for this build. |
 | MicroSD 64 GB | OS, models, city database | A1/A2 rated. Cheap cards are the single most common cause of a robot that boots slowly and stutters mid-sentence. |
 | INMP441 | I²S MEMS microphone | Digital output, no analogue noise pickup. |
 | MAX98357A | I²S class-D amplifier | 3.2 W into 4 Ω, ~2 W into 8 Ω. |
@@ -13,6 +15,23 @@
 | 3.7 V 6000 mAh LiPo | Battery | 22.2 Wh nominal. |
 | TP4056 **with protection** | Charging | Must be the DW01+FS8205 protected variant. See the warning below. |
 | 5 V 3 A boost converter | Rail | Two of them is better than one — see "Power". |
+
+## The 40-pin header
+
+The Cubie A7Z is sold both with the 40-pin GPIO header soldered on and with it left as
+bare through-holes. Both variants have the identical 40-position pinout; the unpopulated
+one simply has nothing to plug into.
+
+If yours is unpopulated, solder a standard 2×20 male header (2.54 mm pitch) into it before
+wiring anything. Everything else in this document — the display on SPI1, the I²S audio on
+pins 12/35/38/40, the drive GPIOs — assumes the header is fitted.
+
+Verify the pitch before ordering: ten holes along a row should span 25.4 mm. Radxa
+describes the connector as a standard 40-pin GPIO compatible with common accessories,
+which implies 2.54 mm, but this has not been measured on hardware here.
+
+Soldering the eight display wires directly into the holes also works and is what the
+reference build does, but it makes every mistake a desoldering job. Prefer the header.
 
 ## Wiring
 

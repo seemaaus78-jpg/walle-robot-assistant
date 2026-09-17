@@ -160,6 +160,9 @@
     font-size:16px; }
   ul.check li::before{ content:"\2610"; color:var(--accent); font-size:18px; line-height:1.35; }
 
+  .aside{ font-size:14.5px; color:var(--ink-soft); border-left:2px solid var(--rule);
+    padding-left:14px; }
+
   footer{ margin-top:40px; padding-top:22px; border-top:1px solid var(--rule);
     font-size:14px; color:var(--ink-soft); display:flex; flex-direction:column; gap:6px; }
 
@@ -176,14 +179,52 @@
     <p class="eyebrow">WALL&middot;E build &mdash; step 3a</p>
     <h1>Wiring the screen to the board</h1>
     <p class="lede">Eight wires go from the back of the little screen to numbered
-      pins on the Radxa board. Nothing is soldered. Nothing is cut.</p>
+      pins on the Radxa board. The 40-pin strip has to be soldered on once first.
+      After that, nothing is soldered and nothing is cut.</p>
     <div class="facts">
       <span class="fact">8 wires</span>
       <span class="fact">~20 minutes</span>
-      <span class="fact">female&ndash;to&ndash;female</span>
+      <span class="fact">header soldered on once</span>
       <span class="fact">power OFF throughout</span>
     </div>
   </header>
+
+  <section>
+    <h2>First: your board has no pins yet</h2>
+    <p>The Cubie A7Z is sold two ways. On one version the 40 pins come already
+      soldered on. On the other, there are just 40 bare holes in the edge of the
+      board. You have the second one.</p>
+    <p>Nothing is wrong with it. The holes are the same 40 positions, in the same
+      order, with the same numbers as the drawing below. There is simply nothing
+      to plug a wire into yet.</p>
+    <div class="note">
+      <strong>Buy this: a 2&times;20 male pin header, 2.54&nbsp;mm.</strong>
+      <p>On AliExpress search
+        &ldquo;<span class="mono">2x20 pin header 2.54mm male</span>&rdquo;. It is a
+        black plastic strip with 40 pins in two rows, about 50&nbsp;mm long, and costs
+        a few cents. Buy several &mdash; they are almost free and the pins bend easily.</p>
+    </div>
+    <p>It has to be soldered on, and there is no way around that. It was always going
+      to be needed anyway: the copper and brass frame in the video is soldered too. A
+      basic adjustable soldering iron and a reel of 0.8&nbsp;mm rosin-core solder covers
+      the whole build.</p>
+
+    <h3>Measure the holes before you order</h3>
+    <p>Lay a ruler along one row of holes. Ten holes should span
+      <strong>25.4&nbsp;mm</strong> &mdash; that is 2.54&nbsp;mm apart, the ordinary
+      size, the same as a Raspberry Pi. If yours measures something different, stop
+      and say so before buying anything.</p>
+
+    <h3>The other way &mdash; and why not to</h3>
+    <p>You could skip the header and solder the eight wires straight into the holes.
+      That is what the robot in the video does, and it sits flatter inside the head.
+      But it is permanent, each joint is harder to hold steady, and a mistake means
+      melting it back out. <strong>Fit the header.</strong> Then every wire pulls off
+      and pushes back on with your fingers, and a wrong pin takes one second to undo.</p>
+    <p class="aside">There are also &ldquo;hammer&rdquo; headers that press in without
+      solder. They are made for the Raspberry Pi Zero and are not guaranteed to fit
+      this board; one going in crooked can tear the pads off. Not worth the risk here.</p>
+  </section>
 
   <section>
     <h2>Before you touch anything</h2>
@@ -199,10 +240,11 @@
         other, so count carefully. On the drawing below those two pins are ringed in red.</p>
     </div>
     <h3>What you need</h3>
-    <p>The screen module, the Radxa board, and eight <em>female-to-female</em> jumper
-      wires &mdash; the kind with a little plastic socket on <em>both</em> ends. Both the
-      screen and the board have bare metal pins sticking up, so you need sockets at each
-      end. Wires with a pin on one end will not fit.</p>
+    <p>The screen module, the Radxa board <em>with its header already soldered on</em>,
+      and eight <em>female-to-female</em> jumper wires &mdash; the kind with a little
+      plastic socket on <em>both</em> ends. Once the header is fitted, both the screen
+      and the board have bare metal pins sticking up, so you need a socket at each end.
+      Wires with a pin on one end will not fit either side.</p>
   </section>
 
   <section>
@@ -355,8 +397,10 @@
       <text x="768" y="410" class="dg-func">SPI1 CS0</text>
         </svg>
       </div>
-      <figcaption>Each wire colour here is only so you can follow one line with your eye
-        &mdash; the actual colour of the wire you use makes no difference. The ninth pin,
+      <figcaption>The forty circles are your board&rsquo;s holes &mdash; and, once the
+        header is soldered in, the forty pins standing in them. The numbering is the same
+        either way. Wire colours here are only so you can follow one line with your eye;
+        the real colour of the wire makes no difference. The ninth screen pin,
         <span class="mono">SDO&nbsp;(MISO)</span>, gets nothing at all.</figcaption>
     </figure>
   </section>
@@ -450,6 +494,11 @@
   <section>
     <h2>Do it in this order</h2>
     <ol class="steps">
+      <li><div><b>Solder the 40-pin header in.</b>
+        <small>Push the strip through from the top so the long pins stand up on the
+          component side. Tack one corner pin, check the strip is sitting flat and
+          square, then do the rest. Let it cool. Look along the rows for any two pins
+          bridged by a blob of solder.</small></div></li>
       <li><div><b>Unplug the board.</b>
         <small>Everything out. Check the power bank is disconnected too.</small></div></li>
       <li><div><b>Turn the screen over.</b>
@@ -479,6 +528,7 @@
   <section>
     <h2>Check before you switch on</h2>
     <ul class="check">
+      <li>No two header pins are bridged by solder &mdash; look along both rows.</li>
       <li>Nothing is plugged into the red wire except pin&nbsp;1.</li>
       <li>No wire is on pin&nbsp;2 or pin&nbsp;4.</li>
       <li>Every socket is pushed fully down &mdash; no metal pin still showing.</li>
@@ -512,7 +562,8 @@
       Radxa Cubie A7Z 40-pin header, using SPI1 on PD10&ndash;PD12 with PL5 and PJ25 as
       the two spare control lines.</p>
     <p>Audio (microphone and amplifier) uses pins 12, 35, 38 and 40 &mdash; a separate step,
-      once those parts arrive.</p>
+      once those parts arrive. Those four are in the same header, so soldering it in now
+      covers that step too.</p>
   </footer>
 
 </div>

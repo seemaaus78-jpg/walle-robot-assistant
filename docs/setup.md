@@ -7,6 +7,57 @@ copy across.
 
 ---
 
+## 0. First boot with no monitor
+
+The A7Z has no Ethernet port. WiFi is the only network it has, and a freshly
+flashed CLI image has no credentials, so the board will not appear on the network
+and `ssh radxa@radxa.local` cannot resolve. Configure WiFi on the card *before*
+the first boot.
+
+After Balena Etcher finishes writing the image, leave the card reader plugged in.
+Windows will offer to format the Linux partitions — cancel every one of those
+prompts. A small readable partition holds two files:
+
+| File | Applied |
+|---|---|
+| `before.txt` | once, on the very first boot, then deleted |
+| `config.txt` | every boot (this is `rsetup`'s config) |
+
+Add one line to `before.txt`:
+
+```
+connect_wi-fi YOUR_WIFI_SSID YOUR_WIFI_PASSWORD
+```
+
+Eject the card properly, boot the board, and it joins the network by itself. SSH
+is enabled automatically on a first boot with no monitor attached.
+
+Find the address from the router's client list, then:
+
+```bash
+ssh radxa@<ip-address>      # password: radxa
+```
+
+Two things that waste an afternoon:
+
+- **Fit the WiFi antenna.** The A7Z brings WiFi out to a u.FL connector. Without
+  an antenna the signal is too weak to associate reliably, and the symptom is the
+  same as a wrong password.
+- **`before.txt` is consumed by the first boot.** If the board has already been
+  booted once, the file is gone and the card has to be rewritten to use this
+  method again.
+
+With a Micro HDMI cable and a keyboard you can skip all of that — log in at the
+console and run:
+
+```bash
+sudo nmcli device wifi connect "SSID" password "PASSWORD"
+sudo systemctl enable --now ssh      # only needed if it booted with a monitor
+ip a
+```
+
+---
+
 ## 1. Enable I²S and check the GPIO chip
 
 Nothing else works until the kernel exposes the I²S bus, and the two audio

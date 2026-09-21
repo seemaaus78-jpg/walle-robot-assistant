@@ -17,9 +17,13 @@ Three wires, on the 40-pin header:
 
 | Adapter | Board pin | Signal |
 |---|---|---|
-| `GND` | **6** | ground — connect this first |
+| `GND` | **9** | ground — connect this first |
 | `RXD` | **8** | `PB9`, UART0 TX (board talks, adapter listens) |
 | `TXD` | **10** | `PB10`, UART0 RX (adapter talks, board listens) |
+
+Radxa's guide uses pin 6 for ground. Pin 9 is the same rail and sits between
+pins 8 and 10, which keeps the three serial wires together and leaves pin 6 for
+the display's ground — only one socket fits on a pin.
 
 `TX` goes to `RXD` and `RX` goes to `TXD`. Wiring them straight across is the
 usual reason a console stays blank.
@@ -32,6 +36,12 @@ VCC can damage it. If the adapter has a 5 V / 3.3 V level jumper, set it to
 The header may not be soldered on yet (see [hardware.md](hardware.md)). Only
 pins 6, 8 and 10 are needed, so three wires soldered straight into those holes is
 enough to get a console; the full header can wait.
+
+Nothing else in this build uses `PB9` or `PB10` — I²S takes `PB5`–`PB8` and the
+drive motors take `PB0`–`PB3` — so these three wires can stay soldered on
+permanently as a rescue path. Unplug the USB end, not the wires. Keep the
+adapter connected whenever changing device tree overlays: a bad one stops the
+board booting, and then SSH has nothing to answer with.
 
 Serial parameters — Radxa specifies these for the A733 boards:
 

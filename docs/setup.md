@@ -114,6 +114,52 @@ ip a
 
 ---
 
+## 0c. Your own account
+
+The stock `radxa` account is a known username with a known password on a board
+that will sit on your network unattended. Replace it, but do not delete it until
+the replacement is proven — a locked-out headless board means re-flashing.
+
+The default user belongs to hardware groups that this project needs (`gpio`,
+`spi`, `i2c`, `audio`, `video`, `dialout` among them). Read them off the live
+system rather than assuming, then copy the whole set across:
+
+```bash
+id radxa                                # look at what it actually has
+sudo adduser <username>                 # prompts for the password; Enter past the name fields
+sudo usermod -aG "$(id -Gn radxa | tr ' ' ',')" <username>
+sudo usermod -aG sudo <username>
+id <username>                           # sudo plus everything radxa had
+```
+
+Prove it from a second connection, leaving the first one open:
+
+```bash
+ssh <username>@<ip>
+sudo whoami                             # must print: root
+```
+
+Only once that works, retire the default account. Lock it rather than delete it —
+`rsetup` and the first-boot scripts reference `radxa`, and a lock is reversible:
+
+```bash
+sudo passwd -l radxa
+```
+
+For a robot that runs unattended, add key-based login and turn off password SSH.
+From the PC:
+
+```bash
+ssh-keygen -t ed25519
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <username>@<ip> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+```
+
+Passwordless `sudo` (`<username> ALL=(ALL) NOPASSWD:ALL` via `sudo visudo`) is
+convenient for a board you reboot often and a real reduction in security. It is a
+choice, not a step.
+
+---
+
 ## 1. Enable I²S and check the GPIO chip
 
 Nothing else works until the kernel exposes the I²S bus, and the two audio

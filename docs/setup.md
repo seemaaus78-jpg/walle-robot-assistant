@@ -160,6 +160,21 @@ choice, not a step.
 
 ---
 
+## 0d. Python version
+
+Radxa OS r6 is Debian 11 (bullseye) and ships **Python 3.9.2**. The code runs
+there: `match` is not used anywhere, and `walle/config.py` falls back to the
+`tomli` backport when `tomllib` is absent, which `requirements.txt` installs
+only on Python below 3.11.
+
+```bash
+python3 -V          # 3.9.2 on Radxa OS r6 — supported
+```
+
+Nothing to do unless this reports something older than 3.9.
+
+---
+
 ## 1. Enable I²S and check the GPIO chip
 
 Nothing else works until the kernel exposes the I²S bus, and the two audio

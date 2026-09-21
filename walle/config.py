@@ -9,7 +9,11 @@ file is looked up at $WALLE_CONFIG, then ./config.toml, then
 from __future__ import annotations
 
 import os
-import tomllib
+
+try:  # tomllib joined the standard library in 3.11
+    import tomllib
+except ModuleNotFoundError:  # Debian 11 ships 3.9
+    import tomli as tomllib  # type: ignore[no-redef]
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any

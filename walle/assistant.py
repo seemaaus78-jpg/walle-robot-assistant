@@ -220,91 +220,91 @@ class Assistant:
             self.display.set_emotion(self.emotions.current(), self.emotions.gaze())
 
     def _respond_offline(self, intent: Intent) -> Reply | None:
-        match intent.kind:
-            case IntentKind.SHUTDOWN:
-                return Reply("Powering down. Goodbye.", stop=True)
+        kind = intent.kind
+        if kind == IntentKind.SHUTDOWN:
+            return Reply("Powering down. Goodbye.", stop=True)
 
-            case IntentKind.MODE_SWITCH:
-                assert intent.mode is not None
-                self.mode = intent.mode
-                # "switch to translator mode and speak spanish" sets both.
-                if intent.language:
-                    self.target_lang = intent.language
-                    name = LANGUAGE_NAMES.get(intent.language, intent.language)
-                    return Reply(
-                        f"Translator mode, speaking {name}.", gesture="wave"
-                    )
-                return Reply(
-                    f"Switched to {MODE_LABELS[intent.mode]} mode.", gesture="wave"
-                )
-
-            case IntentKind.SET_LANGUAGE_PAIR:
-                assert intent.language is not None
-                assert intent.source_language is not None
-                self.source_lang = intent.source_language
-                self.target_lang = intent.language
-                self.mode = intent.mode or Mode.TRANSLATE
-                source = LANGUAGE_NAMES.get(
-                    intent.source_language, intent.source_language
-                )
-                target = LANGUAGE_NAMES.get(intent.language, intent.language)
-                # Naming both ends back confirms it heard the pair correctly,
-                # which matters when the recogniser is the weak link.
-                return Reply(
-                    f"Translating {source} to {target}. Go ahead.", gesture="nod"
-                )
-
-            case IntentKind.SET_LANGUAGE:
-                assert intent.language is not None
+        if kind == IntentKind.MODE_SWITCH:
+            assert intent.mode is not None
+            self.mode = intent.mode
+            # "switch to translator mode and speak spanish" sets both.
+            if intent.language:
                 self.target_lang = intent.language
                 name = LANGUAGE_NAMES.get(intent.language, intent.language)
-                return Reply(f"I will translate into {name}.", gesture="nod")
-
-            case IntentKind.MOTION:
-                return Reply("", gesture=intent.gesture)
-
-            case IntentKind.STATUS:
-                where = "online" if self.connectivity.is_online() else "offline"
-                mode = MODE_LABELS[self.mode]
-                source = LANGUAGE_NAMES.get(self.source_lang, self.source_lang)
-                target = LANGUAGE_NAMES.get(self.target_lang, self.target_lang)
                 return Reply(
-                    f"I am {where}, in {mode} mode, "
-                    f"translating {source} to {target}."
+                    f"Translator mode, speaking {name}.", gesture="wave"
                 )
+            return Reply(
+                f"Switched to {MODE_LABELS[intent.mode]} mode.", gesture="wave"
+            )
 
-            case IntentKind.HELP:
-                return Reply(HELP_TEXT)
+        if kind == IntentKind.SET_LANGUAGE_PAIR:
+            assert intent.language is not None
+            assert intent.source_language is not None
+            self.source_lang = intent.source_language
+            self.target_lang = intent.language
+            self.mode = intent.mode or Mode.TRANSLATE
+            source = LANGUAGE_NAMES.get(
+                intent.source_language, intent.source_language
+            )
+            target = LANGUAGE_NAMES.get(intent.language, intent.language)
+            # Naming both ends back confirms it heard the pair correctly,
+            # which matters when the recogniser is the weak link.
+            return Reply(
+                f"Translating {source} to {target}. Go ahead.", gesture="nod"
+            )
 
-            case IntentKind.CITY_QUERY:
-                return self._answer_city(intent)
+        if kind == IntentKind.SET_LANGUAGE:
+            assert intent.language is not None
+            self.target_lang = intent.language
+            name = LANGUAGE_NAMES.get(intent.language, intent.language)
+            return Reply(f"I will translate into {name}.", gesture="nod")
 
-            case IntentKind.TRANSLATE_QUERY:
-                return self._answer_translation(intent)
+        if kind == IntentKind.MOTION:
+            return Reply("", gesture=intent.gesture)
 
-            case IntentKind.CHAT_QUERY:
-                return self._answer_chat(intent)
+        if kind == IntentKind.STATUS:
+            where = "online" if self.connectivity.is_online() else "offline"
+            mode = MODE_LABELS[self.mode]
+            source = LANGUAGE_NAMES.get(self.source_lang, self.source_lang)
+            target = LANGUAGE_NAMES.get(self.target_lang, self.target_lang)
+            return Reply(
+                f"I am {where}, in {mode} mode, "
+                f"translating {source} to {target}."
+            )
 
-            case IntentKind.MAP_QUERY:
-                return self._answer_map(intent)
+        if kind == IntentKind.HELP:
+            return Reply(HELP_TEXT)
 
-            case IntentKind.GUIDE_QUERY | IntentKind.GUIDE_SAVE:
-                return self._answer_guide(intent)
+        if kind == IntentKind.CITY_QUERY:
+            return self._answer_city(intent)
 
-            case IntentKind.GUIDE_DELETE:
-                return self._delete_guide(intent)
+        if kind == IntentKind.TRANSLATE_QUERY:
+            return self._answer_translation(intent)
 
-            case IntentKind.GUIDE_CLEAR:
-                return self._clear_guides()
+        if kind == IntentKind.CHAT_QUERY:
+            return self._answer_chat(intent)
 
-            case IntentKind.GUIDE_LIST:
-                return self._list_guides()
+        if kind == IntentKind.MAP_QUERY:
+            return self._answer_map(intent)
 
-            case IntentKind.VISION_QUERY:
-                return self._answer_vision(intent)
+        if kind in (IntentKind.GUIDE_QUERY, IntentKind.GUIDE_SAVE):
+            return self._answer_guide(intent)
 
-            case IntentKind.DRIVE:
-                return self._answer_drive(intent)
+        if kind == IntentKind.GUIDE_DELETE:
+            return self._delete_guide(intent)
+
+        if kind == IntentKind.GUIDE_CLEAR:
+            return self._clear_guides()
+
+        if kind == IntentKind.GUIDE_LIST:
+            return self._list_guides()
+
+        if kind == IntentKind.VISION_QUERY:
+            return self._answer_vision(intent)
+
+        if kind == IntentKind.DRIVE:
+            return self._answer_drive(intent)
 
         return None
 
@@ -677,13 +677,12 @@ class Assistant:
 
         if reply.gesture and self.motion is not None:
             try:
-                match reply.gesture:
-                    case "wave":
-                        self.motion.wave_hand()
-                    case "nod":
-                        self.motion.nod()
-                    case "center":
-                        self.motion.rest()
+                if reply.gesture == "wave":
+                    self.motion.wave_hand()
+                elif reply.gesture == "nod":
+                    self.motion.nod()
+                elif reply.gesture == "center":
+                    self.motion.rest()
             except Exception as exc:  # noqa: BLE001 - a stuck servo must not
                 log.error("gesture %r failed: %s", reply.gesture, exc)
 

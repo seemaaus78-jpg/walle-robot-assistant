@@ -145,18 +145,17 @@ class GeminiBackend:
         if self._cooling_down():
             return None
 
-        match intent.kind:
-            case IntentKind.CITY_QUERY:
-                return self._answer_city(intent)
-            case IntentKind.TRANSLATE_QUERY:
-                return self._answer_translation(intent)
-            case IntentKind.CHAT_QUERY:
-                return self._answer_chat(intent, history)
-            case _:
-                # Mode switches, gestures, status, help and shutdown are local
-                # concerns. Sending them upstream would make the robot stop
-                # obeying "shut down" whenever the network hiccuped.
-                return None
+        kind = intent.kind
+        if kind == IntentKind.CITY_QUERY:
+            return self._answer_city(intent)
+        if kind == IntentKind.TRANSLATE_QUERY:
+            return self._answer_translation(intent)
+        if kind == IntentKind.CHAT_QUERY:
+            return self._answer_chat(intent, history)
+        # Mode switches, gestures, status, help and shutdown are local
+        # concerns. Sending them upstream would make the robot stop obeying
+        # "shut down" whenever the network hiccuped.
+        return None
 
     # -- intent handlers ---------------------------------------------------
 

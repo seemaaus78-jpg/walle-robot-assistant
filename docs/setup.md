@@ -7,7 +7,63 @@ copy across.
 
 ---
 
-## 0. First boot with no monitor
+## 0. Serial console over CP2102
+
+The A7Z has no Ethernet, and WiFi needs credentials the board does not have yet.
+A USB-to-TTL adapter sidesteps both: it is a direct console onto the boot log and
+a login prompt, working before any network exists.
+
+Three wires, on the 40-pin header:
+
+| Adapter | Board pin | Signal |
+|---|---|---|
+| `GND` | **6** | ground — connect this first |
+| `RXD` | **8** | `PB9`, UART0 TX (board talks, adapter listens) |
+| `TXD` | **10** | `PB10`, UART0 RX (adapter talks, board listens) |
+
+`TX` goes to `RXD` and `RX` goes to `TXD`. Wiring them straight across is the
+usual reason a console stays blank.
+
+**Leave the adapter's `VCC`/`3V3`/`5V` pin disconnected.** Radxa's own serial
+guide advises against it: the board takes its power from USB-C, and a miswired
+VCC can damage it. If the adapter has a 5 V / 3.3 V level jumper, set it to
+3.3 V — the header is 3.3 V logic.
+
+The header may not be soldered on yet (see [hardware.md](hardware.md)). Only
+pins 6, 8 and 10 are needed, so three wires soldered straight into those holes is
+enough to get a console; the full header can wait.
+
+Serial parameters — Radxa specifies these for the A733 boards:
+
+```
+115200 baud, 8 data bits, 1 stop bit, no parity, no flow control
+```
+
+Flow control set to anything but `None` makes a working console look dead.
+
+On Windows, the adapter needs the Silicon Labs CP210x VCP driver (Windows Update
+usually supplies it). Check Device Manager → *Ports (COM & LPT)* for
+`Silicon Labs CP210x USB to UART Bridge (COM4)` or similar, then open that port
+in PuTTY or Tabby with the parameters above.
+
+Power the board over USB-C as normal. The boot log scrolls past, then:
+
+```
+login: radxa
+password: radxa
+```
+
+From there, join the WiFi and read back the address:
+
+```bash
+sudo nmcli device wifi list
+sudo nmcli device wifi connect "YourSSID" password "YourPassword"
+ip a
+```
+
+---
+
+## 0b. Alternative: seed WiFi on the card
 
 The A7Z has no Ethernet port. WiFi is the only network it has, and a freshly
 flashed CLI image has no credentials, so the board will not appear on the network

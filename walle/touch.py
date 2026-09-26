@@ -172,3 +172,107 @@ class TouchPanel:
             self._cs.close()
         except Exception as exc:  # noqa: BLE001 - releasing must never raise
             log.warning("error releasing touch chip select: %s", exc)
+
+
+class TouchWatcher:
+    """Polls the panel on its own thread and reports taps.
+
+    Reports the moment a finger lands, not continuously while it rests: a
+    resistive panel under a held finger produces a reading every poll, and a
+    robot that reacted to each of them would look like it was having a fit.
+    Lifting and pressing again is a second tap.
+    """
+
+    def __init__(
+        self,
+        panel: TouchPanel,
+        on_tap: Any,
+        interval_s: float = 0.05,
+        release_s: float = 0.15,
+    ) -> None:
+        import threading  # noqa: PLC0415 - only when touch is actually used
+
+        self._panel = panel
+        self._on_tap = on_tap
+        self._interval = interval_s
+        self._release = release_s
+        """How long the panel must read clear before the next press counts as a
+        new tap. Resistive film chatters as contact breaks, and without this
+        one press arrives as three."""
+
+        self._stop = threading.Event()
+        self._thread = threading.Thread(
+            target=self._run, name="walle-touch", daemon=True
+        )
+
+    def start(self) -> None:
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._stop.set()
+        self._thread.join(timeout=1.0)
+
+    def _run(self) -> None:
+        import time  # noqa: PLC0415
+
+        touching = False
+        released_at = 0.0
+        while not self._stop.is_set():
+            try:
+                point = self._panel.read()
+            except Exception as exc:  # noqa: BLE001 - a flaky panel must not
+                log.warning("touch read failed: %s", exc)  # kill the robot
+                point = None
+
+            now = time.monotonic()
+            if point is None:
+                if touching:
+                    released_at = now
+                touching = False
+            elif not touching and now - released_at >= self._release:
+                touching = True
+                try:
+                    self._on_tap(point)
+                except Exception as exc:  # noqa: BLE001 - same
+                    log.error("touch handler failed: %s", exc)
+            self._stop.wait(self._interval)
+
+
+def build_touch(config: Any, spi: Any = None) -> TouchPanel | None:
+    """Open the touch controller, or return None if it is off or absent.
+
+    Shares ``spi`` with the panel when one is passed - they are the same bus,
+    and two independent handles would let a frame and a touch read interleave.
+    """
+    if not config.enabled:
+        return None
+    try:
+        from .display import SpiWriter  # noqa: PLC0415 - avoids a cycle
+        from .motion import GpiodBackend  # noqa: PLC0415
+
+        bus = spi if spi is not None else SpiWriter(
+            config.spi_device, config.speed_hz
+        )
+        lines = GpiodBackend(config.cs_chip, [config.cs_line], consumer="walle-touch")
+        panel = TouchPanel(
+            bus,
+            lines,
+            config.cs_line,
+            calibration=TouchCalibration(
+                x_min=config.x_min,
+                x_max=config.x_max,
+                y_min=config.y_min,
+                y_max=config.y_max,
+                swap_xy=config.swap_xy,
+                invert_x=config.invert_x,
+                invert_y=config.invert_y,
+                pressure_threshold=config.pressure_threshold,
+            ),
+            samples=config.samples,
+            speed_hz=config.speed_hz,
+        )
+    except Exception as exc:  # noqa: BLE001 - a robot without touch still talks
+        log.warning("touch unavailable (%s); running without it", exc)
+        return None
+    log.info("touch: XPT2046 on chip select %s line %d", config.cs_chip, config.cs_line)
+    return panel

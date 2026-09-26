@@ -247,6 +247,10 @@ class SpiWriter:
 
         self.device = device
         self._speed_hz = speed_hz
+        # The panel is redrawn from the face's animation thread while touch is
+        # polled from its own. Both sit on this one bus, so transfers have to
+        # be serialised or a frame and a touch read interleave into garbage.
+        self._lock = threading.Lock()
         self._fd = os.open(device, os.O_RDWR)
         try:
             fcntl.ioctl(self._fd, SPI_IOC_WR_MODE, struct.pack("B", mode))
@@ -258,9 +262,10 @@ class SpiWriter:
 
     def writebytes(self, data) -> None:
         payload = bytes(data)
-        written = 0
-        while written < len(payload):
-            written += os.write(self._fd, payload[written:])
+        with self._lock:
+            written = 0
+            while written < len(payload):
+                written += os.write(self._fd, payload[written:])
 
     def transfer(self, data, speed_hz: int | None = None) -> bytes:
         """Clock ``data`` out and return what came back on MISO.
@@ -289,7 +294,8 @@ class SpiWriter:
             speed_hz or self._speed_hz,
             0, 8, 0, 0, 0, 0, 0,
         )
-        fcntl.ioctl(self._fd, SPI_IOC_MESSAGE_1, message)
+        with self._lock:
+            fcntl.ioctl(self._fd, SPI_IOC_MESSAGE_1, message)
         return rx.raw
 
     def close(self) -> None:
@@ -470,6 +476,11 @@ class Ili9341Backend:
     def size(self) -> tuple[int, int]:
         return self._size
 
+    @property
+    def bus(self) -> Any:
+        """The SPI handle, so the touch controller can share this one bus."""
+        return self._spi
+
     def show(self, image: Any) -> None:
         width, height = self._size
         # One assert around the whole frame, not per chunk: the panel latches
@@ -585,6 +596,15 @@ class Display:
             font = ImageFont.load_default()
         self._fonts[size] = font
         return font
+
+    @property
+    def spi_bus(self) -> Any:
+        """The panel's SPI handle when it has one, for the touch controller.
+
+        None for a framebuffer panel or no panel at all, in which case touch
+        opens the device itself.
+        """
+        return getattr(self._backend, "bus", None)
 
     @property
     def enabled(self) -> bool:

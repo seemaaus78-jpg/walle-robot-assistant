@@ -146,3 +146,33 @@ class ReadTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TapBehaviourTests(unittest.TestCase):
+    """What a tap does, independent of the hardware underneath."""
+
+    def test_pixel_maps_onto_a_centred_gaze(self):
+        from walle.assistant import _centred
+
+        self.assertAlmostEqual(_centred(0, 320), -1.0)
+        self.assertAlmostEqual(_centred(319, 320), 1.0)
+        self.assertAlmostEqual(_centred(159, 320), -1.0 / 319, places=3)
+
+    def test_degenerate_span_looks_straight_ahead(self):
+        from walle.assistant import _centred
+
+        self.assertEqual(_centred(0, 1), 0.0)
+
+    def test_disabled_touch_builds_nothing(self):
+        from walle.config import TouchConfig
+        from walle.touch import build_touch
+
+        self.assertIsNone(build_touch(TouchConfig(enabled=False)))
+
+    def test_missing_hardware_degrades_instead_of_raising(self):
+        from walle.config import TouchConfig
+        from walle.touch import build_touch
+
+        # No /dev/spidev and no gpiochip on a dev machine: the robot still
+        # talks, it just cannot be prodded.
+        self.assertIsNone(build_touch(TouchConfig(enabled=True)))

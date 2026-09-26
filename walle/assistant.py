@@ -36,9 +36,17 @@ from .guides import Guide, GuideStore, match_section
 from .intents import Intent, IntentKind, LANGUAGE_NAMES, Mode, parse
 from .maps import MapRenderer, MapRequest, zoom_for_population
 from .net import ConnectivityMonitor
+from .touch import TouchPoint
 from .translation import ArgosTranslator, TranslationUnavailable
 
 log = logging.getLogger(__name__)
+
+
+def _centred(value: int, span: int) -> float:
+    """A pixel coordinate as a gaze offset in -1..1, centre being 0."""
+    if span <= 1:
+        return 0.0
+    return max(-1.0, min(1.0, (value / (span - 1)) * 2.0 - 1.0))
 
 
 @dataclass(frozen=True)
@@ -218,6 +226,24 @@ class Assistant:
     def _refresh_face(self) -> None:
         if self.display is not None:
             self.display.set_emotion(self.emotions.current(), self.emotions.gaze())
+
+    def on_touch(self, point: "TouchPoint") -> None:
+        """A tap on the panel: wake, drop whatever card is up, look at it.
+
+        There is nothing on screen to press - the robot is driven by voice -
+        so a tap means "attention", not "activate the control under my
+        finger". Waking is the useful half. Turning the eyes towards the
+        contact point is what makes it read as a creature noticing you rather
+        than a button being clicked.
+        """
+        self._feel(Event.WAKE)
+        if self.display is None:
+            return
+        width, height = self.display.size
+        gaze = (_centred(point.x, width), _centred(point.y, height))
+        # A tap during a map or a guide card means "enough of that".
+        self.display.show_face()
+        self.display.set_emotion(self.emotions.current(), gaze)
 
     def _respond_offline(self, intent: Intent) -> Reply | None:
         kind = intent.kind

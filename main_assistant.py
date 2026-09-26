@@ -36,6 +36,7 @@ from walle.net import ConnectivityMonitor
 from walle.online import build_online_backend
 from walle.stt import ScriptedRecogniser, SpeechRecogniser
 from walle.translation import ArgosTranslator
+from walle.touch import TouchWatcher, build_touch
 from walle.tts import NullSpeaker, PiperSpeaker
 
 log = logging.getLogger("walle")
@@ -166,6 +167,9 @@ def main(argv: list[str] | None = None) -> int:
 
     cities = open_cities(config)
     display = build_display(config.display, enabled=not args.no_display)
+    # Shares the panel's open SPI handle: same bus, and two handles would let
+    # a frame and a touch read interleave into garbage.
+    touch = build_touch(config.touch, spi=display.spi_bus)
 
     assistant = Assistant(
         config=config,
@@ -204,11 +208,21 @@ def main(argv: list[str] | None = None) -> int:
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, handle_signal)
 
+    # Started after the assistant exists, because the first thing a tap does
+    # is wake its face.
+    watcher = TouchWatcher(touch, assistant.on_touch) if touch else None
+    if watcher is not None:
+        watcher.start()
+
     try:
         assistant.run()
     except KeyboardInterrupt:
         log.info("interrupted")
     finally:
+        if watcher is not None:
+            watcher.stop()
+        if touch is not None:
+            touch.close()
         assistant.close()
     return 0
 

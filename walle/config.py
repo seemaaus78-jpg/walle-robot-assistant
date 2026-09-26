@@ -249,6 +249,11 @@ class TouchConfig:
     cs_line: int = 312
     """PJ24, header pin 16. 24 + 32 * 9, J being the tenth bank."""
 
+    spi_device: str = "/dev/spidev1.0"
+    """Only used when the panel is not already on SPI. Normally touch shares
+    the display's open handle, because two handles on one bus would let a
+    frame and a touch read interleave."""
+
     speed_hz: int = 2_000_000
     """The controller's ceiling. Clamped again in walle/touch.py, because a
     read at the panel's 32 MHz returns convincing nonsense."""

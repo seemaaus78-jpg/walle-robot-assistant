@@ -188,7 +188,34 @@ class DisplayConfig:
     """
 
     enabled: bool = True
+
+    backend: str = "auto"
+    """``auto`` tries the framebuffer and falls back to SPI, which is what the
+    Cubie A7Z needs: Radxa OS has fb_ili9341 but no overlay binding it to a
+    bus, so there is no /dev/fb1 to open. ``framebuffer``, ``spi`` and ``none``
+    force the choice."""
+
     device: str = "/dev/fb1"
+
+    spi_device: str = "/dev/spidev1.0"
+    """Appears once the stock sun60iw2p1-spi1-spidev overlay is enabled in
+    rsetup. SPI1 is PD10-PD13: header pins 24, 23, 19 and 21."""
+
+    spi_speed_hz: int = 32_000_000
+    rotation: int = 90
+    """0 and 180 give the panel's native 240x320; 90 and 270 transpose it to
+    320x240, which is the shape two eyes want."""
+
+    dc_chip: str = "gpiochip1"
+    dc_line: int = 5
+    """PL5, header pin 22. The L bank is gpiochip1, where it is line 5."""
+
+    reset_chip: str = "gpiochip0"
+    reset_line: int = 313
+    """PJ25, header pin 18. Banks A-K share gpiochip0 at 32 lines each, and J
+    is the tenth, so 25 + 32 * 9. Confirmed against gpiodetect reporting
+    gpiochip0 with exactly 352 lines."""
+
     swap_bytes: bool = False
     """Some ILI9341 boards are wired big-endian. If the face renders in the
     wrong colours, flip this before suspecting the wiring."""

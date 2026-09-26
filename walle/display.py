@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, Sequence
 
+from .config import DisplayConfig
 from .face import BlinkClock, Emotion, FaceGeometry, build_face
 
 log = logging.getLogger(__name__)
@@ -144,6 +145,240 @@ class FramebufferBackend:
             self._handle.close()
         except OSError as exc:
             log.warning("error closing %s: %s", self.device, exc)
+
+
+# -- ILI9341 over spidev ------------------------------------------------------
+#
+# Radxa OS ships fb_ili9341 but no overlay that binds it to a bus, and writing
+# an untested sunxi overlay risks a board that will not boot. The stock
+# sun60iw2p1-spi1-spidev overlay exposes /dev/spidev1.0 instead, so the panel is
+# driven from here: SPI carries pixels, two plain GPIOs carry DC and RESET.
+
+_SWRESET = 0x01
+_SLPOUT = 0x11
+_DISPON = 0x29
+_CASET = 0x2A
+_PASET = 0x2B
+_RAMWR = 0x2C
+_MADCTL = 0x36
+_PIXFMT = 0x3A
+
+_MY, _MX, _MV, _BGR = 0x80, 0x40, 0x20, 0x08
+
+ROTATIONS: dict[int, tuple[int, tuple[int, int]]] = {
+    0: (_MX | _BGR, (240, 320)),
+    90: (_MV | _BGR, (320, 240)),
+    180: (_MY | _BGR, (240, 320)),
+    270: (_MX | _MY | _MV | _BGR, (320, 240)),
+}
+"""MADCTL value and the resulting (width, height) for each rotation. The panel
+is 240x320 in silicon; 90 and 270 transpose it via the MV bit rather than by
+rotating every frame in software."""
+
+# (command, payload, delay_s). Straight from the ILI9341 datasheet's power-on
+# recommendations - the gamma and power blocks are opaque magic numbers there
+# too, and changing them produces a dim or colour-shifted panel.
+_INIT: tuple[tuple[int, bytes, float], ...] = (
+    (0xEF, b"\x03\x80\x02", 0),
+    (0xCF, b"\x00\xC1\x30", 0),
+    (0xED, b"\x64\x03\x12\x81", 0),
+    (0xE8, b"\x85\x00\x78", 0),
+    (0xCB, b"\x39\x2C\x00\x34\x02", 0),
+    (0xF7, b"\x20", 0),
+    (0xEA, b"\x00\x00", 0),
+    (0xC0, b"\x23", 0),                                   # power control 1
+    (0xC1, b"\x10", 0),                                   # power control 2
+    (0xC5, b"\x3E\x28", 0),                               # VCOM control 1
+    (0xC7, b"\x86", 0),                                   # VCOM control 2
+    (_PIXFMT, b"\x55", 0),                                # 16 bits per pixel
+    (0xB1, b"\x00\x18", 0),                               # frame rate, ~79 Hz
+    (0xB6, b"\x08\x82\x27", 0),                           # display function
+    (0xF2, b"\x00", 0),                                   # 3-gamma off
+    (0x26, b"\x01", 0),                                   # gamma curve 1
+    (0xE0, b"\x0F\x31\x2B\x0C\x0E\x08\x4E\xF1"
+           b"\x37\x07\x10\x03\x0E\x09\x00", 0),
+    (0xE1, b"\x00\x0E\x14\x03\x11\x07\x31\xC1"
+           b"\x48\x08\x0F\x0C\x31\x36\x0F", 0),
+    (_SLPOUT, b"", 0.120),
+    (_DISPON, b"", 0.020),
+)
+
+_CHUNK = 4096
+"""spidev refuses a transfer larger than its bufsiz module parameter, which
+defaults to 4096 bytes. A full frame is 150 KB, so it goes out in pieces."""
+
+
+class Ili9341Backend:
+    """An ILI9341 panel on /dev/spidev, with DC and RESET on GPIO lines.
+
+    ``spi`` and the two line backends are injectable so the whole protocol -
+    init sequence, window arithmetic, pixel packing - can be tested without
+    hardware. Left to itself the backend opens the real devices.
+    """
+
+    def __init__(
+        self,
+        device: str = "/dev/spidev1.0",
+        *,
+        dc: tuple[str, int] = ("gpiochip1", 5),
+        reset: tuple[str, int] | None = ("gpiochip0", 313),
+        rotation: int = 90,
+        speed_hz: int = 32_000_000,
+        swap_bytes: bool = False,
+        spi: Any | None = None,
+        dc_lines: Any | None = None,
+        reset_lines: Any | None = None,
+    ) -> None:
+        if rotation not in ROTATIONS:
+            raise ValueError(
+                f"rotation must be one of {sorted(ROTATIONS)}, not {rotation!r}"
+            )
+        madctl, self._size = ROTATIONS[rotation]
+        self.device = device
+        self._swap = swap_bytes
+        self._fast: tuple[str, bool] | None = None
+        self._calibrated = False
+
+        self._spi = spi if spi is not None else self._open_spi(device, speed_hz)
+        self._dc_line = dc[1]
+        self._dc = dc_lines if dc_lines is not None else self._open_lines(*dc)
+        self._reset_line = reset[1] if reset else None
+        if reset_lines is not None:
+            self._reset = reset_lines
+        elif reset is not None:
+            self._reset = self._open_lines(*reset)
+        else:
+            self._reset = None
+
+        self._hard_reset()
+        self._command(_SWRESET)
+        time.sleep(0.150)
+        for cmd, payload, delay in _INIT:
+            self._command(cmd, payload)
+            if delay:
+                time.sleep(delay)
+        self._command(_MADCTL, bytes([madctl]))
+
+    # -- device opening ----------------------------------------------------
+
+    @staticmethod
+    def _open_spi(device: str, speed_hz: int) -> Any:
+        import spidev  # noqa: PLC0415 - optional, hardware-only dependency
+
+        name = Path(device).name                     # spidev1.0 -> bus 1, cs 0
+        try:
+            bus, chip = (int(part) for part in name.replace("spidev", "").split("."))
+        except ValueError:
+            raise RuntimeError(f"cannot parse a bus and chip select from {device!r}")
+        handle = spidev.SpiDev()
+        handle.open(bus, chip)
+        handle.max_speed_hz = speed_hz
+        handle.mode = 0
+        return handle
+
+    @staticmethod
+    def _open_lines(chip: str, offset: int) -> Any:
+        from .motion import GpiodBackend  # noqa: PLC0415 - avoids a cycle
+
+        return GpiodBackend(chip, [offset], consumer="walle-display")
+
+    # -- the wire ----------------------------------------------------------
+
+    def _command(self, code: int, payload: bytes = b"") -> None:
+        self._dc.set_values({self._dc_line: 0})
+        self._write(bytes([code]))
+        if payload:
+            self._dc.set_values({self._dc_line: 1})
+            self._write(payload)
+
+    def _write(self, data: bytes) -> None:
+        for start in range(0, len(data), _CHUNK):
+            self._spi.writebytes(list(data[start : start + _CHUNK]))
+
+    def _hard_reset(self) -> None:
+        if self._reset is None or self._reset_line is None:
+            return
+        for level, pause in ((1, 0.005), (0, 0.020), (1, 0.150)):
+            self._reset.set_values({self._reset_line: level})
+            time.sleep(pause)
+
+    def _set_window(self, x0: int, y0: int, x1: int, y1: int) -> None:
+        self._command(_CASET, bytes([x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF]))
+        self._command(_PASET, bytes([y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF]))
+        self._command(_RAMWR)
+        self._dc.set_values({self._dc_line: 1})
+
+    # -- pixels ------------------------------------------------------------
+
+    def _calibrate(self) -> None:
+        """Decide once whether Pillow can pack RGB565 for us, and how.
+
+        A full frame is 76800 pixels; packing that in Python costs more than
+        the SPI transfer does. Pillow's 16-bit raw modes are C-speed but their
+        byte order varies between builds, and getting it wrong yields a
+        psychedelic screen rather than an error. So rather than guess, encode a
+        known swatch both ways and keep whichever agrees with pack_rgb565.
+        """
+        self._calibrated = True
+        try:
+            from PIL import Image  # noqa: PLC0415 - optional, probed at runtime
+        except ImportError:
+            return
+        swatch = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)]
+        probe = Image.new("RGB", (2, 2))
+        probe.putdata(swatch)
+        want = pack_rgb565(swatch)
+        for mode in ("BGR;16",):
+            for swapped in (False, True):
+                try:
+                    got = probe.tobytes("raw", mode)
+                except Exception:  # noqa: BLE001 - unsupported mode, try the next
+                    break
+                if swapped:
+                    got = self._byteswap(got)
+                if got == want:
+                    self._fast = (mode, swapped)
+                    return
+        log.info("no fast RGB565 path on this Pillow; packing in Python")
+
+    @staticmethod
+    def _byteswap(data: bytes) -> bytes:
+        out = bytearray(data)
+        out[0::2], out[1::2] = out[1::2], out[0::2]
+        return bytes(out)
+
+    def _encode(self, image: Any) -> bytes:
+        rgb = image.convert("RGB")
+        if not self._calibrated:
+            self._calibrate()
+        if self._fast is not None:
+            mode, swapped = self._fast
+            data = rgb.tobytes("raw", mode)
+            if swapped:
+                data = self._byteswap(data)
+        else:
+            data = pack_rgb565(list(rgb.getdata()))
+        return self._byteswap(data) if self._swap else data
+
+    # -- DisplayBackend ----------------------------------------------------
+
+    @property
+    def size(self) -> tuple[int, int]:
+        return self._size
+
+    def show(self, image: Any) -> None:
+        width, height = self._size
+        self._set_window(0, 0, width - 1, height - 1)
+        self._write(self._encode(image))
+
+    def close(self) -> None:
+        for name, handle in (("spi", self._spi), ("dc", self._dc), ("reset", self._reset)):
+            if handle is None:
+                continue
+            try:
+                handle.close()
+            except Exception as exc:  # noqa: BLE001 - closing must never raise
+                log.warning("error closing display %s: %s", name, exc)
 
 
 @dataclass(frozen=True)
@@ -425,23 +660,50 @@ class Display:
             self._stop.wait(max(0.0, period - elapsed))
 
 
-def build_display(
-    enabled: bool,
-    device: str,
-    swap_bytes: bool = False,
-    font_path: str | None = None,
-) -> Display:
+_BACKEND_ORDER = {
+    "auto": ("framebuffer", "spi"),
+    "framebuffer": ("framebuffer",),
+    "spi": ("spi",),
+}
+
+
+def build_display(config: DisplayConfig, enabled: bool = True) -> Display:
     """Open the panel, falling back to a silent no-op display if it is absent.
 
     A missing screen is a normal configuration, not an error: the robot talks.
+    ``enabled`` is the command line's veto over the config's own setting.
     """
-    if not enabled:
-        log.info("display disabled in config")
+    if not (enabled and config.enabled) or config.backend == "none":
+        log.info("display disabled")
         return Display(backend=None, enabled=False)
-    try:
-        backend: DisplayBackend = FramebufferBackend(device, swap_bytes=swap_bytes)
-        log.info("display: %s at %dx%d", device, *backend.size)
-    except Exception as exc:  # noqa: BLE001 - degrade rather than refuse to boot
-        log.warning("display unavailable (%s); running without a face", exc)
-        return Display(backend=None, enabled=False)
-    return Display(backend=backend, enabled=True, font_path=font_path)
+
+    order = _BACKEND_ORDER.get(config.backend)
+    if order is None:
+        log.warning("unknown display backend %r; trying both", config.backend)
+        order = _BACKEND_ORDER["auto"]
+
+    failures = []
+    for kind in order:
+        try:
+            backend: DisplayBackend = (
+                FramebufferBackend(config.device, swap_bytes=config.swap_bytes)
+                if kind == "framebuffer"
+                else Ili9341Backend(
+                    config.spi_device,
+                    dc=(config.dc_chip, config.dc_line),
+                    reset=(config.reset_chip, config.reset_line),
+                    rotation=config.rotation,
+                    speed_hz=config.spi_speed_hz,
+                    swap_bytes=config.swap_bytes,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001 - try the next, then degrade
+            failures.append("%s: %s" % (kind, exc))
+            continue
+        log.info("display: %s at %dx%d", kind, *backend.size)
+        return Display(backend=backend, enabled=True, font_path=config.font_path)
+
+    log.warning(
+        "display unavailable (%s); running without a face", "; ".join(failures)
+    )
+    return Display(backend=None, enabled=False)

@@ -165,12 +165,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     cities = open_cities(config)
-    display = build_display(
-        enabled=config.display.enabled and not args.no_display,
-        device=config.display.device,
-        swap_bytes=config.display.swap_bytes,
-        font_path=config.display.font_path,
-    )
+    display = build_display(config.display, enabled=not args.no_display)
 
     assistant = Assistant(
         config=config,

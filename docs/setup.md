@@ -185,6 +185,49 @@ Nothing to do unless this reports something older than 3.9.
 
 ---
 
+## 0e. Enable SPI for the panel
+
+Radxa OS carries `fb_ili9341` but no overlay binding it to a bus, so there is no
+`/dev/fb1`. Rather than hand-write a sunxi overlay — untested device tree is how
+a board stops booting — the panel is driven from Python over `/dev/spidev`, using
+the stock overlay that already exists.
+
+Read the overlay before enabling it, and confirm it claims the pins the screen is
+wired to (`PD10`–`PD13`):
+
+```bash
+sudo apt install -y device-tree-compiler
+sudo dtc -I dtb -O dts /boot/dtbo/sun60iw2p1-spi1-spidev.dtbo.disabled 2>/dev/null | head -60
+```
+
+Then enable it — **with the serial console plugged in**, because this is a reboot
+that can fail:
+
+```bash
+sudo rsetup        # Overlays -> Manage overlays -> sun60iw2p1-spi1-spidev
+sudo reboot
+```
+
+One overlay per reboot, so a failure has one cause. Afterwards:
+
+```bash
+ls -l /dev/spidev*     # want /dev/spidev1.0
+```
+
+`walle/display.py` picks this up through `[display] backend` in `config.toml`:
+`auto` tries the framebuffer and falls back to SPI, which is what happens here.
+Install the bus binding with the rest of the dependencies:
+
+```bash
+pip install spidev
+```
+
+The same overlay list holds `sun60iw2p1-i2s0-2ch` for the microphone and
+amplifier, and `sun60iw2p1-pwm1-*` for hardware servo PWM. Both are for later
+steps; enable them one at a time.
+
+---
+
 ## 1. Enable I²S and check the GPIO chip
 
 Nothing else works until the kernel exposes the I²S bus, and the two audio

@@ -16,6 +16,9 @@ tomli==2.0.1 ; python_version < "3.11"
 # which ships Python 3.9, so the backport is needed there and skipped on any
 # newer image. walle/config.py imports whichever one exists.
 
+spidev==3.6                # /dev/spidev access for the ILI9341 panel; only
+                           # needed when display.backend resolves to "spi"
+
 vosk==0.3.45              # offline speech recognition (~100 MB with the small model)
 PyAudio==0.2.14           # PortAudio bindings for the INMP441 capture stream
 argostranslate==1.9.6     # offline translation; language packs installed separately

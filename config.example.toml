@@ -80,15 +80,40 @@ target_lang = "es"
 #   gpiochip1. Confirm against `gpioinfo` before trusting any of it.
 
 [display]
-# The screen is driven as a Linux framebuffer, not from Python over SPI. That
-# means the panel is bound by a device tree overlay - which is where the SPI
-# and DC/RST pins above are configured - and this program simply writes pixels
-# to the device the overlay creates.
+# Two ways to drive the panel:
+#
+#   framebuffer  an fbtft-bound SPI panel or HDMI, written through /dev/fb*
+#   spi          this program talks ILI9341 directly over /dev/spidev
+#
+# "auto" tries the framebuffer first and falls back to SPI. On Radxa OS that
+# means SPI: the image ships fb_ili9341 but no overlay binding it to a bus, so
+# there is no /dev/fb1 to open. "none" turns the panel off without disabling
+# the rest of the display code.
 enabled = true
+backend = "auto"
 
-# /dev/fb1 for an SPI panel bound through fbtft, /dev/fb0 for HDMI. Geometry is
-# read from sysfs, so there is nothing to set here beyond the device itself.
+# Used when backend resolves to "framebuffer". Geometry is read from sysfs, so
+# there is nothing to set here beyond the device itself.
 device = "/dev/fb1"
+
+# Used when backend resolves to "spi". /dev/spidev1.0 appears once the stock
+# sun60iw2p1-spi1-spidev overlay is enabled through rsetup. SPI1 is PD10-PD13,
+# header pins 24 (CS), 23 (CLK), 19 (MOSI) and 21 (MISO, unused).
+spi_device = "/dev/spidev1.0"
+spi_speed_hz = 32000000
+
+# 0 and 180 give the panel's native 240x320; 90 and 270 transpose it to
+# 320x240, which is the shape two eyes want.
+rotation = 90
+
+# The two panel pins that are not on the SPI bus. GPIO numbering is
+# NUM + 32 * bank-index, banks A-K on gpiochip0 and L-M on gpiochip1.
+#   DC    PL5   header pin 22 -> gpiochip1 line 5
+#   RESET PJ25  header pin 18 -> gpiochip0 line 313  (25 + 32 * 9)
+dc_chip = "gpiochip1"
+dc_line = 5
+reset_chip = "gpiochip0"
+reset_line = 313
 
 # Some ILI9341 boards are wired big-endian. If the face renders in the wrong
 # colours, flip this before suspecting the wiring.

@@ -216,11 +216,15 @@ ls -l /dev/spidev*     # want /dev/spidev1.0
 
 `walle/display.py` picks this up through `[display] backend` in `config.toml`:
 `auto` tries the framebuffer and falls back to SPI, which is what happens here.
-Install the bus binding with the rest of the dependencies:
 
-```bash
-pip install spidev
-```
+Nothing extra to install. The usual `spidev` package from PyPI has no arm64
+wheel and has to be compiled, which this board cannot do — Debian 11 reached
+end of life in August 2026 and its security archive no longer serves
+`python3-dev`. `walle.display.SpiWriter` does the same job with the standard
+library: three `fcntl.ioctl` calls to set mode, word size and clock, then plain
+`write()`. That is enough because the panel is only ever written to, never read
+— the touch controller is unused and the display's own `SDO` line is left
+unconnected.
 
 The same overlay list holds `sun60iw2p1-i2s0-2ch` for the microphone and
 amplifier, and `sun60iw2p1-pwm1-*` for hardware servo PWM. Both are for later

@@ -13,6 +13,11 @@ from walle.display import (
     Display,
     Ili9341Backend,
     NullBackend,
+    SPI_IOC_WR_BITS_PER_WORD,
+    SPI_IOC_WR_MAX_SPEED_HZ,
+    SPI_IOC_WR_MODE,
+    SpiWriter,
+    _ioc_write,
     build_display,
     fit_box,
     pack_rgb565,
@@ -295,3 +300,23 @@ class BuildDisplayTests(unittest.TestCase):
         # talks, it just has no face.
         display = build_display(DisplayConfig(backend="auto"))
         self.assertFalse(display.enabled)
+
+
+class SpiWriterTests(unittest.TestCase):
+    """The ioctl numbers are the whole point of the spidev C extension; if they
+    are wrong the panel stays dark with no error, so pin them down here."""
+
+    def test_ioc_write_matches_the_linux_macro(self):
+        # _IOW(type, nr, size) = (1 << 30) | (size << 16) | (type << 8) | nr
+        self.assertEqual(_ioc_write(1, 1), 0x40016B01)
+        self.assertEqual(_ioc_write(3, 1), 0x40016B03)
+        self.assertEqual(_ioc_write(4, 4), 0x40046B04)
+
+    def test_request_numbers_are_the_documented_ones(self):
+        self.assertEqual(SPI_IOC_WR_MODE, 0x40016B01)
+        self.assertEqual(SPI_IOC_WR_BITS_PER_WORD, 0x40016B03)
+        self.assertEqual(SPI_IOC_WR_MAX_SPEED_HZ, 0x40046B04)
+
+    def test_missing_device_raises_rather_than_half_opening(self):
+        with self.assertRaises(OSError):
+            SpiWriter("/dev/spidev-does-not-exist", 32_000_000)

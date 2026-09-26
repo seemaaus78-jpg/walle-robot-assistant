@@ -13,6 +13,7 @@ the layout arithmetic are kept free of Pillow so they stay testable either way.
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import time
 from dataclasses import dataclass
@@ -208,6 +209,58 @@ _CHUNK = 4096
 defaults to 4096 bytes. A full frame is 150 KB, so it goes out in pieces."""
 
 
+def _ioc_write(nr: int, size: int) -> int:
+    """Linux _IOW(SPI_IOC_MAGIC, nr, size), which is 'k' for the SPI driver.
+
+    Spelled out rather than imported because the request numbers are the whole
+    reason the spidev PyPI package needs a C compiler, and the board cannot
+    run one: Debian 11 went end-of-life in August 2026 and its security
+    archive no longer serves python3-dev.
+    """
+    return (1 << 30) | (size << 16) | (0x6B << 8) | nr
+
+
+SPI_IOC_WR_MODE = _ioc_write(1, 1)
+SPI_IOC_WR_BITS_PER_WORD = _ioc_write(3, 1)
+SPI_IOC_WR_MAX_SPEED_HZ = _ioc_write(4, 4)
+
+
+class SpiWriter:
+    """Write-only SPI over a /dev/spidev node, using only the standard library.
+
+    The panel is never read from - no touch controller, and the display's own
+    SDO line is left unconnected - so a half-duplex ``write()`` is the entire
+    requirement, and the kernel's spidev driver supports exactly that. Three
+    ioctls set the mode up first. Presents ``writebytes`` and ``close`` so it
+    is interchangeable with the spidev package's SpiDev object.
+    """
+
+    def __init__(self, device: str, speed_hz: int, mode: int = 0) -> None:
+        import fcntl  # noqa: PLC0415 - Linux only, and only on real hardware
+        import struct  # noqa: PLC0415
+
+        self.device = device
+        self._fd = os.open(device, os.O_RDWR)
+        try:
+            fcntl.ioctl(self._fd, SPI_IOC_WR_MODE, struct.pack("B", mode))
+            fcntl.ioctl(self._fd, SPI_IOC_WR_BITS_PER_WORD, struct.pack("B", 8))
+            fcntl.ioctl(self._fd, SPI_IOC_WR_MAX_SPEED_HZ, struct.pack("I", speed_hz))
+        except OSError:
+            os.close(self._fd)
+            raise
+
+    def writebytes(self, data) -> None:
+        payload = bytes(data)
+        written = 0
+        while written < len(payload):
+            written += os.write(self._fd, payload[written:])
+
+    def close(self) -> None:
+        if self._fd >= 0:
+            os.close(self._fd)
+            self._fd = -1
+
+
 class Ili9341Backend:
     """An ILI9341 panel on /dev/spidev, with DC and RESET on GPIO lines.
 
@@ -263,18 +316,7 @@ class Ili9341Backend:
 
     @staticmethod
     def _open_spi(device: str, speed_hz: int) -> Any:
-        import spidev  # noqa: PLC0415 - optional, hardware-only dependency
-
-        name = Path(device).name                     # spidev1.0 -> bus 1, cs 0
-        try:
-            bus, chip = (int(part) for part in name.replace("spidev", "").split("."))
-        except ValueError:
-            raise RuntimeError(f"cannot parse a bus and chip select from {device!r}")
-        handle = spidev.SpiDev()
-        handle.open(bus, chip)
-        handle.max_speed_hz = speed_hz
-        handle.mode = 0
-        return handle
+        return SpiWriter(device, speed_hz)
 
     @staticmethod
     def _open_lines(chip: str, offset: int) -> Any:

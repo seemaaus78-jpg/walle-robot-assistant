@@ -224,6 +224,12 @@ SPI_IOC_WR_MODE = _ioc_write(1, 1)
 SPI_IOC_WR_BITS_PER_WORD = _ioc_write(3, 1)
 SPI_IOC_WR_MAX_SPEED_HZ = _ioc_write(4, 4)
 
+_XFER_STRUCT = "QQIIHBBBBBB"
+"""struct spi_ioc_transfer: two 64-bit buffer pointers, length, clock, then
+the per-transfer byte fields. 32 bytes on every architecture Linux supports."""
+
+SPI_IOC_MESSAGE_1 = _ioc_write(0, 32)
+
 
 class SpiWriter:
     """Write-only SPI over a /dev/spidev node, using only the standard library.
@@ -240,6 +246,7 @@ class SpiWriter:
         import struct  # noqa: PLC0415
 
         self.device = device
+        self._speed_hz = speed_hz
         self._fd = os.open(device, os.O_RDWR)
         try:
             fcntl.ioctl(self._fd, SPI_IOC_WR_MODE, struct.pack("B", mode))
@@ -254,6 +261,36 @@ class SpiWriter:
         written = 0
         while written < len(payload):
             written += os.write(self._fd, payload[written:])
+
+    def transfer(self, data, speed_hz: int | None = None) -> bytes:
+        """Clock ``data`` out and return what came back on MISO.
+
+        Only the touch controller needs this; the panel is write-only. A plain
+        write() cannot serve here because SPI reads and writes on the same
+        clock edges, so the reply arrives during the request.
+
+        ``speed_hz`` overrides the bus clock for this transfer alone. The two
+        devices on this bus disagree by more than an order of magnitude - the
+        panel takes 32 MHz, the XPT2046 tops out near 2 - and a touch read at
+        the panel's clock returns noise.
+        """
+        import ctypes  # noqa: PLC0415 - only on the read path
+        import fcntl  # noqa: PLC0415
+        import struct  # noqa: PLC0415
+
+        payload = bytes(data)
+        tx = ctypes.create_string_buffer(payload, len(payload))
+        rx = ctypes.create_string_buffer(len(payload))
+        message = struct.pack(
+            _XFER_STRUCT,
+            ctypes.addressof(tx),
+            ctypes.addressof(rx),
+            len(payload),
+            speed_hz or self._speed_hz,
+            0, 8, 0, 0, 0, 0, 0,
+        )
+        fcntl.ioctl(self._fd, SPI_IOC_MESSAGE_1, message)
+        return rx.raw
 
     def close(self) -> None:
         if self._fd >= 0:
@@ -275,12 +312,14 @@ class Ili9341Backend:
         *,
         dc: tuple[str, int] = ("gpiochip1", 5),
         reset: tuple[str, int] | None = ("gpiochip0", 313),
+        cs: tuple[str, int] | None = None,
         rotation: int = 90,
         speed_hz: int = 32_000_000,
         swap_bytes: bool = False,
         spi: Any | None = None,
         dc_lines: Any | None = None,
         reset_lines: Any | None = None,
+        cs_lines: Any | None = None,
     ) -> None:
         if rotation not in ROTATIONS:
             raise ValueError(
@@ -303,7 +342,21 @@ class Ili9341Backend:
         else:
             self._reset = None
 
+        # SPI1 brings out one hardware chip select, and the touch controller
+        # on the same panel needs a second. Rather than a custom overlay, both
+        # devices take a GPIO chip select and pin 24 is left unconnected: the
+        # hardware can toggle CS0 into thin air without anyone hearing it.
+        self._cs_line = cs[1] if cs else None
+        if cs_lines is not None:
+            self._cs = cs_lines
+        elif cs is not None:
+            self._cs = self._open_lines(*cs)
+        else:
+            self._cs = None
+        self._deselect()
+
         self._hard_reset()
+        self._select()
         self._command(_SWRESET)
         time.sleep(0.150)
         for cmd, payload, delay in _INIT:
@@ -311,6 +364,7 @@ class Ili9341Backend:
             if delay:
                 time.sleep(delay)
         self._command(_MADCTL, bytes([madctl]))
+        self._deselect()
 
     # -- device opening ----------------------------------------------------
 
@@ -325,6 +379,14 @@ class Ili9341Backend:
         return GpiodBackend(chip, [offset], consumer="walle-display")
 
     # -- the wire ----------------------------------------------------------
+
+    def _select(self) -> None:
+        if self._cs is not None and self._cs_line is not None:
+            self._cs.set_values({self._cs_line: 0})
+
+    def _deselect(self) -> None:
+        if self._cs is not None and self._cs_line is not None:
+            self._cs.set_values({self._cs_line: 1})
 
     def _command(self, code: int, payload: bytes = b"") -> None:
         self._dc.set_values({self._dc_line: 0})
@@ -410,11 +472,20 @@ class Ili9341Backend:
 
     def show(self, image: Any) -> None:
         width, height = self._size
-        self._set_window(0, 0, width - 1, height - 1)
-        self._write(self._encode(image))
+        # One assert around the whole frame, not per chunk: the panel latches
+        # on CS going low, and re-asserting mid-frame restarts the write.
+        self._select()
+        try:
+            self._set_window(0, 0, width - 1, height - 1)
+            self._write(self._encode(image))
+        finally:
+            self._deselect()
 
     def close(self) -> None:
-        for name, handle in (("spi", self._spi), ("dc", self._dc), ("reset", self._reset)):
+        for name, handle in (
+            ("spi", self._spi), ("dc", self._dc),
+            ("reset", self._reset), ("cs", self._cs),
+        ):
             if handle is None:
                 continue
             try:

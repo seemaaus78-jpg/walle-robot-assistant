@@ -231,6 +231,46 @@ class DisplayConfig:
 
 
 @dataclass(frozen=True)
+class TouchConfig:
+    """The XPT2046 behind the panel glass.
+
+    Shares the display's SPI bus and MISO, and takes its own GPIO chip select
+    because SPI1 brings out only one hardware one. T_IRQ is deliberately not
+    used: pressure comes off the controller's own Z channels, so the panel
+    needs four wires rather than five and no GPIO input handling.
+    """
+
+    enabled: bool = False
+    """Off by default. The robot's interface is its voice; touch is an extra,
+    and an unconfigured touch layer that reports phantom presses is worse than
+    none."""
+
+    cs_chip: str = "gpiochip0"
+    cs_line: int = 312
+    """PJ24, header pin 16. 24 + 32 * 9, J being the tenth bank."""
+
+    speed_hz: int = 2_000_000
+    """The controller's ceiling. Clamped again in walle/touch.py, because a
+    read at the panel's 32 MHz returns convincing nonsense."""
+
+    samples: int = 3
+    """Readings per axis, medianed. Resistive panels are noisy enough that a
+    single sample lands pixels away from the finger."""
+
+    # Calibration. Measure these with scripts/calibrate_touch.py rather than
+    # trusting the defaults - the usable range of the resistive film varies
+    # panel to panel, and being wrong puts every press about a centimetre out.
+    x_min: int = 300
+    x_max: int = 3800
+    y_min: int = 300
+    y_max: int = 3800
+    swap_xy: bool = True
+    invert_x: bool = False
+    invert_y: bool = True
+    pressure_threshold: int = 200
+
+
+@dataclass(frozen=True)
 class ChatConfig:
     """Open-ended conversation.
 
@@ -382,6 +422,7 @@ class Config:
     translate: TranslateConfig = field(default_factory=TranslateConfig)
     online: OnlineConfig = field(default_factory=OnlineConfig)
     display: DisplayConfig = field(default_factory=DisplayConfig)
+    touch: TouchConfig = field(default_factory=TouchConfig)
     chat: ChatConfig = field(default_factory=ChatConfig)
     maps: MapConfig = field(default_factory=MapConfig)
     guides: GuideConfig = field(default_factory=GuideConfig)
@@ -487,6 +528,8 @@ def load_config(path: Path | None = None) -> Config:
         cfg = replace(cfg, online=OnlineConfig(**section))
     if section := raw.get("display"):
         cfg = replace(cfg, display=DisplayConfig(**section))
+    if section := raw.get("touch"):
+        cfg = replace(cfg, touch=TouchConfig(**section))
     if section := raw.get("chat"):
         cfg = replace(cfg, chat=ChatConfig(**section))
     if section := raw.get("camera"):

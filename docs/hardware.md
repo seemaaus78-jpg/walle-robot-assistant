@@ -16,7 +16,50 @@
 | TP4056 **with protection** | Charging | Must be the DW01+FS8205 protected variant. See the warning below. |
 | 5 V 3 A boost converter | Rail | Two of them is better than one — see "Power". |
 
-## The touch panel is not used
+## The touch panel
+
+The 2.8" modules carry an XPT2046 resistive controller behind the glass, sharing the
+display's SPI bus: `T_CLK` and `T_DIN` sit on the display's own pins, `T_DO` needs
+SPI1's MISO, and `T_CS` needs a chip select of its own.
+
+That last one forces a wiring decision. **SPI1 brings out exactly one hardware chip
+select** (CS0, `PD10`, pin 24) and there are two devices on the bus. Every touch read
+would assert CS0, the panel would take the touch traffic as commands, and the screen
+would corrupt. Three ways out, and only one is both safe and simple:
+
+| | |
+|---|---|
+| Custom overlay with `cs-gpios` | The kernel drives both selects properly. Needs a hand-written device tree on a board that cannot be tested before it boots. |
+| `SPI_NO_CS` plus two GPIOs | Works, but depends on the sunxi driver honouring the flag. |
+| **Leave pin 24 unconnected; both devices take a GPIO chip select** | No device tree change, and it does not matter whether the hardware still toggles CS0, because nothing is listening on it. |
+
+So the panel's `CS` moves off pin 24:
+
+| Pin | Header | GPIO | Role |
+|---|---|---|---|
+| display `CS` | **26** | `PD14`, gpiochip0 line 110 | driven low around each frame |
+| `T_CS` | **16** | `PJ24`, gpiochip0 line 312 | driven low around each read |
+| `T_DO` | **21** | `PD13`, SPI1 MISO | the only line the panel ever talks back on |
+| `T_CLK` | 23 | shared with the display | |
+| `T_DIN` | 19 | shared with the display | |
+| `T_IRQ` | — | unconnected | |
+
+`T_IRQ` is deliberately left off. Contact is detected from the controller's own Z
+channels instead, which costs one extra SPI read per poll and saves a wire, a GPIO and
+an input-line code path.
+
+Two things that bite:
+
+- **The XPT2046 tops out near 2 MHz** while the panel runs at 32. A touch read at the
+  display's clock returns convincing nonsense rather than failing, so every touch
+  transfer overrides the bus clock for its own duration.
+- **Resistive panels are noisy.** Single samples land pixels away from the finger, so
+  reads are medianed, and the calibration is per-panel: run
+  `scripts/calibrate_touch.py` rather than trusting the defaults.
+
+Pins 27 and 28 are avoided throughout — they are the HAT ID EEPROM pair.
+
+## Superseded: the touch panel as originally left unused
 
 The 2.8" ILI9341 modules ship in two forms: 9-pin (display only) and 14-pin (display plus
 an XPT2046 resistive touch controller). The 14-pin board adds `T_CLK`, `T_CS`, `T_DIN`,

@@ -127,6 +127,44 @@ sleep_after_s = 120.0
 card_seconds = 6.0
 
 
+[touch]
+# The XPT2046 behind the panel glass. Off by default - the robot's interface is
+# its voice, and an uncalibrated touch layer reporting phantom presses is worse
+# than no touch at all.
+#
+# Four extra wires. T_CLK and T_DIN share the display's pins 23 and 19; T_DO
+# goes to pin 21 (SPI1 MISO); T_CS goes to pin 16. T_IRQ stays unconnected -
+# pressure is read from the controller's own Z channels instead.
+enabled = false
+
+# PJ24, header pin 16. 24 + 32 * 9, J being the tenth bank.
+cs_chip = "gpiochip0"
+cs_line = 312
+
+# The controller tops out near 2 MHz. Reading it at the panel's 32 MHz returns
+# convincing nonsense rather than an error.
+speed_hz = 2000000
+
+# Readings per axis, medianed. Resistive panels are noisy enough that one
+# sample lands pixels away from the finger.
+samples = 3
+
+# Calibration. Measure these with scripts/calibrate_touch.py - the usable range
+# of the resistive film varies panel to panel, and wrong numbers put every
+# press about a centimetre out.
+x_min = 300
+x_max = 3800
+y_min = 300
+y_max = 3800
+swap_xy = true
+invert_x = false
+invert_y = true
+
+# Below this, treat it as no contact. Too low and the panel's own noise floor
+# reads as phantom presses.
+pressure_threshold = 200
+
+
 [camera]
 # The eye. It captures ONE still when you ask it to look, and at no other
 # time - there is no background stream and no motion trigger. A microphone

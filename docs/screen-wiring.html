@@ -10,6 +10,7 @@
     --ok:#166b40; --ok-soft:#e3f2e9;
     --w-vcc:#d31f42; --w-gnd:#66727d; --w-led:#c07c00; --w-clk:#2a72d4;
     --w-mosi:#1a8f4d; --w-cs:#7c4ddb; --w-dc:#0a8f9c; --w-rst:#cb2c8e;
+    --w-tcs:#8a6a00; --w-tdo:#b0355f;
     --dg-board:#e2e8ec; --dg-glass:#2b363f; --dg-strip:#414d57;
     --dg-pinbg:#f7f9fa;
   }
@@ -22,6 +23,7 @@
       --ok:#4fc98a; --ok-soft:#14291f;
       --w-vcc:#ff6b81; --w-gnd:#9aa9b6; --w-led:#f0b54a; --w-clk:#6fb1ff;
       --w-mosi:#48d17f; --w-cs:#b79bff; --w-dc:#3ecfdb; --w-rst:#ff7ec9;
+      --w-tcs:#d9b64a; --w-tdo:#ff92b0;
       --dg-board:#232e36; --dg-glass:#080d11; --dg-strip:#38454f;
       --dg-pinbg:#101920;
     }
@@ -34,6 +36,7 @@
     --ok:#4fc98a; --ok-soft:#14291f;
     --w-vcc:#ff6b81; --w-gnd:#9aa9b6; --w-led:#f0b54a; --w-clk:#6fb1ff;
     --w-mosi:#48d17f; --w-cs:#b79bff; --w-dc:#3ecfdb; --w-rst:#ff7ec9;
+      --w-tcs:#d9b64a; --w-tdo:#ff92b0;
     --dg-board:#232e36; --dg-glass:#080d11; --dg-strip:#38454f;
     --dg-pinbg:#101920;
   }
@@ -97,6 +100,10 @@
   .p-vcc{stroke:var(--w-vcc)} .p-gnd{stroke:var(--w-gnd)} .p-led{stroke:var(--w-led)}
   .p-clk{stroke:var(--w-clk)} .p-mosi{stroke:var(--w-mosi)} .p-cs{stroke:var(--w-cs)}
   .p-dc{stroke:var(--w-dc)} .p-rst{stroke:var(--w-rst)}
+  .p-tcs{stroke:var(--w-tcs)} .p-tdo{stroke:var(--w-tdo)}
+  .sw-tcs{fill:var(--w-tcs)} .sw-tdo{fill:var(--w-tdo)}
+  .w-tcs{stroke:var(--w-tcs)} .w-tdo{stroke:var(--w-tdo)}
+  .dg-pin-empty{ stroke:var(--ink-soft); stroke-width:1.2; stroke-dasharray:2 2; opacity:.5; }
   .sw-vcc{fill:var(--w-vcc)} .sw-gnd{fill:var(--w-gnd)} .sw-led{fill:var(--w-led)}
   .sw-clk{fill:var(--w-clk)} .sw-mosi{fill:var(--w-mosi)} .sw-cs{fill:var(--w-cs)}
   .sw-dc{fill:var(--w-dc)} .sw-rst{fill:var(--w-rst)}
@@ -186,7 +193,7 @@
       pins on the Radxa board. The 40-pin strip has to be soldered on once first.
       After that, nothing is soldered and nothing is cut.</p>
     <div class="facts">
-      <span class="fact">14 screen pins, 8 wires</span>
+      <span class="fact">14 screen pins, 12 wires</span>
       <span class="fact">~20 minutes</span>
       <span class="fact">header soldered on once</span>
       <span class="fact">power OFF throughout</span>
@@ -220,7 +227,7 @@
       and say so before buying anything.</p>
 
     <h3>The other way &mdash; and why not to</h3>
-    <p>You could skip the header and solder the eight wires straight into the holes.
+    <p>You could skip the header and solder the twelve wires straight into the holes.
       That is what the robot in the video does, and it sits flatter inside the head.
       But it is permanent, each joint is harder to hold steady, and a mistake means
       melting it back out. <strong>Fit the header.</strong> Then every wire pulls off
@@ -257,36 +264,34 @@
     <figure>
       <div class="scroller">
         <svg class="wiring" viewBox="0 0 900 690" role="img"
-             aria-label="A fourteen-pin SPI screen module wired to the Radxa Cubie A7Z forty-pin header. Eight coloured wires: VCC to pin 1, GND to pin 6, CS to pin 24, RESET to pin 18, DC to pin 22, SDI MOSI to pin 19, SCK to pin 23, LED to pin 17. Six pins are left empty: SDO MISO and the five touch-panel pins T_CLK, T_CS, T_DIN, T_DO and T_IRQ. Pins 2 and 4 on the header are marked 5 volts and must not be used.">
+             aria-label="Twelve wires from a fourteen-pin SPI screen to the Radxa Cubie A7Z header. Display: VCC to pin 1, GND to 6, CS to 26, RESET to 18, DC to 22, SDI to 19, SCK to 23, LED to 17. Touch: T_CLK to 23 alongside SCK, T_CS to 16, T_DIN to 19 alongside SDI, T_DO to 21. SDO and T_IRQ are left unconnected, and header pin 24 is deliberately empty.">
 
           <text x="145" y="96" class="dg-head">Back of the screen</text>
           <text x="690" y="26" class="dg-head">Radxa Cubie A7Z &middot; 40-pin header</text>
-
           <text x="626" y="52" class="dg-call">pin 1 is the square pad</text>
           <path d="M632,56 L652,74" class="dg-callline"/>
 
           <rect x="40" y="110" width="210" height="500" rx="7" class="dg-board"/>
-          <rect x="52" y="126" width="170" height="340" rx="3" class="dg-glass"/>
+          <rect x="52" y="126" width="170" height="250" rx="3" class="dg-glass"/>
           <rect x="232" y="135" width="18" height="440" rx="3" class="dg-strip"/>
-
-          <path d="M52,382 H222" class="dg-divider"/>
-          <text x="137" y="400" class="dg-group">touch panel &mdash; not used</text>
+          <path d="M52,388 H222" class="dg-divider"/>
+          <text x="137" y="404" class="dg-group">touch controller</text>
 
           <rect x="636" y="66" width="108" height="587" rx="8" class="dg-board"/>
 
           <path d="M241,150 H390 C480,150 550,84 660,84" class="dg-wire w-vcc"/>
           <path d="M241,181 H390 C490,181 570,156.5 660,156.5 L720,142" class="dg-wire w-gnd"/>
-          <path d="M241,212 H390 C490,212 560,417.5 660,417.5 L720,403" class="dg-wire w-cs"/>
+          <path d="M241,212 H390 C500,212 560,446.5 660,446.5 L720,432" class="dg-wire w-cs"/>
           <path d="M241,243 H390 C490,243 570,301.5 660,301.5 L720,316" class="dg-wire w-rst"/>
           <path d="M241,274 H390 C490,274 570,359.5 660,359.5 L720,374" class="dg-wire w-dc"/>
           <path d="M241,305 H390 C490,305 570,345 660,345" class="dg-wire w-mosi"/>
           <path d="M241,336 H390 C490,336 570,403 660,403" class="dg-wire w-clk"/>
           <path d="M241,367 H390 C560,367 560,316 660,316" class="dg-wire w-led"/>
           <path d="M241,398 H302" class="dg-wire dg-wire-none"/>
-          <path d="M241,429 H302" class="dg-wire dg-wire-none"/>
-          <path d="M241,460 H302" class="dg-wire dg-wire-none"/>
-          <path d="M241,491 H302" class="dg-wire dg-wire-none"/>
-          <path d="M241,522 H302" class="dg-wire dg-wire-none"/>
+          <path d="M241,429 H390 C500,429 580,409 660,409" class="dg-wire w-clk"/>
+          <path d="M241,460 H390 C500,460 560,272.5 660,272.5 L720,287" class="dg-wire w-tcs"/>
+          <path d="M241,491 H390 C500,491 580,351 660,351" class="dg-wire w-mosi"/>
+          <path d="M241,522 H390 C500,522 580,374 660,374" class="dg-wire w-tdo"/>
           <path d="M241,553 H302" class="dg-wire dg-wire-none"/>
 
           <rect x="651.5" y="75.5" width="17" height="17" rx="2.5" class="dg-pin dg-pin-used p-vcc"/>
@@ -319,8 +324,8 @@
           <text x="720" y="261.2" class="dg-num">14</text>
           <circle cx="660" cy="287" r="8.5" class="dg-pin"/>
           <text x="660" y="290.2" class="dg-num">15</text>
-          <circle cx="720" cy="287" r="8.5" class="dg-pin"/>
-          <text x="720" y="290.2" class="dg-num">16</text>
+          <circle cx="720" cy="287" r="8.5" class="dg-pin dg-pin-used p-tcs"/>
+          <text x="720" y="290.2" class="dg-num dg-num-used">16</text>
           <circle cx="660" cy="316" r="8.5" class="dg-pin dg-pin-used p-led"/>
           <text x="660" y="319.2" class="dg-num dg-num-used">17</text>
           <circle cx="720" cy="316" r="8.5" class="dg-pin dg-pin-used p-rst"/>
@@ -329,18 +334,18 @@
           <text x="660" y="348.2" class="dg-num dg-num-used">19</text>
           <circle cx="720" cy="345" r="8.5" class="dg-pin"/>
           <text x="720" y="348.2" class="dg-num">20</text>
-          <circle cx="660" cy="374" r="8.5" class="dg-pin"/>
-          <text x="660" y="377.2" class="dg-num">21</text>
+          <circle cx="660" cy="374" r="8.5" class="dg-pin dg-pin-used p-tdo"/>
+          <text x="660" y="377.2" class="dg-num dg-num-used">21</text>
           <circle cx="720" cy="374" r="8.5" class="dg-pin dg-pin-used p-dc"/>
           <text x="720" y="377.2" class="dg-num dg-num-used">22</text>
           <circle cx="660" cy="403" r="8.5" class="dg-pin dg-pin-used p-clk"/>
           <text x="660" y="406.2" class="dg-num dg-num-used">23</text>
-          <circle cx="720" cy="403" r="8.5" class="dg-pin dg-pin-used p-cs"/>
-          <text x="720" y="406.2" class="dg-num dg-num-used">24</text>
+          <circle cx="720" cy="403" r="8.5" class="dg-pin dg-pin-empty"/>
+          <text x="720" y="406.2" class="dg-num">24</text>
           <circle cx="660" cy="432" r="8.5" class="dg-pin"/>
           <text x="660" y="435.2" class="dg-num">25</text>
-          <circle cx="720" cy="432" r="8.5" class="dg-pin"/>
-          <text x="720" y="435.2" class="dg-num">26</text>
+          <circle cx="720" cy="432" r="8.5" class="dg-pin dg-pin-used p-cs"/>
+          <text x="720" y="435.2" class="dg-num dg-num-used">26</text>
           <circle cx="660" cy="461" r="8.5" class="dg-pin"/>
           <text x="660" y="464.2" class="dg-num">27</text>
           <circle cx="720" cy="461" r="8.5" class="dg-pin"/>
@@ -387,17 +392,17 @@
 
           <text x="258" y="140" class="dg-label"><tspan class="dg-name">VCC</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 1</tspan></text>
           <text x="258" y="171" class="dg-label"><tspan class="dg-name">GND</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 6</tspan></text>
-          <text x="258" y="202" class="dg-label"><tspan class="dg-name">CS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 24</tspan></text>
+          <text x="258" y="202" class="dg-label"><tspan class="dg-name">CS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 26</tspan></text>
           <text x="258" y="233" class="dg-label"><tspan class="dg-name">RESET</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 18</tspan></text>
           <text x="258" y="264" class="dg-label"><tspan class="dg-name">DC / RS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 22</tspan></text>
           <text x="258" y="295" class="dg-label"><tspan class="dg-name">SDI (MOSI)</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 19</tspan></text>
           <text x="258" y="326" class="dg-label"><tspan class="dg-name">SCK</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 23</tspan></text>
           <text x="258" y="357" class="dg-label"><tspan class="dg-name">LED</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 17</tspan></text>
           <text x="258" y="388" class="dg-label dg-label-none">SDO (MISO) — leave empty</text>
-          <text x="258" y="419" class="dg-label dg-label-none">T_CLK — leave empty</text>
-          <text x="258" y="450" class="dg-label dg-label-none">T_CS — leave empty</text>
-          <text x="258" y="481" class="dg-label dg-label-none">T_DIN — leave empty</text>
-          <text x="258" y="512" class="dg-label dg-label-none">T_DO — leave empty</text>
+          <text x="258" y="419" class="dg-label"><tspan class="dg-name">T_CLK</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 23</tspan></text>
+          <text x="258" y="450" class="dg-label"><tspan class="dg-name">T_CS</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 16</tspan></text>
+          <text x="258" y="481" class="dg-label"><tspan class="dg-name">T_DIN</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 19</tspan></text>
+          <text x="258" y="512" class="dg-label"><tspan class="dg-name">T_DO</tspan><tspan class="dg-arrow"> → </tspan><tspan class="dg-target">pin 21</tspan></text>
           <text x="258" y="543" class="dg-label dg-label-none">T_IRQ — leave empty</text>
 
           <rect x="754" y="81.0" width="8" height="8" rx="1.5" class="sw-vcc"/>
@@ -405,22 +410,27 @@
           <text x="754" y="117" class="dg-func dg-func-danger">5 V — not for the screen</text>
           <rect x="754" y="139.0" width="8" height="8" rx="1.5" class="sw-gnd"/>
           <text x="768" y="146" class="dg-func">Ground</text>
+          <rect x="754" y="284.0" width="8" height="8" rx="1.5" class="sw-tcs"/>
+          <text x="768" y="291" class="dg-func">PJ24</text>
           <rect x="754" y="303.0" width="8" height="8" rx="1.5" class="sw-led"/>
           <text x="768" y="310" class="dg-func">3.3 V</text>
           <rect x="754" y="316.0" width="8" height="8" rx="1.5" class="sw-rst"/>
           <text x="768" y="323" class="dg-func">PJ25</text>
           <rect x="754" y="342.0" width="8" height="8" rx="1.5" class="sw-mosi"/>
           <text x="768" y="349" class="dg-func">SPI1 MOSI</text>
-          <rect x="754" y="371.0" width="8" height="8" rx="1.5" class="sw-dc"/>
-          <text x="768" y="378" class="dg-func">PL5</text>
-          <rect x="754" y="390.0" width="8" height="8" rx="1.5" class="sw-clk"/>
-          <text x="768" y="397" class="dg-func">SPI1 CLK</text>
-          <rect x="754" y="403.0" width="8" height="8" rx="1.5" class="sw-cs"/>
-          <text x="768" y="410" class="dg-func">SPI1 CS0</text>
+          <rect x="754" y="371.0" width="8" height="8" rx="1.5" class="sw-tdo"/>
+          <text x="768" y="378" class="dg-func">SPI1 MISO</text>
+          <rect x="754" y="375.0" width="8" height="8" rx="1.5" class="sw-dc"/>
+          <text x="768" y="382" class="dg-func">PL5</text>
+          <rect x="754" y="400.0" width="8" height="8" rx="1.5" class="sw-clk"/>
+          <text x="768" y="407" class="dg-func">SPI1 CLK</text>
+          <rect x="754" y="429.0" width="8" height="8" rx="1.5" class="sw-cs"/>
+          <text x="768" y="436" class="dg-func">PD14</text>
         </svg>
       </div>
-      <figcaption>Your screen has fourteen pins. Only the top eight get a wire; the bottom
-        six stay bare. The forty circles are your board&rsquo;s holes &mdash; and, once the
+      <figcaption>Twelve of the fourteen pins get a wire. Only
+        <span class="mono">SDO</span> and <span class="mono">T_IRQ</span> stay bare, and
+        header pin 24 is deliberately left empty. The forty circles are your board&rsquo;s holes &mdash; and, once the
         header is soldered in, the forty pins standing in them. The numbering is the same
         either way. Wire colours here are only so you can follow one line with your eye;
         the real colour of the wire makes no difference. The ninth screen pin,
@@ -483,7 +493,7 @@
           <tr>
             <td><span class="chip sw-cs"></span><span class="mono">CS</span>
                 <span class="alt">also printed CE</span></td>
-            <td class="pinno">pin 24</td>
+            <td class="pinno">pin 26</td>
             <td>Wakes the screen up to listen</td>
           </tr>
           <tr>
@@ -492,30 +502,30 @@
             <td class="pinno" style="opacity:.6">&mdash;</td>
             <td>Leave it empty. We never read from the screen</td>
           </tr>
-          <tr class="unused">
+          <tr>
             <td><span class="mono">T_CLK</span><span class="alt">touch</span></td>
-            <td class="pinno">&mdash;</td>
-            <td>Touch panel. Leave empty</td>
+            <td class="pinno">pin 23</td>
+            <td>Shares the clock with <span class="mono">SCK</span></td>
           </tr>
-          <tr class="unused">
+          <tr>
             <td><span class="mono">T_CS</span><span class="alt">touch</span></td>
-            <td class="pinno">&mdash;</td>
-            <td>Touch panel. Leave empty</td>
+            <td class="pinno">pin 16</td>
+            <td>Its own chip select — SPI1 has only one in hardware</td>
           </tr>
-          <tr class="unused">
+          <tr>
             <td><span class="mono">T_DIN</span><span class="alt">touch</span></td>
-            <td class="pinno">&mdash;</td>
-            <td>Touch panel. Leave empty</td>
+            <td class="pinno">pin 19</td>
+            <td>Shares the data line with <span class="mono">SDI</span></td>
           </tr>
-          <tr class="unused">
+          <tr>
             <td><span class="mono">T_DO</span><span class="alt">touch</span></td>
-            <td class="pinno">&mdash;</td>
-            <td>Touch panel. Leave empty</td>
+            <td class="pinno">pin 21</td>
+            <td>SPI1 MISO. The only line the screen talks back on</td>
           </tr>
           <tr class="unused">
             <td><span class="mono">T_IRQ</span><span class="alt">touch</span></td>
-            <td class="pinno">&mdash;</td>
-            <td>Touch panel. Leave empty</td>
+            <td class="pinno">—</td>
+            <td>Not used. Contact is read from the pressure channels</td>
           </tr>
         </tbody>
       </table>
@@ -523,50 +533,38 @@
   </section>
 
   <section>
-    <h2>The five <span class="mono">T_</span> pins &mdash; and why they stay empty</h2>
-    <p>Your screen has two chips on it, not one. The top chip draws the picture. The
-      second one, underneath, reads a finger press through a thin clear film over the
-      glass. It is a separate chip with its own five pins, all starting with
-      <span class="mono">T_</span> for touch.</p>
+    <h2>Two wires on one pin</h2>
+    <p>The touch controller is a second chip on the same board, sharing the screen's SPI
+      bus. Three of its four wires go to pins that already have a screen wire on them:</p>
     <div class="note">
-      <strong>Leave all five empty.</strong>
-      <p>The screen is going inside WALL&middot;E&rsquo;s head, behind the eyes. Nobody is
-        going to poke him in the eye to give him an order &mdash; that is what the
-        microphone is for. Wiring touch costs five more wires, a second chip to set up in
-        software, and memory this board does not have to spare.</p>
+      <strong>Pins 19 and 23 take two wires each.</strong>
+      <p><span class="mono">SDI</span> and <span class="mono">T_DIN</span> both land on
+        pin&nbsp;19; <span class="mono">SCK</span> and <span class="mono">T_CLK</span> both
+        land on pin&nbsp;23. That is correct &mdash; a bus is meant to be shared. But only
+        one jumper socket fits on a pin, so crimp both wires into one connector or join them
+        just behind it.</p>
     </div>
-    <p>Nothing bad happens by leaving them bare. The touch chip simply sits there unused.
-      It cannot interfere with the picture, because the one wire it would speak back on
-      (<span class="mono">T_DO</span>) is not connected to anything either.</p>
+    <p>The two that are not shared are <span class="mono">T_DO</span> on pin&nbsp;21, which
+      is how the panel reports where you touched, and <span class="mono">T_CS</span> on
+      pin&nbsp;16, which wakes the touch chip on its own.</p>
 
-    <h3>If you ever do want touch</h3>
-    <p>It shares the same three data wires as the screen and needs two of its own. You do
-      not need to rewire anything that is already on &mdash; you only add:</p>
-    <div class="tablewrap">
-      <table>
-        <thead>
-          <tr><th>Touch pin</th><th>Goes to</th><th>Why that one</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><span class="mono">T_CLK</span></td><td class="pinno">pin 23</td>
-              <td>Same clock the screen already uses &mdash; two wires on one pin</td></tr>
-          <tr><td><span class="mono">T_DIN</span></td><td class="pinno">pin 19</td>
-              <td>Same data line out &mdash; two wires on one pin</td></tr>
-          <tr><td><span class="mono">T_DO</span></td><td class="pinno">pin 21</td>
-              <td><span class="mono">PD13</span>, the SPI1 read-back line. New wire</td></tr>
-          <tr><td><span class="mono">T_CS</span></td><td class="pinno">pin 26</td>
-              <td><span class="mono">PD14</span>, a free pin, to wake the touch chip on its own</td></tr>
-          <tr><td><span class="mono">T_IRQ</span></td><td class="pinno">pin 16</td>
-              <td><span class="mono">PJ24</span>, a free pin, so it can say &ldquo;pressed&rdquo;</td></tr>
-        </tbody>
-      </table>
+    <h3>Why the screen's <span class="mono">CS</span> moved to pin 26</h3>
+    <p>SPI1 brings out exactly one hardware chip select, on pin&nbsp;24, and there are now
+      two devices on the bus. Every touch read would have pulled pin&nbsp;24 low and the
+      screen would have swallowed the touch traffic as commands.</p>
+    <div class="note stop">
+      <strong>Leave pin 24 empty.</strong>
+      <p>Both devices take an ordinary GPIO as their chip select instead &mdash; the screen
+        on 26, the touch chip on 16 &mdash; and the hardware is free to toggle pin&nbsp;24
+        into thin air, because nothing is listening on it. That is what makes this work
+        without a custom device tree.</p>
     </div>
-    <p class="aside">Pins 21, 26 and 16 are all free in this build. Pins 27 and 28 look free
-      too, but they are reserved for add-on board identification, so this avoids them.
-      <span class="mono">T_CS</span> and <span class="mono">T_IRQ</span> are ordinary pins,
-      not special ones &mdash; any free pin works if the software is told which.</p>
-    <p class="aside">This is untested. Nothing in this build has run on real hardware yet,
-      and the touch chip is not set up anywhere in the software.</p>
+    <p class="aside"><span class="mono">T_IRQ</span> stays unconnected. Contact is detected
+      from the controller's own pressure channels instead, which saves a wire, a GPIO, and a
+      whole input-line code path.</p>
+    <p class="aside">The touch layer ships disabled. Run
+      <span class="mono">scripts/calibrate_touch.py</span> and set
+      <span class="mono">[touch] enabled = true</span> once the screen itself works.</p>
   </section>
 
   <section>
@@ -610,9 +608,9 @@
       <li><div><b>Then the other six, one at a time.</b>
         <small>Work down the list above and tick each one off. Finish a wire completely
           before picking up the next one. This is where mistakes happen.</small></div></li>
-      <li><div><b>Leave the bottom six screen pins empty.</b>
-        <small>Fourteen pins, eight wires. <span class="mono">SDO</span> and the five
-          <span class="mono">T_</span> pins get nothing. That is correct, not a
+      <li><div><b>Leave two screen pins empty.</b>
+        <small>Fourteen pins, twelve wires. Only <span class="mono">SDO</span> and
+          <span class="mono">T_IRQ</span> get nothing. That is correct, not a
           mistake.</small></div></li>
       <li><div><b>Count everything again.</b>
         <small>Go back to pin 1 and count along the board for each wire. Two minutes now
@@ -630,8 +628,11 @@
       <li>No wire is on pin&nbsp;2 or pin&nbsp;4.</li>
       <li>Every socket is pushed fully down &mdash; no metal pin still showing.</li>
       <li>No two wires share a pin.</li>
-      <li>Six screen pins are empty &mdash; <span class="mono">SDO</span> and all five
-        <span class="mono">T_</span> pins.</li>
+      <li>Exactly two screen pins are empty &mdash; <span class="mono">SDO</span> and
+        <span class="mono">T_IRQ</span>.</li>
+      <li>Header pin 24 has nothing on it, and the screen's
+        <span class="mono">CS</span> is on 26.</li>
+      <li>Pins 19 and 23 each carry two wires, seated in one socket.</li>
       <li>No loose wire is touching the metal of the board.</li>
     </ul>
   </section>

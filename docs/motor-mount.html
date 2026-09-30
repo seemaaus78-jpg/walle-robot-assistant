@@ -1,0 +1,235 @@
+<title>Motor to Track Coupling</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root{
+    --ground:#eceff2; --surface:#ffffff; --surface-2:#f5f7f9;
+    --ink:#151d24; --ink-soft:#5a6873; --rule:#ccd5dc; --rule-soft:#e0e6ea;
+    --accent:#a4500c; --accent-soft:#f4e6d8;
+    --danger:#b02222; --danger-soft:#fae9e9; --ok:#166b40; --ok-soft:#e3f2e9;
+    --brass:#9a7413; --steel:#6b7a88; --gear:#b8891f; --copper:#b5561c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
+      --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
+      --accent:#e0914f; --accent-soft:#33261b;
+      --danger:#ff8080; --danger-soft:#331a1b; --ok:#4fc98a; --ok-soft:#14291f;
+      --brass:#d8ab3c; --steel:#9fb0bd; --gear:#e5b845; --copper:#e8875a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
+    --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
+    --accent:#e0914f; --accent-soft:#33261b;
+    --danger:#ff8080; --danger-soft:#331a1b; --ok:#4fc98a; --ok-soft:#14291f;
+    --brass:#d8ab3c; --steel:#9fb0bd; --gear:#e5b845; --copper:#e8875a;
+  }
+  body{ background:var(--ground); color:var(--ink);
+    font-family:"Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size:17px; line-height:1.6; }
+  .wrap{ max-width:820px; margin:0 auto; padding-inline:20px; padding-block:40px 72px; }
+  h1,h2,h3{ font-family:"Archivo", ui-sans-serif, system-ui, sans-serif; text-wrap:balance; margin:0; }
+  h1{ font-size:clamp(30px,6vw,42px); font-weight:700; letter-spacing:-.022em; line-height:1.1; }
+  h2{ font-size:22px; font-weight:600; letter-spacing:-.012em; }
+  p{ margin:0; max-width:62ch; }
+  .eyebrow{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0; }
+  .lede{ font-size:19px; color:var(--ink-soft); }
+  header.top{ display:flex; flex-direction:column; gap:12px; padding-bottom:28px; border-bottom:1px solid var(--rule); }
+  section{ display:flex; flex-direction:column; gap:14px; padding-block:34px; border-bottom:1px solid var(--rule-soft); }
+  section:last-of-type{ border-bottom:0; }
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft);
+    padding:14px 16px; border-radius:0 6px 6px 0; display:flex; flex-direction:column; gap:6px; }
+  .note.stop{ border-left-color:var(--danger); background:var(--danger-soft); }
+  .note.good{ border-left-color:var(--ok); background:var(--ok-soft); }
+  .note strong{ font-family:"Archivo",sans-serif; font-weight:600; }
+  figure{ margin:0; display:flex; flex-direction:column; gap:10px; }
+  .scroller{ overflow-x:auto; background:var(--surface); border:1px solid var(--rule);
+    border-radius:8px; padding:10px; }
+  .plan{ display:block; width:100%; min-width:640px; height:auto; }
+  figcaption{ font-size:14px; color:var(--ink-soft); max-width:62ch; }
+  .can{ fill:var(--steel); fill-opacity:.25; stroke:var(--steel); stroke-width:1.1; }
+  .gbox{ fill:var(--gear); fill-opacity:.3; stroke:var(--gear); stroke-width:1.1; }
+  .shaft{ fill:none; stroke:var(--steel); stroke-width:2.6; stroke-linecap:round; }
+  .shaftghost{ fill:none; stroke:var(--steel); stroke-width:1; stroke-dasharray:3 3; opacity:.65; }
+  .brassrod{ fill:var(--brass); fill-opacity:.3; stroke:var(--brass); stroke-width:1.2; }
+  .plate{ fill:var(--steel); fill-opacity:.18; stroke:var(--steel); stroke-width:1.2; }
+  .sprk{ fill:var(--surface); stroke:var(--ink); stroke-width:1.3; }
+  .chain{ fill:none; stroke:var(--ink); stroke-width:2.2; stroke-dasharray:3.2 2.4; }
+  .cu{ fill:none; stroke:var(--copper); stroke-width:1.6; }
+  .lead{ stroke:var(--ink-soft); stroke-width:.55; fill:none; }
+  .lb{ font-family:"Source Sans 3",sans-serif; font-size:4.6px; fill:var(--ink); }
+  .lbs{ font-family:"Source Sans 3",sans-serif; font-size:4.1px; fill:var(--ink-soft); }
+  .num{ font-family:"JetBrains Mono",monospace; font-size:5px; font-weight:600; fill:var(--accent); }
+  .hd{ font-family:"Archivo",sans-serif; font-size:5.6px; font-weight:600; fill:var(--ink); }
+  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface); }
+  table{ border-collapse:collapse; width:100%; font-size:15px; }
+  th,td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule-soft); vertical-align:top; }
+  thead th{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink-soft); background:var(--surface-2);
+    border-bottom:1px solid var(--rule); white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:0; }
+  .mono{ font-family:"JetBrains Mono",monospace; font-size:13.5px; }
+  ol.steps{ list-style:none; margin:0; padding:0; counter-reset:step;
+    border:1px solid var(--rule); border-radius:8px; background:var(--surface);
+    overflow:hidden; display:flex; flex-direction:column; }
+  ol.steps li{ counter-increment:step; display:grid; grid-template-columns:44px 1fr;
+    gap:14px; padding:15px 16px; border-bottom:1px solid var(--rule-soft); align-items:start; }
+  ol.steps li:last-child{ border-bottom:0; }
+  ol.steps li::before{ content:counter(step); font-family:"JetBrains Mono",monospace;
+    font-size:13px; font-weight:600; color:var(--accent); background:var(--accent-soft);
+    width:28px; height:28px; border-radius:50%; display:grid; place-items:center; }
+  ol.steps li > div{ display:flex; flex-direction:column; gap:4px; }
+  ol.steps b{ font-family:"Archivo",sans-serif; font-weight:600; }
+  ol.steps small{ color:var(--ink-soft); font-size:14px; line-height:1.5; }
+  footer{ margin-top:40px; padding-top:22px; border-top:1px solid var(--rule);
+    font-size:14px; color:var(--ink-soft); display:flex; flex-direction:column; gap:6px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">WALL&middot;E build &mdash; the drive</p>
+    <h1>Motor into track</h1>
+    <p class="lede">Your track is already a working assembly: two sprockets screwed to a
+      steel arm, spinning on those screws as axles. Driving it means replacing one screw
+      with a motor shaft &mdash; and making the sprocket grip that shaft, which is the
+      whole difficulty.</p>
+  </header>
+
+  <section>
+    <h2>Exploded along the shaft</h2>
+    <figure>
+      <div class="scroller">
+        <svg class="plan" viewBox="0 0 250 150" role="img"
+             aria-label="Exploded assembly drawing: the N20 gearmotor on the left with its can and gearbox, copper wire lashing the gearbox to a vertical brass frame rail, the D-shaft passing through a clearance hole in the rail, then through the track's steel arm plate, and into the centre of the large drive sprocket which the chain wraps. A detail circle shows the D-shaped shaft seated in the sprocket bore with epoxy keyed against the flat.">
+          <text x="10" y="10" class="hd">EXPLODED ALONG THE SHAFT AXIS &mdash; motor left, track right</text>
+
+          <path d="M28,66 H232" class="shaftghost"/>
+
+          <rect x="26" y="54" width="34" height="24" rx="3" class="can"/>
+          <ellipse cx="26" cy="66" rx="3.4" ry="12" class="can"/>
+          <text x="43" y="49" class="lb" text-anchor="middle">motor can</text>
+          <text x="43" y="87" class="lbs" text-anchor="middle">solder the two leads here</text>
+
+          <rect x="60" y="51" width="17" height="30" rx="2" class="gbox"/>
+          <text x="68" y="46" class="lb" text-anchor="middle">gearbox</text>
+          <circle cx="64" cy="55" r="1.5" class="gbox"/>
+          <circle cx="73" cy="55" r="1.5" class="gbox"/>
+          <text x="68" y="95" class="lbs" text-anchor="middle">two mounting holes</text>
+
+          <path d="M64,55 C58,34 92,34 86,52" class="cu"/>
+          <path d="M73,55 C70,40 96,40 90,52" class="cu"/>
+          <text x="96" y="34" class="lb" style="fill:var(--copper)">1 mm copper, lashed</text>
+          <text x="96" y="40" class="lbs">through both holes, round the rail, soldered</text>
+
+          <rect x="104" y="18" width="5" height="96" rx="2" class="brassrod"/>
+          <text x="106" y="14" class="lb" text-anchor="middle">brass frame rail</text>
+          <circle cx="106.5" cy="66" r="4.4" fill="var(--ground)" stroke="var(--brass)" stroke-width="1"/>
+          <text x="118" y="112" class="lbs">clearance hole &mdash; shaft must spin free here</text>
+          <path d="M116,109 L108,70" class="lead"/>
+
+          <path d="M77,66 H150" class="shaft"/>
+          <text x="92" y="74" class="lbs">D-shaft</text>
+
+          <rect x="126" y="60" width="78" height="12" rx="6" class="plate"/>
+          <text x="165" y="57" class="lb" text-anchor="middle">steel arm plate (keep it, it sets the spacing)</text>
+
+          <circle cx="150" cy="66" r="20" class="sprk"/>
+          <circle cx="150" cy="66" r="4.6" fill="var(--ground)" stroke="var(--ink)" stroke-width="1"/>
+          <text x="150" y="98" class="lb" text-anchor="middle">drive sprocket</text>
+          <text x="150" y="104" class="lbs" text-anchor="middle">its screw comes out</text>
+
+          <circle cx="204" cy="66" r="13" class="sprk"/>
+          <circle cx="204" cy="66" r="2.6" fill="var(--ground)" stroke="var(--ink)" stroke-width="1"/>
+          <text x="204" y="94" class="lb" text-anchor="middle">idler</text>
+          <text x="204" y="100" class="lbs" text-anchor="middle">screw stays, must spin</text>
+
+          <path d="M150,44 H204 M150,88 H204" class="chain"/>
+          <path d="M130,66 A20,20 0 0 1 150,46" class="chain"/>
+          <path d="M130,66 A20,20 0 0 0 150,86" class="chain"/>
+          <path d="M217,66 A13,13 0 0 0 204,53" class="chain"/>
+          <path d="M217,66 A13,13 0 0 1 204,79" class="chain"/>
+          <text x="177" y="40" class="lbs" text-anchor="middle">chain</text>
+
+          <circle cx="40" cy="126" r="17" fill="var(--surface)" stroke="var(--rule)" stroke-width="1"/>
+          <circle cx="40" cy="126" r="11" fill="none" stroke="var(--ink)" stroke-width="1.2"/>
+          <path d="M45,120.5 A7.4,7.4 0 1 1 45,131.5 Z" fill="var(--steel)" fill-opacity=".5"
+                stroke="var(--steel)" stroke-width="1"/>
+          <text x="63" y="120" class="lb">the coupling</text>
+          <text x="63" y="126" class="lbs">flat on the shaft gives the epoxy</text>
+          <text x="63" y="132" class="lbs">something to key against &mdash; a round</text>
+          <text x="63" y="138" class="lbs">shaft in a round hole always spins free</text>
+        </svg>
+      </div>
+      <figcaption>Left to right along one axis: motor, copper lashing to the frame rail,
+        the shaft through a clearance hole, through the arm plate, into the drive sprocket.
+        The idler keeps its original screw. Inset shows why the flat on the shaft matters.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Making the sprocket grip</h2>
+    <p>This is the part that fails. The sprocket's bore is sized for a screw, the shaft is
+      a 3&nbsp;mm D. Four ways to join them:</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Method</th><th>Holds?</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><strong>N20 hex coupler</strong><br><span class="lbs">grub screw onto the flat</span></td>
+              <td><strong>Best</strong></td>
+              <td>Sold for exactly this, pennies. Grub screw bites the flat; glue the coupler face to the sprocket. Removable.</td></tr>
+          <tr><td><strong>Drill to 3 mm + epoxy</strong></td><td>Good</td>
+              <td>Open the bore to 3&nbsp;mm, seat the shaft so the <em>flat faces into the epoxy</em>. Cures overnight. Permanent.</td></tr>
+          <tr><td><strong>Press fit alone</strong></td><td class="mono">No</td>
+              <td>Slips the first time the robot meets a carpet edge.</td></tr>
+          <tr><td><strong>Solder the shaft in</strong></td><td class="mono">No</td>
+              <td>Sprockets are hardened steel; the heat needed will ruin the gearbox behind it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note stop">
+      <strong>Never glue with the shaft's flat hidden.</strong>
+      <p>A round shaft in a round hole is held only by friction, and epoxy in shear on a
+        smooth cylinder peels. Rotate the shaft so the flat sits where the glue is thickest
+        &mdash; that turns a friction joint into a mechanical key.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Order of work</h2>
+    <ol class="steps">
+      <li><div><b>Take the screw out of the big sprocket only.</b>
+        <small>Leave the idler's screw alone &mdash; it is that sprocket's axle and it has
+          to keep spinning.</small></div></li>
+      <li><div><b>Check the bore against the shaft.</b>
+        <small>N20 shafts are 3&nbsp;mm. If the sprocket's hole is smaller, open it with a
+          3&nbsp;mm bit, slowly, with the sprocket clamped.</small></div></li>
+      <li><div><b>Drill the frame rail for clearance.</b>
+        <small>Slightly larger than 3&nbsp;mm. The shaft spins inside this hole &mdash; it
+          is a bearing, not a grip. Anything tight here and the motor stalls.</small></div></li>
+      <li><div><b>Lash the gearbox to the rail with copper.</b>
+        <small>Through both mounting holes, around the rail, soldered. The motor must not
+          be able to twist &mdash; all its torque tries to rotate the body instead of the
+          track.</small></div></li>
+      <li><div><b>Couple the shaft, then leave it overnight.</b>
+        <small>Grub screw onto the flat, or epoxy keyed against it. Do not test it early;
+          half-cured epoxy fails and you start again.</small></div></li>
+      <li><div><b>Spin it by hand before any power.</b>
+        <small>The chain should move with light finger pressure. Stiff means the idler is
+          binding or the clearance hole is too tight. Fix it now, not after both sides are
+          built.</small></div></li>
+    </ol>
+    <div class="note good">
+      <strong>Both drive sprockets at the same height.</strong>
+      <p>Measure from the bottom rail to the shaft centre on each side before committing.
+        Two millimetres of difference makes the robot lean and one track slip.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Drawn from the track assembly and N20 gearmotor photographed on this build. The
+      arm plate, screw-as-axle arrangement and sprocket sizes are as supplied.</p>
+    <p>An assembly drawing, not a rendering, and nothing here has been built.</p>
+  </footer>
+</div>

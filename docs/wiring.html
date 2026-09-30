@@ -1,0 +1,280 @@
+<title>WALL&middot;E Wiring Sheet</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root{
+    --ground:#eceff2; --surface:#ffffff; --surface-2:#f5f7f9;
+    --ink:#151d24; --ink-soft:#5a6873; --rule:#ccd5dc; --rule-soft:#e0e6ea;
+    --accent:#a4500c; --accent-soft:#f4e6d8;
+    --danger:#b02222; --danger-soft:#fae9e9; --ok:#166b40; --ok-soft:#e3f2e9;
+    --pwr:#d3312f; --gnd:#5a6873; --spi:#2a72d4; --i2s:#1a8f4d; --mot:#8b45c7; --ser:#b8791f;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
+      --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
+      --accent:#e0914f; --accent-soft:#33261b;
+      --danger:#ff8080; --danger-soft:#331a1b; --ok:#4fc98a; --ok-soft:#14291f;
+      --pwr:#ff6b6b; --gnd:#93a3ad; --spi:#6fb1ff; --i2s:#48d17f; --mot:#c49bff; --ser:#e8bb55;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
+    --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
+    --accent:#e0914f; --accent-soft:#33261b;
+    --danger:#ff8080; --danger-soft:#331a1b; --ok:#4fc98a; --ok-soft:#14291f;
+    --pwr:#ff6b6b; --gnd:#93a3ad; --spi:#6fb1ff; --i2s:#48d17f; --mot:#c49bff; --ser:#e8bb55;
+  }
+  body{ background:var(--ground); color:var(--ink);
+    font-family:"Source Sans 3", ui-sans-serif, system-ui, sans-serif; font-size:17px; line-height:1.6; }
+  .wrap{ max-width:860px; margin:0 auto; padding-inline:20px; padding-block:40px 72px; }
+  h1,h2,h3{ font-family:"Archivo",sans-serif; text-wrap:balance; margin:0; }
+  h1{ font-size:clamp(30px,6vw,42px); font-weight:700; letter-spacing:-.022em; line-height:1.1; }
+  h2{ font-size:22px; font-weight:600; letter-spacing:-.012em; }
+  h3{ font-size:16px; font-weight:600; }
+  p{ margin:0; max-width:64ch; }
+  .eyebrow{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0; }
+  .lede{ font-size:19px; color:var(--ink-soft); }
+  header.top{ display:flex; flex-direction:column; gap:12px; padding-bottom:28px; border-bottom:1px solid var(--rule); }
+  section{ display:flex; flex-direction:column; gap:14px; padding-block:34px; border-bottom:1px solid var(--rule-soft); }
+  section:last-of-type{ border-bottom:0; }
+  .note{ border-left:3px solid var(--accent); background:var(--accent-soft); padding:14px 16px;
+    border-radius:0 6px 6px 0; display:flex; flex-direction:column; gap:6px; }
+  .note.stop{ border-left-color:var(--danger); background:var(--danger-soft); }
+  .note.good{ border-left-color:var(--ok); background:var(--ok-soft); }
+  .note strong{ font-family:"Archivo",sans-serif; font-weight:600; }
+  figure{ margin:0; display:flex; flex-direction:column; gap:10px; }
+  .scroller{ overflow-x:auto; background:var(--surface); border:1px solid var(--rule); border-radius:8px; padding:10px; }
+  .plan{ display:block; width:100%; min-width:660px; height:auto; }
+  figcaption{ font-size:14px; color:var(--ink-soft); max-width:64ch; }
+  .box{ fill:var(--surface-2); stroke:var(--ink-soft); stroke-width:1.1; }
+  .boxb{ fill:var(--surface-2); stroke:var(--accent); stroke-width:1.6; }
+  .w{ fill:none; stroke-width:1.7; stroke-linecap:round; }
+  .wp{ stroke:var(--pwr); } .wg{ stroke:var(--gnd); stroke-dasharray:3 2.4; }
+  .ws{ stroke:var(--spi); } .wi{ stroke:var(--i2s); } .wm{ stroke:var(--mot); }
+  .lb{ font-family:"Source Sans 3",sans-serif; font-size:4.8px; fill:var(--ink); text-anchor:middle; }
+  .lbs{ font-family:"JetBrains Mono",monospace; font-size:4px; fill:var(--ink-soft); text-anchor:middle; }
+  .hd{ font-family:"Archivo",sans-serif; font-size:5.6px; font-weight:600; fill:var(--ink); }
+  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface); }
+  table{ border-collapse:collapse; width:100%; font-size:14.5px; }
+  th,td{ text-align:left; padding:9px 12px; border-bottom:1px solid var(--rule-soft); vertical-align:top; }
+  thead th{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--ink-soft); background:var(--surface-2);
+    border-bottom:1px solid var(--rule); white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:0; }
+  .pin{ font-family:"JetBrains Mono",monospace; font-weight:600; font-size:15px;
+    font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .mono{ font-family:"JetBrains Mono",monospace; font-size:13px; }
+  .tag{ display:inline-block; font-family:"Archivo",sans-serif; font-size:10px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; padding:2px 7px; border-radius:99px; color:#fff; }
+  .t-pwr{background:var(--pwr)} .t-gnd{background:var(--gnd)} .t-spi{background:var(--spi)}
+  .t-i2s{background:var(--i2s)} .t-mot{background:var(--mot)} .t-ser{background:var(--ser)}
+  ol.steps{ list-style:none; margin:0; padding:0; counter-reset:step; border:1px solid var(--rule);
+    border-radius:8px; background:var(--surface); overflow:hidden; display:flex; flex-direction:column; }
+  ol.steps li{ counter-increment:step; display:grid; grid-template-columns:44px 1fr; gap:14px;
+    padding:15px 16px; border-bottom:1px solid var(--rule-soft); align-items:start; }
+  ol.steps li:last-child{ border-bottom:0; }
+  ol.steps li::before{ content:counter(step); font-family:"JetBrains Mono",monospace; font-size:13px;
+    font-weight:600; color:var(--accent); background:var(--accent-soft); width:28px; height:28px;
+    border-radius:50%; display:grid; place-items:center; }
+  ol.steps li > div{ display:flex; flex-direction:column; gap:4px; }
+  ol.steps b{ font-family:"Archivo",sans-serif; font-weight:600; }
+  ol.steps small{ color:var(--ink-soft); font-size:14px; line-height:1.5; }
+  footer{ margin-top:40px; padding-top:22px; border-top:1px solid var(--rule);
+    font-size:14px; color:var(--ink-soft); display:flex; flex-direction:column; gap:6px; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">WALL&middot;E build &mdash; master sheet</p>
+    <h1>Every wire</h1>
+    <p class="lede">Twenty-five of the forty pins, in one place. Power first, then the
+      screen, then audio, then the motors &mdash; wired in that order so a mistake shows
+      up while there is still room to reach it.</p>
+  </header>
+
+  <section>
+    <h2>How power flows</h2>
+    <figure>
+      <div class="scroller">
+        <svg class="plan" viewBox="0 0 250 150" role="img"
+             aria-label="Block diagram: two 18650 cells feed the battery shield; the shield's USB-A output powers the Radxa board over USB-C, and separately feeds the motor driver directly. The board drives the display and touch controller over SPI, the microphone and amplifier over I2S with the amplifier driving the speaker, and the motor driver over four GPIO lines. Motor current never passes through the board.">
+          <text x="8" y="9" class="hd">POWER AND SIGNAL &mdash; motor current never crosses the board</text>
+
+          <rect x="8" y="58" width="32" height="26" rx="3" class="box"/>
+          <text x="24" y="70" class="lb">2 &times; 18650</text>
+          <text x="24" y="77" class="lbs">cells</text>
+
+          <rect x="50" y="54" width="34" height="34" rx="3" class="box"/>
+          <text x="67" y="66" class="lb">shield</text>
+          <text x="67" y="73" class="lbs">charge + 5V</text>
+          <text x="67" y="80" class="lbs">USB-A out</text>
+          <path d="M40,71 H50" class="w wp"/>
+
+          <rect x="104" y="36" width="36" height="66" rx="3" class="boxb"/>
+          <text x="122" y="50" class="lb">Radxa</text>
+          <text x="122" y="57" class="lbs">A7Z</text>
+          <text x="122" y="94" class="lbs">USB-C in</text>
+
+          <path d="M84,64 H104" class="w wp"/>
+          <text x="94" y="61" class="lbs">5 V</text>
+          <path d="M84,80 C92,80 94,124 104,124" class="w wp"/>
+          <text x="86" y="120" class="lbs">battery, direct</text>
+
+          <rect x="178" y="14" width="58" height="26" rx="3" class="box"/>
+          <text x="207" y="25" class="lb">screen + touch</text>
+          <text x="207" y="33" class="lbs">8 + 4 wires</text>
+          <path d="M140,46 C160,46 162,27 178,27" class="w ws"/>
+          <text x="160" y="35" class="lbs">SPI1</text>
+
+          <rect x="178" y="50" width="34" height="20" rx="3" class="box"/>
+          <text x="195" y="62" class="lb">amp</text>
+          <circle cx="228" cy="60" r="8" class="box"/>
+          <text x="228" y="62" class="lbs">spk</text>
+          <path d="M212,60 H220" class="w wp"/>
+          <rect x="178" y="76" width="34" height="18" rx="3" class="box"/>
+          <text x="195" y="88" class="lb">mic</text>
+          <path d="M140,62 H178" class="w wi"/>
+          <path d="M140,84 H178" class="w wi"/>
+          <text x="159" y="59" class="lbs">I2S out</text>
+          <text x="159" y="81" class="lbs">I2S in</text>
+
+          <rect x="178" y="106" width="34" height="26" rx="3" class="box"/>
+          <text x="195" y="118" class="lb">driver</text>
+          <text x="195" y="126" class="lbs">H-bridge</text>
+          <rect x="222" y="104" width="16" height="12" rx="2" class="box"/>
+          <rect x="222" y="122" width="16" height="12" rx="2" class="box"/>
+          <text x="230" y="112" class="lbs">M</text>
+          <text x="230" y="130" class="lbs">M</text>
+          <path d="M212,110 H222 M212,128 H222" class="w wm"/>
+          <path d="M140,100 C160,100 162,113 178,113" class="w wm"/>
+          <text x="158" y="105" class="lbs">4 GPIO</text>
+          <path d="M104,124 H178" class="w wp"/>
+          <text x="150" y="121" class="lbs">motor power</text>
+
+          <path d="M122,102 C122,140 178,140 195,134" class="w wg"/>
+          <text x="150" y="145" class="lbs">common ground &mdash; not optional</text>
+
+          <path d="M8,20 H18" class="w wp"/><text x="30" y="22" class="lbs">power</text>
+          <path d="M44,20 H54" class="w wg"/><text x="66" y="22" class="lbs">ground</text>
+          <path d="M80,20 H90" class="w ws"/><text x="98" y="22" class="lbs">SPI</text>
+          <path d="M112,20 H122" class="w wi"/><text x="130" y="22" class="lbs">I2S</text>
+          <path d="M146,20 H156" class="w wm"/><text x="166" y="22" class="lbs">motor</text>
+        </svg>
+      </div>
+      <figcaption>The board is powered over USB-C from the shield. The motor driver takes
+        battery power <em>directly</em> &mdash; nothing from the board's rail &mdash; but
+        shares its ground, which is what makes the four control lines mean anything.</figcaption>
+    </figure>
+    <div class="note stop">
+      <strong>Motor power never comes from the board.</strong>
+      <p>Two N20s stall at well over an amp between them. Pulled through the Radxa's 5&nbsp;V
+        pin that is a brownout mid-sentence, and a corrupted SD card if it happens during a
+        write. Battery to driver, board to driver for logic only.</p>
+    </div>
+    <div class="note stop">
+      <strong>And the grounds must be joined.</strong>
+      <p>The driver reads your GPIO as high or low <em>relative to its own ground</em>. With
+        separate grounds it sees noise and the motors twitch at random. One wire from a board
+        GND pin to the driver's GND, always.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The 3.3 V problem</h2>
+    <p>The A7Z brings 3.3&nbsp;V out on <strong>pins 1 and 17 only</strong>. Three things
+      want it: the screen's logic, the screen's backlight, and the microphone. One pin has
+      to feed two of them.</p>
+    <div class="note">
+      <strong>Put the two small loads together.</strong>
+      <p>Pin&nbsp;1 feeds the <strong>screen's VCC and the mic</strong> &mdash; about 12&nbsp;mA
+        between them. Pin&nbsp;17 feeds the <strong>backlight alone</strong>, which is the
+        hungry one at 50&nbsp;mA or more. Splice with a short length of copper: one wire into
+        pin&nbsp;1, two out.</p>
+    </div>
+    <p>The amplifier is the exception &mdash; it runs on <strong>5&nbsp;V</strong> from
+      pin&nbsp;2, which is free, and it needs the higher voltage to get any volume out of a
+      small speaker.</p>
+  </section>
+
+  <section>
+    <h2>The pin map</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Pin</th><th>Signal</th><th>Goes to</th><th>Bus</th></tr></thead>
+        <tbody>
+          <tr><td class="pin">1</td><td class="mono">3.3V</td><td>screen VCC <strong>+ mic VDD</strong> (spliced)</td><td><span class="tag t-pwr">power</span></td></tr>
+          <tr><td class="pin">2</td><td class="mono">5V</td><td>amplifier VIN</td><td><span class="tag t-pwr">power</span></td></tr>
+          <tr><td class="pin">6</td><td class="mono">GND</td><td>screen GND</td><td><span class="tag t-gnd">gnd</span></td></tr>
+          <tr><td class="pin">7</td><td class="mono">PB0</td><td>driver IN1 &mdash; left forward</td><td><span class="tag t-mot">motor</span></td></tr>
+          <tr><td class="pin">8</td><td class="mono">PB9</td><td>CP2102 <strong>RXD</strong></td><td><span class="tag t-ser">serial</span></td></tr>
+          <tr><td class="pin">9</td><td class="mono">GND</td><td>CP2102 GND</td><td><span class="tag t-gnd">gnd</span></td></tr>
+          <tr><td class="pin">10</td><td class="mono">PB10</td><td>CP2102 <strong>TXD</strong></td><td><span class="tag t-ser">serial</span></td></tr>
+          <tr><td class="pin">11</td><td class="mono">PB1</td><td>driver IN2 &mdash; left back</td><td><span class="tag t-mot">motor</span></td></tr>
+          <tr><td class="pin">12</td><td class="mono">PB5</td><td>BCLK &mdash; mic <em>and</em> amp</td><td><span class="tag t-i2s">i2s</span></td></tr>
+          <tr><td class="pin">14</td><td class="mono">GND</td><td>amplifier GND</td><td><span class="tag t-gnd">gnd</span></td></tr>
+          <tr><td class="pin">16</td><td class="mono">PJ24</td><td>touch <span class="mono">T_CS</span></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">17</td><td class="mono">3.3V</td><td>screen <span class="mono">LED</span> backlight</td><td><span class="tag t-pwr">power</span></td></tr>
+          <tr><td class="pin">18</td><td class="mono">PJ25</td><td>screen <span class="mono">RESET</span></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">19</td><td class="mono">PD12</td><td>MOSI &mdash; screen <span class="mono">SDI</span> <strong>+ touch <span class="mono">T_DIN</span></strong></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">20</td><td class="mono">GND</td><td>microphone GND</td><td><span class="tag t-gnd">gnd</span></td></tr>
+          <tr><td class="pin">21</td><td class="mono">PD13</td><td>MISO &mdash; touch <span class="mono">T_DO</span></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">22</td><td class="mono">PL5</td><td>screen <span class="mono">DC</span></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">23</td><td class="mono">PD11</td><td>CLK &mdash; screen <span class="mono">SCK</span> <strong>+ touch <span class="mono">T_CLK</span></strong></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">24</td><td class="mono">&mdash;</td><td><strong>nothing.</strong> Leave it empty</td><td></td></tr>
+          <tr><td class="pin">26</td><td class="mono">PD14</td><td>screen <span class="mono">CS</span></td><td><span class="tag t-spi">spi</span></td></tr>
+          <tr><td class="pin">29</td><td class="mono">PB2</td><td>driver IN3 &mdash; right forward</td><td><span class="tag t-mot">motor</span></td></tr>
+          <tr><td class="pin">30</td><td class="mono">GND</td><td>driver GND &mdash; <strong>mandatory</strong></td><td><span class="tag t-gnd">gnd</span></td></tr>
+          <tr><td class="pin">31</td><td class="mono">PB3</td><td>driver IN4 &mdash; right back</td><td><span class="tag t-mot">motor</span></td></tr>
+          <tr><td class="pin">35</td><td class="mono">PB6</td><td>LRCK &mdash; mic <em>and</em> amp</td><td><span class="tag t-i2s">i2s</span></td></tr>
+          <tr><td class="pin">38</td><td class="mono">PB8</td><td>mic <span class="mono">SD</span> &mdash; data in</td><td><span class="tag t-i2s">i2s</span></td></tr>
+          <tr><td class="pin">40</td><td class="mono">PB7</td><td>amp <span class="mono">DIN</span> &mdash; data out</td><td><span class="tag t-i2s">i2s</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><strong>Four pins carry two wires each:</strong> 1, 12, 19, 23 &mdash; the spliced
+      3.3&nbsp;V, the shared I&sup2;S clock and word-select, and the two SPI lines the screen
+      and the touch chip both listen on. Only one jumper socket fits on a pin, so those need
+      two wires crimped into one connector or joined just behind it.</p>
+    <p>Ten signal pins are still free: <span class="mono">3, 5, 13, 15, 27, 28, 32, 33, 36,
+      37</span> &mdash; enough for servos later. Avoid 27 and 28, which are reserved for
+      add-on board identification.</p>
+  </section>
+
+  <section>
+    <h2>Wire it in this order</h2>
+    <ol class="steps">
+      <li><div><b>Power, and stop.</b>
+        <small>Shield to the board over USB-C. Boot it, SSH in, confirm it runs on battery
+          before anything else is attached.</small></div></li>
+      <li><div><b>Serial console &mdash; pins 8, 9, 10.</b>
+        <small>Three wires, and your way back in when a later step breaks the
+          network.</small></div></li>
+      <li><div><b>Screen and touch &mdash; twelve wires.</b>
+        <small>Power pair first (1 and 6), then the six signals, then the four touch lines.
+          Test after the screen and before the touch.</small></div></li>
+      <li><div><b>Audio &mdash; mic, amp, speaker.</b>
+        <small>Both sit on the same clock and word-select. Mic on 3.3&nbsp;V spliced from
+          pin&nbsp;1, amp on 5&nbsp;V from pin&nbsp;2.</small></div></li>
+      <li><div><b>Motors last, and on a stand.</b>
+        <small>Battery to driver, four GPIO to driver, ground to pin&nbsp;30. Prop the robot
+          up so the tracks spin free the first time &mdash; if a direction is reversed you
+          want to find out with it off the floor.</small></div></li>
+    </ol>
+    <div class="note good">
+      <strong>If a motor runs the wrong way, change the config, not the wire.</strong>
+      <p>The two motors face opposite directions, so one is reversed by design. Swap
+        <span class="mono">left_forward_line</span> and
+        <span class="mono">left_backward_line</span> in <span class="mono">config.toml</span>.
+        Five seconds, versus desoldering a motor you have just glued in.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Pin functions from Radxa's 40-pin table for the Cubie A7Z, cross-checked against
+      <span class="mono">gpioinfo</span> on the board. Twenty-five pins claimed, no signal
+      assigned twice.</p>
+    <p>Nothing on this sheet has been powered up as a complete robot.</p>
+  </footer>
+</div>

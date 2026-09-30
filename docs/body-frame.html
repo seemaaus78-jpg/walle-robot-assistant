@@ -8,39 +8,34 @@
     --accent:#a4500c; --accent-soft:#f4e6d8;
     --danger:#b02222; --danger-soft:#fae9e9;
     --ok:#166b40; --ok-soft:#e3f2e9;
-    --brass:#9a7413; --line:#243039;
+    --brass:#9a7413; --batt:#7c3f9e; --board:#1a7a4a; --mod:#2a72d4; --head:#b8341f;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
       --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
       --accent:#e0914f; --accent-soft:#33261b;
-      --danger:#ff8080; --danger-soft:#331a1b;
-      --ok:#4fc98a; --ok-soft:#14291f;
-      --brass:#d8ab3c; --line:#b9c6d0;
+      --danger:#ff8080; --danger-soft:#331a1b; --ok:#4fc98a; --ok-soft:#14291f;
+      --brass:#d8ab3c; --batt:#c49bff; --board:#4fd18a; --mod:#6fb1ff; --head:#ff8a6f;
     }
   }
   :root[data-theme="dark"]{
     --ground:#0e1418; --surface:#161e24; --surface-2:#1b242b;
     --ink:#e4ecf1; --ink-soft:#93a3ad; --rule:#2b3841; --rule-soft:#222e35;
     --accent:#e0914f; --accent-soft:#33261b;
-    --danger:#ff8080; --danger-soft:#331a1b;
-    --ok:#4fc98a; --ok-soft:#14291f;
-    --brass:#d8ab3c; --line:#b9c6d0;
+    --danger:#ff8080; --danger-soft:#331a1b; --ok:#4fc98a; --ok-soft:#14291f;
+    --brass:#d8ab3c; --batt:#c49bff; --board:#4fd18a; --mod:#6fb1ff; --head:#ff8a6f;
   }
-
   body{ background:var(--ground); color:var(--ink);
     font-family:"Source Sans 3", ui-sans-serif, system-ui, sans-serif;
     font-size:17px; line-height:1.6; }
   .wrap{ max-width:820px; margin:0 auto; padding-inline:20px; padding-block:40px 72px; }
-
   h1,h2,h3{ font-family:"Archivo", ui-sans-serif, system-ui, sans-serif;
     text-wrap:balance; margin:0; }
   h1{ font-size:clamp(30px,6vw,42px); font-weight:700; letter-spacing:-.022em; line-height:1.1; }
   h2{ font-size:22px; font-weight:600; letter-spacing:-.012em; }
   h3{ font-size:16px; font-weight:600; }
   p{ margin:0; max-width:62ch; }
-
   .eyebrow{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600;
     letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0; }
   .lede{ font-size:19px; color:var(--ink-soft); }
@@ -49,226 +44,203 @@
   section{ display:flex; flex-direction:column; gap:14px; padding-block:34px;
     border-bottom:1px solid var(--rule-soft); }
   section:last-of-type{ border-bottom:0; }
-
   .note{ border-left:3px solid var(--accent); background:var(--accent-soft);
-    padding:14px 16px; border-radius:0 6px 6px 0; display:flex;
-    flex-direction:column; gap:6px; }
+    padding:14px 16px; border-radius:0 6px 6px 0; display:flex; flex-direction:column; gap:6px; }
   .note.stop{ border-left-color:var(--danger); background:var(--danger-soft); }
   .note.good{ border-left-color:var(--ok); background:var(--ok-soft); }
   .note strong{ font-family:"Archivo",sans-serif; font-weight:600; }
-
   figure{ margin:0; display:flex; flex-direction:column; gap:10px; }
   .scroller{ overflow-x:auto; background:var(--surface); border:1px solid var(--rule);
     border-radius:8px; padding:10px; }
-  .plan{ display:block; width:100%; min-width:560px; height:auto; }
+  .plan{ display:block; width:100%; min-width:620px; height:auto; }
   figcaption{ font-size:14px; color:var(--ink-soft); max-width:62ch; }
-
-  .outline{ fill:none; stroke:var(--brass); stroke-width:2.4; stroke-linejoin:round; }
-  .rail{ fill:none; stroke:var(--brass); stroke-width:1.6; stroke-dasharray:4 3; opacity:.75; }
-  .dim{ stroke:var(--ink-soft); stroke-width:.6; fill:none; }
-  .dimtext{ font-family:"JetBrains Mono",monospace; font-size:5.4px;
-    fill:var(--ink); text-anchor:middle; }
-  .dimsub{ font-family:"JetBrains Mono",monospace; font-size:4.2px;
-    fill:var(--ink-soft); text-anchor:middle; }
-  .cross{ stroke:var(--brass); stroke-width:2.4; stroke-linecap:round; }
-  .head{ font-family:"Archivo",sans-serif; font-size:6px; font-weight:600;
-    fill:var(--ink); }
-
-  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:8px;
-    background:var(--surface); }
+  .frame{ fill:none; stroke:var(--brass); stroke-width:2.2; stroke-linejoin:round; }
+  .track{ fill:none; stroke:var(--ink-soft); stroke-width:1.4; stroke-dasharray:4 3; }
+  .part{ stroke-width:1.2; }
+  .pb{ fill:var(--batt); fill-opacity:.18; stroke:var(--batt); }
+  .pd{ fill:var(--board); fill-opacity:.18; stroke:var(--board); }
+  .pm{ fill:var(--mod); fill-opacity:.18; stroke:var(--mod); }
+  .ph{ fill:var(--head); fill-opacity:.14; stroke:var(--head); }
+  .dim{ stroke:var(--ink-soft); stroke-width:.5; fill:none; }
+  .dt{ font-family:"JetBrains Mono",monospace; font-size:5px; fill:var(--ink); text-anchor:middle; }
+  .lb{ font-family:"Source Sans 3",sans-serif; font-size:4.6px; fill:var(--ink); }
+  .lbs{ font-family:"Source Sans 3",sans-serif; font-size:4.2px; fill:var(--ink-soft); }
+  .hd{ font-family:"Archivo",sans-serif; font-size:5.6px; font-weight:600; fill:var(--ink); }
+  .tablewrap{ overflow-x:auto; border:1px solid var(--rule); border-radius:8px; background:var(--surface); }
   table{ border-collapse:collapse; width:100%; font-size:15px; }
-  th,td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule-soft);
-    vertical-align:top; }
+  th,td{ text-align:left; padding:11px 14px; border-bottom:1px solid var(--rule-soft); vertical-align:top; }
   thead th{ font-family:"Archivo",sans-serif; font-size:11px; font-weight:600;
     letter-spacing:.09em; text-transform:uppercase; color:var(--ink-soft);
     background:var(--surface-2); border-bottom:1px solid var(--rule); white-space:nowrap; }
   tbody tr:last-child td{ border-bottom:0; }
-  .mono{ font-family:"JetBrains Mono",monospace; font-size:13.5px;
-    font-variant-numeric:tabular-nums; }
-  .no{ color:var(--danger); font-weight:600; }
-  .yes{ color:var(--ok); font-weight:600; }
-
-  ol.steps{ list-style:none; margin:0; padding:0; counter-reset:step;
-    border:1px solid var(--rule); border-radius:8px; background:var(--surface);
-    overflow:hidden; display:flex; flex-direction:column; }
-  ol.steps li{ counter-increment:step; display:grid; grid-template-columns:44px 1fr;
-    gap:14px; padding:15px 16px; border-bottom:1px solid var(--rule-soft); align-items:start; }
-  ol.steps li:last-child{ border-bottom:0; }
-  ol.steps li::before{ content:counter(step); font-family:"JetBrains Mono",monospace;
-    font-size:13px; font-weight:600; color:var(--accent); background:var(--accent-soft);
-    width:28px; height:28px; border-radius:50%; display:grid; place-items:center; }
-  ol.steps li > div{ display:flex; flex-direction:column; gap:4px; }
-  ol.steps b{ font-family:"Archivo",sans-serif; font-weight:600; }
-  ol.steps small{ color:var(--ink-soft); font-size:14px; line-height:1.5; }
-
-  .cutlist{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    gap:10px; }
+  .mono{ font-family:"JetBrains Mono",monospace; font-size:13.5px; font-variant-numeric:tabular-nums; }
+  .swatch{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:8px; }
+  .cutlist{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
   .cut{ background:var(--surface); border:1px solid var(--rule); border-radius:8px;
     padding:14px 16px; display:flex; flex-direction:column; gap:2px; }
-  .cut .n{ font-family:"JetBrains Mono",monospace; font-size:24px; font-weight:600;
+  .cut .n{ font-family:"JetBrains Mono",monospace; font-size:23px; font-weight:600;
     color:var(--accent); font-variant-numeric:tabular-nums; }
   .cut .w{ font-size:14px; color:var(--ink-soft); }
-  .cut .was{ font-size:12.5px; color:var(--ink-soft); font-family:"JetBrains Mono",monospace; }
-
   footer{ margin-top:40px; padding-top:22px; border-top:1px solid var(--rule);
     font-size:14px; color:var(--ink-soft); display:flex; flex-direction:column; gap:6px; }
-  a{ color:var(--accent); }
-  @media (max-width:520px){
-    body{ font-size:16px; }
-    ol.steps li{ grid-template-columns:34px 1fr; gap:10px; padding:13px 12px; }
-    ol.steps li::before{ width:24px; height:24px; font-size:12px; }
-  }
+  @media (max-width:520px){ body{ font-size:16px; } }
 </style>
 
 <div class="wrap">
   <header class="top">
     <p class="eyebrow">WALL&middot;E build &mdash; the frame</p>
-    <h1>Bending the body</h1>
-    <p class="lede">There are no cut lengths in the original. You print a sheet,
-      lay the brass on the printed line, bend it to match, and cut where the line
-      stops. But that sheet is drawn around parts far smaller than yours.</p>
+    <h1>Blueprint</h1>
+    <p class="lede">Sized to the parts on your table, not to a scale factor. The
+      battery decides almost everything: at 100&nbsp;&times;&nbsp;50&nbsp;mm it is the
+      largest object in the robot, and the body is essentially a box built around it.</p>
   </header>
 
   <section>
-    <h2>What the original sheet says</h2>
-    <p>The creator's <em>Structural Sketch</em> is one A4 page at exactly 300&nbsp;DPI,
-      so printing it at 100&nbsp;% &mdash; not &ldquo;fit to page&rdquo; &mdash; gives a
-      true 1:1 template. Five numbers are marked on it:</p>
-    <div class="cutlist">
-      <div class="cut"><span class="n">6.3</span><span class="w">cm &mdash; bottom edge</span></div>
-      <div class="cut"><span class="n">3.5</span><span class="w">cm &mdash; front slope</span></div>
-      <div class="cut"><span class="n">2.1</span><span class="w">cm &mdash; top edge</span></div>
-      <div class="cut"><span class="n">2.3</span><span class="w">cm &mdash; back edge</span></div>
-      <div class="cut"><span class="n">3.2</span><span class="w">cm &times;8 &mdash; cross pieces</span></div>
-    </div>
-    <p>Two identical side profiles, joined by eight cross pieces. The cross pieces
-      are what set the body's width, so the finished box is
-      <span class="mono">6.3 &times; 3.5 &times; 3.2 cm</span>.</p>
-  </section>
-
-  <section>
-    <h2>Why you cannot use it as printed</h2>
-    <p>That body was built around a XIAO ESP32S3 &mdash; a board about the size of a
-      postage stamp &mdash; and a 1.54&Prime; screen. You are building the same robot
-      around a Radxa and a 2.8&Prime; panel. Measure them against a 6.3&nbsp;cm box:</p>
+    <h2>What has to go inside</h2>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Part</th><th>Size</th><th>Into a 6.3 &times; 3.5 &times; 3.2 cm body?</th></tr></thead>
+        <thead><tr><th>Part</th><th>Size</th><th>Where it sits</th></tr></thead>
         <tbody>
-          <tr><td>Radxa Cubie A7Z</td><td class="mono">6.5 &times; 3.0 cm</td>
-              <td><span class="no">No</span> &mdash; longer than the body itself</td></tr>
-          <tr><td>18650 cell + shield</td><td class="mono">~7.2 &times; 2.6 cm</td>
-              <td><span class="no">No</span> &mdash; also longer than the body</td></tr>
-          <tr><td>2.8&Prime; display module</td><td class="mono">5.0 &times; 8.6 cm</td>
-              <td><span class="no">No</span> &mdash; the head would dwarf the body</td></tr>
-          <tr><td>Speaker, amp, mic, driver</td><td class="mono">small</td>
-              <td><span class="yes">Yes</span> &mdash; but nowhere left to put them</td></tr>
+          <tr><td><span class="swatch" style="background:var(--batt)"></span>Battery holder, 2&times;18650</td>
+              <td class="mono">100 &times; 50 mm</td><td>Floor of the body, full length</td></tr>
+          <tr><td><span class="swatch" style="background:var(--board)"></span>Radxa Cubie A7Z</td>
+              <td class="mono">65 &times; 30 mm</td><td>Flat on top of the battery</td></tr>
+          <tr><td><span class="swatch" style="background:var(--head)"></span>Screen</td>
+              <td class="mono">77 &times; 42 mm</td><td>The head &mdash; it <em>is</em> the head</td></tr>
+          <tr><td><span class="swatch" style="background:var(--mod)"></span>Amp, mic, motor driver</td>
+              <td class="mono">small</td><td>Against the back wall, above the battery</td></tr>
+          <tr><td>Speaker</td><td class="mono">40 mm &oslash;</td><td>Behind the screen, in the head</td></tr>
+          <tr><td>Track &amp; sprockets &times;2</td><td class="mono">60 &times; 35 mm</td><td>Outside, each side</td></tr>
+          <tr><td>N20 gearmotors &times;2</td><td class="mono">~26 mm + shaft</td><td>Low, driving the rear sprocket</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="note stop">
-      <strong>The board alone is longer than the body.</strong>
-      <p>Not close, not tight &mdash; 6.5&nbsp;cm of board into 6.3&nbsp;cm of box. Print
-        that sheet at 100&nbsp;%, cut brass to it, and none of your electronics goes
-        inside. This is the one thing to get right before any metal is cut.</p>
+    <p>Battery <span class="mono">100</span> plus clearance gives an interior of
+      <span class="mono">107 &times; 57 mm</span>. Add the brass and the body lands at
+      <span class="mono">110 &times; 60 mm</span> &mdash; which is
+      <strong>1.75&times;</strong> the original sketch lengthwise and
+      <strong>1.88&times;</strong> in depth.</p>
+    <div class="note good">
+      <strong>The proportions survive the scaling.</strong>
+      <p>Every edge lands within 1&nbsp;% of the original's ratios except the depth,
+        which is 7&nbsp;% chunkier to swallow the battery. It still reads as WALL&middot;E,
+        just slightly broader in the shoulders.</p>
     </div>
   </section>
 
   <section>
-    <h2>Double everything</h2>
-    <p>Scale the whole frame to <strong>200&nbsp;%</strong>. Every number doubles, the
-      proportions stay exactly WALL&middot;E, and the box becomes
-      <span class="mono">12.6 &times; 7.0 &times; 6.4 cm</span> &mdash; which swallows the
-      board, the battery and the wiring with room to work in.</p>
-
+    <h2>Side profile, with everything in it</h2>
     <figure>
       <div class="scroller">
-        <svg class="plan" viewBox="0 0 190 116" role="img"
-             aria-label="Side profile of the WALL-E body frame at 200 percent scale: a trapezoid 126 mm along the bottom, 46 mm up the back edge, 42 mm across the top, and a 70 mm front slope, with eight 64 mm cross pieces setting the body width.">
-          <text x="22" y="10" class="head">SIDE PROFILE &mdash; bend two, mirror images</text>
+        <svg class="plan" viewBox="0 0 215 172" role="img"
+             aria-label="Side profile of the WALL-E body frame drawn to scale with its contents: a 110 by 58 millimetre trapezoid body, the 100 by 21 millimetre battery holder filling the floor, the 65 millimetre Radxa board flat above it, small modules against the back wall, the head carrying the 77 by 42 millimetre screen on a short neck, and the 60 millimetre track which covers only the front 55 percent of the body.">
+          <text x="14" y="10" class="hd">SIDE VIEW &mdash; drawn to scale, 1 unit = 1 mm</text>
 
-          <path d="M22,83 L148,83 L148,37 L89,18 L47,18 Z" class="outline"/>
-          <path d="M26,78 L144,78" class="rail"/>
+          <rect x="72" y="24" width="30" height="42" rx="2" class="part ph"/>
+          <text x="106" y="40" class="lb">head, 42 tall</text>
+          <text x="106" y="47" class="lbs">77 mm across (not seen from here)</text>
+          <text x="106" y="54" class="lbs">screen on the front face,</text>
+          <text x="106" y="60" class="lbs">speaker behind it</text>
+          <path d="M84,66 L80,85" class="frame"/>
+          <text x="60" y="76" class="lbs">neck</text>
 
-          <path d="M22,92 L148,92 M22,89 L22,95 M148,89 L148,95" class="dim"/>
-          <text x="85" y="101" class="dimtext">126 mm</text>
-          <text x="85" y="107" class="dimsub">was 6.3 cm</text>
+          <path d="M25,143 L135,143 L135,103 L84,85 L47,85 Z" class="frame"/>
 
-          <path d="M157,37 L157,83 M154,37 L160,37 M154,83 L160,83" class="dim"/>
-          <text x="172" y="58" class="dimtext">46</text>
-          <text x="172" y="64" class="dimsub">was 2.3</text>
+          <rect x="34" y="120" width="100" height="21" rx="1.5" class="part pb"/>
+          <text x="84" y="133" class="lb" text-anchor="middle">battery 100 &times; 21</text>
 
-          <path d="M47,11 L89,11 M47,8 L47,14 M89,8 L89,14" class="dim"/>
-          <text x="68" y="7" class="dimtext">42 mm</text>
+          <rect x="40" y="108" width="65" height="8" rx="1" class="part pd"/>
+          <text x="72" y="114" class="lb" text-anchor="middle">Radxa 65</text>
 
-          <path d="M15,83 L8,18" class="dim"/>
-          <text x="8" y="52" class="dimtext">70</text>
-          <text x="8" y="58" class="dimsub">was 3.5</text>
+          <rect x="108" y="100" width="24" height="16" rx="1" class="part pm"/>
+          <text x="120" y="110" class="lb" text-anchor="middle">amp</text>
+          <text x="120" y="96" class="lbs" text-anchor="middle">driver, mic</text>
 
-          <text x="22" y="72" class="dimsub">track rail</text>
+          <path d="M42.5,122 a17.5,17.5 0 0 0 0,35 h25 a17.5,17.5 0 0 0 0,-35 z" class="track"/>
+          <text x="55" y="165" class="lbs" text-anchor="middle">track, 60 long</text>
+          <path d="M85,150 L135,150 M85,147 L85,153 M135,147 L135,153" class="dim"/>
+          <text x="110" y="165" class="dt">50 mm bare</text>
 
-          <text x="22" y="119" class="head">&nbsp;</text>
+          <path d="M25,15 L135,15 M25,12 L25,18 M135,12 L135,18" class="dim"/>
+          <text x="80" y="11" class="dt">110 mm bottom</text>
+
+          <path d="M145,103 L145,143 M142,103 L148,103 M142,143 L148,143" class="dim"/>
+          <text x="163" y="125" class="dt">40 back</text>
+
+          <path d="M47,79 L84,79 M47,76 L47,82 M84,76 L84,82" class="dim"/>
+          <text x="65" y="75" class="dt">37 top</text>
+
+          <path d="M18,143 L11,85" class="dim"/>
+          <text x="10" y="117" class="dt">62</text>
+          <text x="10" y="124" class="lbs" text-anchor="middle">front</text>
+
+          <path d="M88,80 L133,96" class="dim"/>
+          <text x="118" y="84" class="dt">54 rear</text>
         </svg>
       </div>
-      <figcaption>The side profile at 200&nbsp;%, with the original centimetre figures
-        underneath each. The printed sheet remains the authority on the exact corner
-        angles &mdash; this is the dimensioned summary, not a substitute template.
-        The dashed line is the lower rail the track runs against.</figcaption>
+      <figcaption>Body, battery, board and head to the same scale. The battery runs
+        almost wall to wall &mdash; 100&nbsp;mm of holder in 107&nbsp;mm of interior &mdash;
+        which is why the body cannot be made shorter. The dashed outline is the track.</figcaption>
     </figure>
-
-    <h3>Cut list</h3>
-    <div class="cutlist">
-      <div class="cut"><span class="n">126</span><span class="w">mm bottom</span><span class="was">&times;2</span></div>
-      <div class="cut"><span class="n">70</span><span class="w">mm front slope</span><span class="was">&times;2</span></div>
-      <div class="cut"><span class="n">42</span><span class="w">mm top</span><span class="was">&times;2</span></div>
-      <div class="cut"><span class="n">46</span><span class="w">mm back</span><span class="was">&times;2</span></div>
-      <div class="cut"><span class="n">62</span><span class="w">mm rear slope</span><span class="was">&times;2</span></div>
-      <div class="cut"><span class="n">64</span><span class="w">mm cross pieces</span><span class="was">&times;8</span></div>
-    </div>
-    <p>Roughly <strong>1.2&nbsp;m of brass</strong> in total. Buy 1.5&nbsp;m &mdash; the
-      first bend of anything is always the one you get wrong.</p>
-    <div class="note">
-      <strong>Two thicknesses, two jobs.</strong>
-      <p><span class="mono">1.5&nbsp;mm</span> brass is the skeleton: it holds shape and
-        takes the weight. <span class="mono">1&nbsp;mm</span> copper is soft enough to
-        thread through a component's mounting hole, which is how the boards attach
-        without brackets.</p>
-    </div>
   </section>
 
   <section>
-    <h2>Order of work</h2>
-    <ol class="steps">
-      <li><div><b>Draw the profile full size on paper.</b>
-        <small>Double every number off the original sheet and rule it out, or print the
-          sheet at 200&nbsp;%. Either way, measure the drawn line with a ruler before
-          cutting anything &mdash; printers lie about scale.</small></div></li>
-      <li><div><b>Bend one side, then match the second to it.</b>
-        <small>Not to the drawing &mdash; to the first one. Two sides that agree with
-          each other sit square; two that each agree with the paper do not.</small></div></li>
-      <li><div><b>Solder the eight cross pieces.</b>
-        <small>Corners first, then the middles. The frame is floppy until roughly the
-          fifth joint, then suddenly rigid.</small></div></li>
-      <li><div><b>Test fit the board and battery before closing it up.</b>
-        <small>Drop them in loose. Anything that does not fit now will not fit once
-          there are wires in the way.</small></div></li>
-      <li><div><b>Head, tracks and arms last.</b>
-        <small>The head carries the 2.8&Prime; panel, so build it around the module you
-          actually have rather than around the drawing.</small></div></li>
-    </ol>
-    <div class="note good">
-      <strong>The wiring diagram on that sheet is not yours.</strong>
-      <p>Its lower half wires a XIAO ESP32S3 to a 1.54&Prime; screen. Ignore all of it &mdash;
-        our pin map is in <span class="mono">docs/hardware.md</span> and the screen wiring
-        has its own page. Use the sheet for the shape only.</p>
+    <h2>The track is too short</h2>
+    <div class="note stop">
+      <strong>60&nbsp;mm of track on a 110&nbsp;mm body covers 55&nbsp;% of it.</strong>
+      <p>WALL&middot;E's tracks run nearly the whole length of his body. Yours would stop
+        just past halfway and leave 50&nbsp;mm of bare brass at the back, which will read
+        as wrong even to someone who has never looked at the film closely.</p>
+    </div>
+    <p>Three ways out, in the order I would try them:</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Option</th><th>Cost</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Add chain links</strong> and a third idler sprocket</td>
+              <td>a few more links</td>
+              <td>Best. Chain toy track is sold by the link; extending to ~100 mm keeps everything else as drawn</td></tr>
+          <tr><td><strong>One 18650 instead of two</strong></td>
+              <td>half the runtime</td>
+              <td>Battery drops to ~65 mm, body to ~75 mm, and the 60 mm track fits properly</td></tr>
+          <tr><td><strong>Move the battery into a rear hump</strong></td>
+              <td>changes the silhouette</td>
+              <td>Body shortens over the tracks, but it stops looking like WALL&middot;E</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Measure your chain first: if it is sold in links you can almost certainly buy or
+      cannibalise more, and everything on this page stays as drawn.</p>
+  </section>
+
+  <section>
+    <h2>Cut list</h2>
+    <p>All 1.5&nbsp;mm brass. Bend one side, then match the second <em>to the first</em>
+      rather than to the paper &mdash; two sides that agree with each other sit square.</p>
+    <div class="cutlist">
+      <div class="cut"><span class="n">110</span><span class="w">mm bottom &times;2</span></div>
+      <div class="cut"><span class="n">62</span><span class="w">mm front slope &times;2</span></div>
+      <div class="cut"><span class="n">37</span><span class="w">mm top &times;2</span></div>
+      <div class="cut"><span class="n">54</span><span class="w">mm rear slope &times;2</span></div>
+      <div class="cut"><span class="n">40</span><span class="w">mm back &times;2</span></div>
+      <div class="cut"><span class="n">60</span><span class="w">mm cross pieces &times;8</span></div>
+    </div>
+    <p><strong>1.09&nbsp;m of brass in total.</strong> Cut 1.4&nbsp;m &mdash; the first
+      bend of anything is the one you get wrong, and the rear slope is the fiddly one.</p>
+    <div class="note">
+      <strong>Fit the battery before the last two cross pieces.</strong>
+      <p>It clears the walls by three millimetres on each side. Drop it in while the frame
+        is still open at the top, and if it fouls anywhere you can still spread the sides.
+        After the top cross pieces go on, you cannot.</p>
     </div>
   </section>
 
   <footer>
-    <p>Dimensions read from the creator's <em>Structural Sketch</em> (HVT Lab /
-      huyvector.org), verified as A4 at 300&nbsp;DPI. The 200&nbsp;% figure is derived
-      from the parts in this build, not from the original.</p>
-    <p>Nothing here has been built. The scale factor is arithmetic against measured
-      component sizes, not a frame anyone has bent.</p>
+    <p>Body dimensions derived from measured parts: battery 100&nbsp;&times;&nbsp;50,
+      screen 77&nbsp;&times;&nbsp;42, track 60&nbsp;&times;&nbsp;35 (yours);
+      Radxa 65&nbsp;&times;&nbsp;30 (Radxa docs). Proportions taken from the reference
+      build's Structural Sketch, HVT Lab / huyvector.org.</p>
+    <p>Nothing here has been built. These are dimensions and arithmetic, not a frame
+      anyone has bent.</p>
   </footer>
 </div>

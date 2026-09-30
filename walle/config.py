@@ -141,8 +141,13 @@ class DriveConfig:
 class MotionConfig:
     """Servo bank settings.
 
-    ``gpiochip1`` line numbers below are placeholders: run ``gpioinfo`` on the
-    board and set the real offsets before wiring anything up.
+    All four servos share one gpiochip because :class:`ServoBank` pulses them
+    from a single line request - software PWM across two chips would need two
+    requests kept in step, and a servo that misses a frame twitches.
+
+    gpiochip1 covers banks L and M at 32 lines each, so the offsets are
+    NUM for PL and NUM + 32 for PM. Confirmed against gpiodetect reporting
+    gpiochip1 with 64 lines.
     """
 
     chip: str = "gpiochip1"
@@ -154,11 +159,13 @@ class MotionConfig:
     """How long to keep pulsing after reaching a position before detaching."""
 
     servos: tuple[ServoConfig, ...] = (
-        ServoConfig("neck_pan", line=15),
-        ServoConfig("neck_tilt", line=16),
-        ServoConfig("left_arm", line=17),
-        ServoConfig("right_arm", line=18),
+        ServoConfig("neck_pan", line=6),      # PL6,  header pin 13
+        ServoConfig("neck_tilt", line=7),     # PL7,  header pin 15
+        ServoConfig("left_arm", line=35),     # PM3,  header pin 33
+        ServoConfig("right_arm", line=36),    # PM4,  header pin 37
     )
+    """Header pin 32 (PM5, line 37) is the spare if a fifth is ever wanted.
+    The display's DC line is PL5 on this same chip; different line, no clash."""
 
 
 @dataclass(frozen=True)

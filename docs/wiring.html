@@ -89,9 +89,9 @@
   <header class="top">
     <p class="eyebrow">WALL&middot;E build &mdash; master sheet</p>
     <h1>Every wire</h1>
-    <p class="lede">Twenty-five of the forty pins, in one place. Power first, then the
-      screen, then audio, then the motors &mdash; wired in that order so a mistake shows
-      up while there is still room to reach it.</p>
+    <p class="lede">Thirty of the forty pins, in one place: screen, touch, audio,
+      tracks, servos, camera and the way back in when it all goes quiet. Wired in the order
+      below so a mistake shows up while there is still room to reach it.</p>
   </header>
 
   <section>
@@ -99,7 +99,7 @@
     <figure>
       <div class="scroller">
         <svg class="plan" viewBox="0 0 250 150" role="img"
-             aria-label="Block diagram: two 18650 cells feed the battery shield; the shield's USB-A output powers the Radxa board over USB-C, and separately feeds the motor driver directly. The board drives the display and touch controller over SPI, the microphone and amplifier over I2S with the amplifier driving the speaker, and the motor driver over four GPIO lines. Motor current never passes through the board.">
+             aria-label="Block diagram: two 18650 cells feed the battery shield; the shield's USB-A output powers the Radxa board over USB-C, and separately feeds the motor driver and the servos directly. The board drives the display and touch controller over SPI, the microphone and amplifier over I2S with the amplifier driving the speaker, the motor driver over four GPIO lines, and four servos over four more. Motor and servo current never passes through the board.">
           <text x="8" y="9" class="hd">POWER AND SIGNAL &mdash; motor current never crosses the board</text>
 
           <rect x="8" y="58" width="32" height="26" rx="3" class="box"/>
@@ -155,6 +155,11 @@
 
           <path d="M122,102 C122,140 178,140 195,134" class="w wg"/>
           <text x="150" y="145" class="lbs">common ground &mdash; not optional</text>
+
+          <rect x="178" y="136" width="34" height="12" rx="3" class="box"/>
+          <text x="195" y="145" class="lb">4 servos</text>
+          <path d="M140,96 C158,96 160,142 178,142" class="w wm"/>
+          <text x="152" y="136" class="lbs">4 PWM</text>
 
           <path d="M8,20 H18" class="w wp"/><text x="30" y="22" class="lbs">power</text>
           <path d="M44,20 H54" class="w wg"/><text x="66" y="22" class="lbs">ground</text>
@@ -213,7 +218,9 @@
           <tr><td class="pin">10</td><td class="mono">PB10</td><td>CP2102 <strong>TXD</strong></td><td><span class="tag t-ser">serial</span></td></tr>
           <tr><td class="pin">11</td><td class="mono">PB1</td><td>driver IN2 &mdash; left back</td><td><span class="tag t-mot">motor</span></td></tr>
           <tr><td class="pin">12</td><td class="mono">PB5</td><td>BCLK &mdash; mic <em>and</em> amp</td><td><span class="tag t-i2s">i2s</span></td></tr>
+          <tr><td class="pin">13</td><td class="mono">PL6</td><td>servo &mdash; neck pan</td><td><span class="tag t-mot">servo</span></td></tr>
           <tr><td class="pin">14</td><td class="mono">GND</td><td>amplifier GND</td><td><span class="tag t-gnd">gnd</span></td></tr>
+          <tr><td class="pin">15</td><td class="mono">PL7</td><td>servo &mdash; neck tilt</td><td><span class="tag t-mot">servo</span></td></tr>
           <tr><td class="pin">16</td><td class="mono">PJ24</td><td>touch <span class="mono">T_CS</span></td><td><span class="tag t-spi">spi</span></td></tr>
           <tr><td class="pin">17</td><td class="mono">3.3V</td><td>screen <span class="mono">LED</span> backlight</td><td><span class="tag t-pwr">power</span></td></tr>
           <tr><td class="pin">18</td><td class="mono">PJ25</td><td>screen <span class="mono">RESET</span></td><td><span class="tag t-spi">spi</span></td></tr>
@@ -227,7 +234,10 @@
           <tr><td class="pin">29</td><td class="mono">PB2</td><td>driver IN3 &mdash; right forward</td><td><span class="tag t-mot">motor</span></td></tr>
           <tr><td class="pin">30</td><td class="mono">GND</td><td>driver GND &mdash; <strong>mandatory</strong></td><td><span class="tag t-gnd">gnd</span></td></tr>
           <tr><td class="pin">31</td><td class="mono">PB3</td><td>driver IN4 &mdash; right back</td><td><span class="tag t-mot">motor</span></td></tr>
+          <tr><td class="pin">33</td><td class="mono">PM3</td><td>servo &mdash; left arm</td><td><span class="tag t-mot">servo</span></td></tr>
+          <tr><td class="pin">34</td><td class="mono">GND</td><td>servo ground &mdash; <strong>mandatory</strong></td><td><span class="tag t-gnd">gnd</span></td></tr>
           <tr><td class="pin">35</td><td class="mono">PB6</td><td>LRCK &mdash; mic <em>and</em> amp</td><td><span class="tag t-i2s">i2s</span></td></tr>
+          <tr><td class="pin">37</td><td class="mono">PM4</td><td>servo &mdash; right arm</td><td><span class="tag t-mot">servo</span></td></tr>
           <tr><td class="pin">38</td><td class="mono">PB8</td><td>mic <span class="mono">SD</span> &mdash; data in</td><td><span class="tag t-i2s">i2s</span></td></tr>
           <tr><td class="pin">40</td><td class="mono">PB7</td><td>amp <span class="mono">DIN</span> &mdash; data out</td><td><span class="tag t-i2s">i2s</span></td></tr>
         </tbody>
@@ -237,9 +247,60 @@
       3.3&nbsp;V, the shared I&sup2;S clock and word-select, and the two SPI lines the screen
       and the touch chip both listen on. Only one jumper socket fits on a pin, so those need
       two wires crimped into one connector or joined just behind it.</p>
-    <p>Ten signal pins are still free: <span class="mono">3, 5, 13, 15, 27, 28, 32, 33, 36,
-      37</span> &mdash; enough for servos later. Avoid 27 and 28, which are reserved for
-      add-on board identification.</p>
+    <p>Four still free: <span class="mono">3, 5, 32, 36</span>. Pin&nbsp;32
+      (<span class="mono">PM5</span>) is the spare servo channel, on the same chip as the
+      other four. Pins 27 and 28 look free but are reserved for add-on board identification
+      &mdash; leave them.</p>
+  </section>
+
+  <section>
+    <h2>Servos, and the rule they share with the motors</h2>
+    <p>Four SG90s: neck pan and tilt, one per arm. All four sit on
+      <span class="mono">gpiochip1</span> because the pulses are generated in software from
+      a single line request &mdash; split across two chips they would need keeping in step,
+      and a servo that misses a frame twitches.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Servo</th><th>Pin</th><th>GPIO</th><th>Line</th></tr></thead>
+        <tbody>
+          <tr><td>neck pan</td><td class="pin">13</td><td class="mono">PL6</td><td class="mono">6</td></tr>
+          <tr><td>neck tilt</td><td class="pin">15</td><td class="mono">PL7</td><td class="mono">7</td></tr>
+          <tr><td>left arm</td><td class="pin">33</td><td class="mono">PM3</td><td class="mono">35</td></tr>
+          <tr><td>right arm</td><td class="pin">37</td><td class="mono">PM4</td><td class="mono">36</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Banks L and M share that chip at 32 lines each, so the offset is
+      <span class="mono">NUM</span> for PL and <span class="mono">NUM&nbsp;+&nbsp;32</span>
+      for PM. The screen's <span class="mono">DC</span> line is PL5 on the same chip &mdash;
+      a different line, no clash.</p>
+    <div class="note stop">
+      <strong>Servo power comes from the battery, exactly like the motors.</strong>
+      <p>An SG90 stalls near 650&nbsp;mA. Four of them reaching a pose together is over two
+        amps &mdash; several times what the board's 5&nbsp;V pin will pass. Feed them from
+        the shield and run <strong>one ground wire back to pin&nbsp;34</strong>, or the
+        board and the servos disagree about what zero volts means and the arms jitter.</p>
+    </div>
+    <p>Only the thin signal wire goes to the header. Red and brown stay with the battery.</p>
+  </section>
+
+  <section>
+    <h2>Camera and switch</h2>
+    <p><strong>The Pi Camera you have will not fit this board.</strong> The A7Z's connector
+      is 31-pin at 0.3&nbsp;mm pitch; the camera's ribbon is 15-pin at 1.0&nbsp;mm, and the
+      Radxa forum has no working report of bridging them. Use a <strong>USB webcam</strong>
+      into the <span class="mono">USB-C 3.1</span> port with a C-to-A adapter, which leaves
+      the <span class="mono">USB-C 2.0</span> port free for power. Nothing touches the
+      header.</p>
+    <p>The <strong>switch</strong> goes inline on the wire from the shield to the board, not
+      on the header and not between the cells and the shield &mdash; cutting power upstream
+      of the charger stops it charging too.</p>
+    <div class="note">
+      <strong>Switch the robot off, not the board's power alone.</strong>
+      <p>Put the motors and servos on the switched side as well. Otherwise the tracks stay
+        live with the brain off, which is exactly the state in which a stray command left in
+        the driver drives WALL&middot;E off the table.</p>
+    </div>
   </section>
 
   <section>
@@ -257,10 +318,17 @@
       <li><div><b>Audio &mdash; mic, amp, speaker.</b>
         <small>Both sit on the same clock and word-select. Mic on 3.3&nbsp;V spliced from
           pin&nbsp;1, amp on 5&nbsp;V from pin&nbsp;2.</small></div></li>
-      <li><div><b>Motors last, and on a stand.</b>
+      <li><div><b>Motors, and on a stand.</b>
         <small>Battery to driver, four GPIO to driver, ground to pin&nbsp;30. Prop the robot
           up so the tracks spin free the first time &mdash; if a direction is reversed you
           want to find out with it off the floor.</small></div></li>
+      <li><div><b>Servos one at a time.</b>
+        <small>Signal to its pin, power from the shield, ground to pin&nbsp;34. Centre each
+          one before the horn goes on, or it will reach its stop and sit there straining.
+          Four at once and you cannot tell which is buzzing.</small></div></li>
+      <li><div><b>Camera and switch.</b>
+        <small>Webcam into the USB-C 3.1 port. Switch inline on the shield's output, with
+          the motors and servos on the switched side.</small></div></li>
     </ol>
     <div class="note good">
       <strong>If a motor runs the wrong way, change the config, not the wire.</strong>
@@ -273,8 +341,9 @@
 
   <footer>
     <p>Pin functions from Radxa's 40-pin table for the Cubie A7Z, cross-checked against
-      <span class="mono">gpioinfo</span> on the board. Twenty-five pins claimed, no signal
-      assigned twice.</p>
+      <span class="mono">gpioinfo</span> on the board. Thirty pins claimed, no signal
+      assigned twice, and the servo lines verified against
+      <span class="mono">gpiodetect</span> reporting gpiochip1 with 64 lines.</p>
     <p>Nothing on this sheet has been powered up as a complete robot.</p>
   </footer>
 </div>

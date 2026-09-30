@@ -296,8 +296,10 @@ max_seconds = 5.0
 
 [motion]
 enabled = true
-# Confirm with `gpioinfo`. The chip that carries the 40-pin header is NOT
-# always gpiochip0.
+# All four servos share one chip: ServoBank pulses them from a single line
+# request, and software PWM split across two chips would need both kept in
+# step. gpiochip1 carries banks L and M, 32 lines each, so the offset is NUM
+# for PL and NUM + 32 for PM.
 chip = "gpiochip1"
 frame_hz = 50.0
 # Seconds to keep pulsing after a move before going slack. Longer holds the
@@ -305,14 +307,20 @@ frame_hz = 50.0
 hold_s = 0.45
 
 # line = the GPIO offset within `chip`, not the physical pin number.
+#   neck_pan   PL6  = line 6   header pin 13
+#   neck_tilt  PL7  = line 7   header pin 15
+#   left_arm   PM3  = line 35  header pin 33
+#   right_arm  PM4  = line 36  header pin 37
+# Header pin 32 (PM5, line 37) is spare. The display's DC line is PL5 on this
+# same chip - different line, no clash.
 [[motion.servos]]
 name = "neck_pan"
-line = 15
+line = 6
 rest_angle = 90.0
 
 [[motion.servos]]
 name = "neck_tilt"
-line = 16
+line = 7
 rest_angle = 90.0
 # Narrow the pulse range on the neck so a bad command cannot drive the head
 # into the shell.
@@ -321,10 +329,10 @@ max_pulse_us = 2100
 
 [[motion.servos]]
 name = "left_arm"
-line = 17
+line = 35
 rest_angle = 90.0
 
 [[motion.servos]]
 name = "right_arm"
-line = 18
+line = 36
 rest_angle = 90.0
